@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T12:45:38.811282Z",
+  "generated_at": "2026-09-15T17:24:28.265084Z",
   "window": [
     "2026-09-15",
     "2026-09-16",
@@ -45,12 +45,14 @@
     "2026-09-16": {
       "lists_found": [
         "Miscellaneous - Main",
+        "Miscellaneous - Supplementary",
         "Regular / Final - Main",
+        "Regular / Final - Supplementary",
         "Registrar - Main",
         "Curative & Review (circulation)",
         "Miscellaneous - Advance"
       ],
-      "has_supplementary": false,
+      "has_supplementary": true,
       "has_advance": true,
       "has_main": true,
       "match_count": 1,
@@ -107,32 +109,15 @@
     },
     "2026-09-18": {
       "lists_found": [
+        "Miscellaneous - Main",
         "Registrar - Main",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 1,
-      "matches": [
-        {
-          "for_date": "2026-09-18",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "1364",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate"
-          ],
-          "confidence": "medium",
-          "text": "1364 SLP(Crl) No. 15497/2026 MANOJ Versus STATE OF KERALA"
-        }
-      ]
+      "match_count": 0,
+      "matches": []
     },
     "2026-09-21": {
       "lists_found": [
@@ -193,6 +178,6 @@
       "matches": []
     }
   },
-  "match_count": 5,
+  "match_count": 4,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
