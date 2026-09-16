@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T23:04:59.621994Z",
+  "generated_at": "2026-09-16T05:47:01.151443Z",
   "window": [
     "2026-09-16",
     "2026-09-17",
@@ -78,43 +78,22 @@
     },
     "2026-09-18": {
       "lists_found": [
-        "Miscellaneous - Main",
         "Registrar - Main",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 0,
-      "matches": []
-    },
-    "2026-09-21": {
-      "lists_found": [
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": false,
-      "has_advance": true,
-      "has_main": false,
-      "match_count": 0,
-      "matches": []
-    },
-    "2026-09-22": {
-      "lists_found": [
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": false,
-      "has_advance": true,
-      "has_main": false,
       "match_count": 1,
       "matches": [
         {
-          "for_date": "2026-09-22",
+          "for_date": "2026-09-18",
           "list": "Miscellaneous - Advance",
           "kind": "advance",
           "family": "MJ",
           "is_supplementary": false,
           "court": "",
-          "item": "229",
+          "item": "1364",
           "coram": "",
           "court_total": "",
           "court_fresh": "",
@@ -122,19 +101,9 @@
             "advocate"
           ],
           "confidence": "medium",
-          "text": "229 SLP(C) No. 35816/2025 M/S. C4 INFRASTRUCTURE PVT. LTD. Versus MAHARASHTRA STATE ROAD TRANSPORT CORPORATION, NASHIK DIVISION AND ORS."
+          "text": "1364 SLP(Crl) No. 15497/2026 MANOJ Versus STATE OF KERALA"
         }
       ]
-    },
-    "2026-09-23": {
-      "lists_found": [
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": false,
-      "has_advance": true,
-      "has_main": false,
-      "match_count": 0,
-      "matches": []
     },
     "2026-09-24": {
       "lists_found": [
