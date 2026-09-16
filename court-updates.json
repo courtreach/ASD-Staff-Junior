@@ -1,50 +1,16 @@
 {
-  "generated_at": "2026-09-16T17:24:28.132871Z",
+  "generated_at": "2026-09-16T20:25:39.758819Z",
   "window": [
-    "2026-09-16",
     "2026-09-17",
     "2026-09-18",
     "2026-09-21",
     "2026-09-22",
     "2026-09-23",
     "2026-09-24",
-    "2026-09-25"
+    "2026-09-25",
+    "2026-09-28"
   ],
   "by_date": {
-    "2026-09-16": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Regular / Final - Main",
-        "Regular / Final - Supplementary",
-        "Registrar - Main",
-        "Curative & Review (circulation)",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 1,
-      "matches": [
-        {
-          "for_date": "2026-09-16",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "3",
-          "item": "14",
-          "coram": "HON'BLE MR. JUSTICE PAMIDIGHANTAM SRI NARASIMHA; HON'BLE MR. JUSTICE ALOK ARADHE",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate"
-          ],
-          "confidence": "medium",
-          "text": "14 Diary No. 66421-2025 RAKESH KUMAR GUPTA Versus SECURITIES AND EXCHANGE BOARD OF INDIA AND ORS."
-        }
-      ]
-    },
     "2026-09-17": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -244,8 +210,70 @@
           "text": "1104 SLP(C) No. 23852/2025 PRIMAL THOMAS Versus STATE OF KERALA AND ORS."
         }
       ]
+    },
+    "2026-09-28": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 3,
+      "matches": [
+        {
+          "for_date": "2026-09-28",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1107",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "1107 SLP(C) No. 27751/2025 SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS. Versus SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS."
+        },
+        {
+          "for_date": "2026-09-28",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1153",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "1153 SLP(C) No. 5265/2026 MANOHAR VISHWANATH AGRAWAL Versus MADHAV AND ORS."
+        },
+        {
+          "for_date": "2026-09-28",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1496",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "1496 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
+        }
+      ]
     }
   },
-  "match_count": 8,
+  "match_count": 10,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
