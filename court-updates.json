@@ -1,29 +1,16 @@
 {
-  "generated_at": "2026-09-18T16:32:12.259822Z",
+  "generated_at": "2026-09-18T19:11:54.962144Z",
   "window": [
-    "2026-09-18",
     "2026-09-21",
     "2026-09-22",
     "2026-09-23",
     "2026-09-24",
     "2026-09-25",
     "2026-09-28",
-    "2026-09-29"
+    "2026-09-29",
+    "2026-09-30"
   ],
   "by_date": {
-    "2026-09-18": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Registrar - Main",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 0,
-      "matches": []
-    },
     "2026-09-21": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -289,6 +276,16 @@
           "text": "1416 SLP(C) No. 9386/2023 SRI MANNADHESWARAR SRI PANCHAIMMAN TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS."
         }
       ]
+    },
+    "2026-09-30": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 0,
+      "matches": []
     }
   },
   "match_count": 11,
