@@ -13279,8 +13279,10 @@ function _raListingMsg(m, d){
   const numRaw=_caseNoOrDiary(m);
   const num=(numRaw&&numRaw!=="\u2014")?numRaw:"";
   const dateStr=(d&&d.date)?fmtDate(d.date):"";
-  const lines=[`Greetings ${(m.refName||"").trim()||"Sir/Madam"},`, "",
-    `This is to inform you that ${title}${num?" ("+num+")":""} is listed`+(dateStr?` on ${dateStr}`:"")+" as under:", ""];
+  // Generic greeting (no advocate name) and a plain statement of the listing —
+  // owner's call: no "this is to inform you", no "your case", just the fact.
+  const lines=[`Greetings,`, "",
+    `${title}${num?" ("+num+")":""} is listed`+(dateStr?` on ${dateStr}`:"")+" as under:", ""];
   if(d&&d.courtNo) lines.push(`*Court No.: ${d.courtNo}*`);
   if(d&&d.itemNo)  lines.push(`*Item No.: ${d.itemNo}*`);
   const bench=d?_plainBench(d.coram):"";
@@ -20316,7 +20318,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0200";
+  window.APP_VERSION = "2026.09.20-0300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
