@@ -13291,11 +13291,30 @@ function _raListingMsg(m, d){
 }
 // matterId + the ISO date of the specific listing (a matter can have several dates
 // on record; the message is always about ONE hearing, so the caller names which).
+// The SAVED hearing-date entry (m.dates) can go stale: _autoTrackListings() writes it
+// ONCE, the first time the court's fetched list shows this matter for a day, and never
+// touches it again — so a correction the court makes afterwards (an advance-list item
+// number superseded by the final list, a court reassignment) never reaches it. The home
+// screen's court card re-fetches and reads fresh on every render, which is why it can
+// show something this saved entry does not. For a message going OUT to someone else,
+// prefer whatever the live fetch currently says; fall back to the saved entry only when
+// nothing live is available for that day (a forum this app doesn't track, or a date with
+// no matching fetch at all).
+function _liveListingFor(m, iso){
+  try{ return (_matterListings(m)||[]).find(r=>r.date===iso) || null; }catch(e){ return null; }
+}
 function notifyRefAdvocate(matterId, iso){
   const m=matterById(matterId); if(!m) return;
   if(!m.refName){ toast("No referring advocate on this matter.",true); return; }
-  const d=(m.dates||[]).find(x=>x.date===iso);
-  if(!d){ toast("No hearing-date details on record for that day.",true); return; }
+  const saved=(m.dates||[]).find(x=>x.date===iso);
+  const live=_liveListingFor(m, iso);
+  if(!saved && !live){ toast("No hearing-date details on record for that day.",true); return; }
+  const d={
+    date: iso,
+    courtNo: (live&&live.court&&live.court!=="—") ? live.court : ((saved&&saved.courtNo)||""),
+    itemNo:  (live&&live.item) ? live.item : ((saved&&saved.itemNo)||""),
+    coram:   (live&&live.coram) ? live.coram : ((saved&&saved.coram)||"")
+  };
   const num=_waNumber(_refAdvPhone(m));
   if(!num){ toast("No phone number on file for the referring advocate — add one via Edit.",true); return; }
   openModal("Notify referring advocate on WhatsApp", `
@@ -20297,7 +20316,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0100";
+  window.APP_VERSION = "2026.09.20-0200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
