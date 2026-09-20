@@ -3257,6 +3257,23 @@ function peekNextCaveatCode(){
   const seq = _maxSeq((DB.matters||[]).map(m=>m.code), /CAV-\d{2}-(\d+)/) + 1;
   return `CAV-${yr}-${String(seq).padStart(3,"0")}`;
 }
+// Interlocutory Applications get their OWN code series too, same pattern as caveats
+// and queries — an I.A. is a distinct kind of chamber file, just one that is always
+// filed IN another case rather than starting one of its own (see _caseNoOrDiary and
+// the "Filed in" linkage on the matter itself for how that parent relationship is
+// tracked and displayed).
+function nextIACode(){
+  const yr = DB.settings.fyStart.slice(2,4);
+  const seq = _maxSeq((DB.matters||[]).map(m=>m.code), /IA-\d{2}-(\d+)/) + 1;
+  DB.counters.ia = Math.max(DB.counters.ia||0, seq);
+  return `IA-${yr}-${String(seq).padStart(3,"0")}`;
+}
+function peekNextIACode(){
+  const yr = DB.settings.fyStart.slice(2,4);
+  const seq = _maxSeq((DB.matters||[]).map(m=>m.code), /IA-\d{2}-(\d+)/) + 1;
+  return `IA-${yr}-${String(seq).padStart(3,"0")}`;
+}
+
 function nextVoucherNo(){
   const yr = DB.settings.fyStart.slice(2,4);
   const seq = _maxSeq((DB.expenses||[]).map(e=>e.voucherNo), /V-\d{2}-(\d+)/) + 1;
@@ -4144,6 +4161,17 @@ function _waSendText(num, text){
 // number. A matter's caseNo often holds only a type prefix ("SLP(C) No. ___/2026") with
 // no number filled in yet — in that case the diary number is what identifies the case.
 function _caseNoOrDiary(m){
+  // An I.A. is never a fresh filing in its own right — the Supreme Court tracks it
+  // under the Diary/Case Number of the case it is filed IN, not a diary number of its
+  // own. So its identity is its own I.A. number PLUS a reference to its parent's
+  // number (recursing into the parent, which — since an I.A. can't itself be a
+  // parent — never loops).
+  if(m&&m.kind==="ia"){
+    const own=m.iaNo?("I.A. No. "+String(m.iaNo).trim()):"I.A.";
+    const p=m.parentId?matterById(m.parentId):null;
+    const parentNo=p?_caseNoOrDiary(p):"";
+    return parentNo?(own+" in "+parentNo):own;
+  }
   // A caveat is identified by its caveat number.
   if(m&&m.kind==="caveat"&&m.caveatNo) return /caveat/i.test(m.caveatNo)?String(m.caveatNo).trim():("Caveat No. "+String(m.caveatNo).trim());
   const c=String((m&&m.caseNo)||"").trim();
@@ -6525,9 +6553,15 @@ function _tplCaseBlock(m){
   if(!m) return "";
   const rows=[];
   const isCav=m.kind==="caveat";
+  const isIA=m.kind==="ia";
   if(m.parties) rows.push(`<div class="row caze"><span class="k">${isCav?"Caveat":"Case"}</span><b>${esc(m.parties)}</b></div>`);
   if(m.court) rows.push(`<div class="row"><span class="k">Court</span><b>${esc(m.court)}</b></div>`);
-  if(m.caseNo) rows.push(`<div class="row"><span class="k">Case No.</span><b>${esc(m.caseNo)}</b></div>`);
+  if(isIA){
+    if(m.iaNo) rows.push(`<div class="row"><span class="k">I.A. No.</span><b>${esc(m.iaNo)}</b></div>`);
+    const p=m.parentId?matterById(m.parentId):null;
+    if(p) rows.push(`<div class="row"><span class="k">Filed in</span><b>${esc(_caseNoOrDiary(p))}</b></div>`);
+  }
+  else if(m.caseNo) rows.push(`<div class="row"><span class="k">Case No.</span><b>${esc(m.caseNo)}</b></div>`);
   else if(isCav && m.caveatNo) rows.push(`<div class="row"><span class="k">Caveat No.</span><b>${esc(m.caveatNo)}</b></div>`);
   else if(m.diaryNo) rows.push(`<div class="row"><span class="k">Diary No.</span><b>${esc(m.diaryNo)}</b></div>`);
   if(m.code) rows.push(`<div class="row"><span class="k">Our Ref.</span><b>${esc(m.code)}</b></div>`);
@@ -12439,8 +12473,9 @@ function matterFormHTML(m, mode){
         <button type="button" class="seg-btn ${kind==="query"?"on":""}" data-k="query" onclick="setMatterKind('query')">Query (walk-in)</button>
         <button type="button" class="seg-btn ${kind==="case"?"on":""}" data-k="case" onclick="setMatterKind('case')">Case (numbered)</button>
         <button type="button" class="seg-btn ${kind==="caveat"?"on":""}" data-k="caveat" onclick="setMatterKind('caveat')">Caveat</button>
+        <button type="button" class="seg-btn ${kind==="ia"?"on":""}" data-k="ia" onclick="setMatterKind('ia')">I.A.</button>
       </div>
-      <div class="note" style="margin-top:6px">A <b>query</b> is a walk-in for advice with no number yet (gets a Q-number, convertible to a case later). A <b>caveat</b> is a caveat you've filed in court (§148A CPC) — the same details as a matter, filed defensively so you're heard before any order.</div>
+      <div class="note" style="margin-top:6px">A <b>query</b> is a walk-in for advice with no number yet (gets a Q-number, convertible to a case later). A <b>caveat</b> is a caveat you've filed in court (§148A CPC) — the same details as a matter, filed defensively so you're heard before any order. An <b>I.A.</b> (Interlocutory Application) is filed IN a case that's already on file — it gets its own I.A. number but never a Diary Number of its own; the Registry tracks it under the parent case's number.</div>
     </div>`:""}
     <div id="mfCaveatWrap" style="display:${kind==="caveat"?"block":"none"};margin-bottom:13px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)">
       <div style="font-weight:600;font-size:13px;color:var(--seal);margin-bottom:8px">Caveat details</div>
@@ -12451,6 +12486,16 @@ function matterFormHTML(m, mode){
         <div><label class="fld">Valid until (90 days)</label><input class="in" id="mfCaveatValid" readonly style="background:#f1ece0;color:var(--muted)" value="${m.caveatValidUntil?esc(fmtDate(m.caveatValidUntil)):""}"></div>
       </div>
       <div class="note" style="margin-top:6px">A caveat (§148A CPC) lapses <b>90 days</b> after filing unless renewed. It shows up in your deadlines as it nears expiry.</div>
+    </div>
+    <div id="mfIAWrap" style="display:${kind==="ia"?"block":"none"};margin-bottom:13px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)">
+      <div style="font-weight:600;font-size:13px;color:var(--seal);margin-bottom:8px">Filed in (parent case)</div>
+      <label class="fld">Case this I.A. is filed in ${kind==="ia"?'<span class="req">*</span>':''}</label>
+      <select class="in" id="mfIAParent" onchange="_mfIAParentChange()">
+        <option value="">— Select the case —</option>
+        ${(DB.matters||[]).filter(x=>!isVoided(x)&&x.kind!=="ia"&&x.id!==m.id).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}))
+          .map(x=>`<option value="${x.id}" ${m.parentId===x.id?"selected":""}>${esc(x.code)} — ${esc(x.parties||x.client||"")}${(x.caseNo||x.diaryNo)?" ("+esc(x.caseNo||("Diary "+x.diaryNo))+")":""}</option>`).join("")}
+      </select>
+      <div class="note" style="margin-top:6px">An I.A. does not get its own Diary Number — the Registry tracks it under the Diary/Case Number of the case above. Selecting it fills in the parties and forum below (still editable).</div>
     </div>
     <div class="grid g2">
       <div><label class="fld">${past?"Register no.":"Chamber "+(kind==="query"?"query":"file")+" code"}</label>
@@ -12534,10 +12579,10 @@ function matterFormHTML(m, mode){
         </select></div>
       <label class="checkline" style="margin-top:10px"><input type="checkbox" id="mfFilingOnly" ${m.filingOnly?"checked":""} onchange="_onFilingOnlyChange()"> Engaged only for <b>filing &amp; procedural</b> (AoR) — another advocate argues the substantive matter. <span style="color:var(--muted)">Won't count towards my success rate; billed to the engaging advocate.</span></label>
       <div class="grid g2" style="margin-top:10px" id="mfNumsRow">
-        <div><label class="fld">Diary No. <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+        <div id="mfDiaryWrap" style="display:${kind==="ia"?"none":"block"}"><label class="fld">Diary No. <span style="color:var(--muted);font-weight:400">(optional)</span></label>
           <input class="in mono" id="mfDiary" value="${esc(m.diaryNo||"")}" placeholder="12345/2026"></div>
-        <div><label class="fld">Case No.</label>
-          <input class="in mono" id="mfCase" value="${esc(m.caseNo||"")}" placeholder="SLP(C) 678/2026" oninput="_dupCheck('case', this.value, '${esc(m.id||"")}')">
+        <div><label class="fld" id="mfCaseLbl">${kind==="ia"?"I.A. No.":"Case No."}</label>
+          <input class="in mono" id="mfCase" value="${esc(kind==="ia"?(m.iaNo||""):(m.caseNo||""))}" placeholder="${kind==="ia"?"12345/2026":"SLP(C) 678/2026"}" oninput="_dupCheck('case', this.value, '${esc(m.id||"")}')">
           <div id="dupCase" class="dup-warn"></div></div>
       </div>
       <div style="margin-top:10px"><label class="fld">Notes</label>
@@ -12576,13 +12621,36 @@ function _onFilingOnlyChange(){
 function setMatterKind(k){
   document.querySelectorAll("#mfKindSeg .seg-btn").forEach(b=>b.classList.toggle("on", b.dataset.k===k));
   document.getElementById("mfKind").value=k;
-  document.getElementById("mfCode").value = k==="query"?peekNextQueryCode():(k==="caveat"?peekNextCaveatCode():peekNextMatterCode());
+  document.getElementById("mfCode").value = k==="query"?peekNextQueryCode():(k==="caveat"?peekNextCaveatCode():(k==="ia"?peekNextIACode():peekNextMatterCode()));
   // for a query, diary/case numbers are usually blank — keep the fields but hint
   const row=document.getElementById("mfNumsRow");
   if(row) row.style.opacity = k==="query"?".55":"1";
   const cav=document.getElementById("mfCaveatWrap");
   if(cav) cav.style.display = k==="caveat"?"block":"none";
   if(k==="caveat"){ try{ _mfCaveatCalc(); }catch(e){} }
+  const iaWrap=document.getElementById("mfIAWrap");
+  if(iaWrap) iaWrap.style.display = k==="ia"?"block":"none";
+  const diaryWrap=document.getElementById("mfDiaryWrap");
+  if(diaryWrap) diaryWrap.style.display = k==="ia"?"none":"block";
+  const caseLbl=document.getElementById("mfCaseLbl");
+  if(caseLbl) caseLbl.textContent = k==="ia"?"I.A. No.":"Case No.";
+  const caseInput=document.getElementById("mfCase");
+  if(caseInput) caseInput.placeholder = k==="ia"?"12345/2026":"SLP(C) 678/2026";
+}
+// An I.A.'s parties/forum are almost always the parent case's — pre-fill them, but
+// never CLOBBER something the user already typed (they might be entering an I.A.
+// filed by a third party / intervenor, whose details genuinely differ).
+function _mfIAParentChange(){
+  const pid=(document.getElementById("mfIAParent")||{}).value;
+  const p=pid?matterById(pid):null;
+  if(!p) return;
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e && !e.value.trim() && v) e.value=v; };
+  set("mfClient", p.client||"");
+  set("mfParties", p.parties||p.client||"");
+  set("mfAddress", p.address||"");
+  set("mfContact", p.contact||"");
+  const courtEl=document.getElementById("mfCourt");
+  if(courtEl && !courtEl.value && p.court){ courtEl.value=p.court; try{ onForumChange(); }catch(e){} }
 }
 // Caveat validity = filed date + 90 days (§148A CPC). Shows the human date in the form.
 function _mfCaveatCalc(){
@@ -12718,6 +12786,8 @@ function saveMatter(id){
   const client = document.getElementById("mfClient").value.trim();
   if(!client){ toast("Client name is required.", true); return; }
   const kind = (document.getElementById("mfKind")||{}).value || "case";
+  const iaParentId = (document.getElementById("mfIAParent")||{}).value||"";
+  if(kind==="ia" && !iaParentId){ toast("Select which case this I.A. is filed in.", true); return; }
   const data = {
     client,
     contact: document.getElementById("mfContact").value.trim(),
@@ -12735,8 +12805,14 @@ function saveMatter(id){
     court: document.getElementById("mfCourt").value.trim(),
     appearFor: (document.getElementById("mfAppearFor")||{value:""}).value,
     filingOnly: !!(document.getElementById("mfFilingOnly")||{}).checked,
-    diaryNo: document.getElementById("mfDiary").value.trim(),
-    caseNo: document.getElementById("mfCase").value.trim(),
+    // An I.A. never carries a Diary/Case number of its own — its number goes into
+    // iaNo instead, and diaryNo/caseNo stay blank so nothing downstream (duplicate-case
+    // detection, the auto-fetched cause-list matcher) mistakes it for an independent
+    // filing.
+    diaryNo: kind==="ia" ? "" : document.getElementById("mfDiary").value.trim(),
+    caseNo: kind==="ia" ? "" : document.getElementById("mfCase").value.trim(),
+    iaNo: kind==="ia" ? document.getElementById("mfCase").value.trim() : "",
+    parentId: kind==="ia" ? iaParentId : "",
     notes: document.getElementById("mfNotes").value.trim(),
     status: document.getElementById("mfStatus").value
   };
@@ -12755,7 +12831,7 @@ function saveMatter(id){
   try{ data.clientId=_resolveClientId(data.client, {addr:data.address, phone:data.contact, email:data.email}); }catch(e){}
   // Same for the referring advocate (cleared if the name was removed on edit).
   try{ data.refAdvId = data.refName ? _resolveRefAdvId(data.refName, {phone:data.refContact, email:data.refEmail, addr:data.refAddress}) : null; }catch(e){}
-  const _kindWord = kind==="caveat"?"Caveat":(kind==="query"?"Query":"Matter");
+  const _kindWord = kind==="caveat"?"Caveat":(kind==="query"?"Query":(kind==="ia"?"I.A.":"Matter"));
   if(id){
     const m = matterById(id); Object.assign(m, data);
     save(); renderAll(); closeModal(); toast(_kindWord+" saved.");
@@ -12771,7 +12847,7 @@ function saveMatter(id){
       }
     }
     window._conflictAck=false;
-    const code = kind==="query"? nextQueryCode() : (kind==="caveat"? nextCaveatCode() : nextMatterCode());
+    const code = kind==="query"? nextQueryCode() : (kind==="caveat"? nextCaveatCode() : (kind==="ia"? nextIACode() : nextMatterCode()));
     const _newMatter=Object.assign({id:uid(), code, kind, opened:todayISO()}, data);
     DB.matters.push(_newMatter);
     logActivity("matter", `New ${_kindWord.toLowerCase()} ${code}${data.parties?" — "+data.parties:(data.client?" — "+data.client:"")}`, {refId:_newMatter.id});
@@ -13148,6 +13224,29 @@ function _scLinksCard(m){
 // ===== Link recorded matters to the auto-fetched Supreme Court listings =====
 // Given a matter, find every auto-fetched cause-list entry whose case/diary number
 // matches it — so the recorded case shows where & when the court has listed it.
+// I.A.s filed IN this case — the reverse of the "Filed in" link shown on an I.A.'s
+// own page. An I.A. never shows here on ITS OWN page (an I.A. cannot itself be a
+// parent), so this returns "" for one without needing an extra guard at every call
+// site.
+function _iaMatterCard(m){
+  if(!m || m.kind==="ia") return "";
+  const list=(DB.matters||[]).filter(x=>x.kind==="ia" && x.parentId===m.id && !isVoided(x))
+    .sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}));
+  const rows=list.map(x=>`<div class="lrow"><div class="l"><div class="t"><a href="#" onclick="openMatterDetail('${x.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(x.code)}</a> — ${esc(x.iaNo?("I.A. No. "+x.iaNo):"I.A. No. pending")}</div><div class="s">${esc(x.parties||x.client||"")}${x.status?" · "+esc(x.status):""}</div></div></div>`).join("");
+  return `<div class="card" style="border-color:var(--brass)">
+    <div class="card-head"><div><h2>Interlocutory Applications</h2><div class="hint">Filed in this case — each carries this case's Diary/Case Number, not one of its own.</div></div>
+      <button class="btn seal sm" onclick="_addIAFor('${m.id}')">+ Add I.A.</button></div>
+    ${rows?`<div class="lrows">${rows}</div>`:`<div class="empty" style="padding:12px">No I.A.s filed in this case yet.</div>`}
+  </div>`;
+}
+function _addIAFor(parentId){
+  openModal("New matter", matterFormHTML());
+  setTimeout(()=>{
+    setMatterKind("ia");
+    const sel=document.getElementById("mfIAParent");
+    if(sel){ sel.value=parentId; _mfIAParentChange(); }
+  }, 30);
+}
 function _matterListings(m){
   const cu=window.__cuCache; if(!cu||!m) return [];
   const _n=s=>String(s||"").replace(/[^0-9]/g,"");
@@ -13417,7 +13516,15 @@ function renderMatterDetail(){
       </div>
       <div class="tpl-dl" style="margin-top:6px">
         ${m.kind==="caveat"?`<div class="row"><span class="k" style="min-width:96px">Caveat</span><b><span class="tag" style="background:#6b1f1f;color:#fff">Caveat filed</span>${m.caveatFiledOn?" on "+esc(fmtDate(m.caveatFiledOn)):""}</b></div>${m.caveatNo?`<div class="row"><span class="k" style="min-width:96px">Caveat No.</span><b>${esc(m.caveatNo)}</b></div>`:""}${m.caveatValidUntil?`<div class="row"><span class="k" style="min-width:96px">Valid until</span><b>${esc(fmtDate(m.caveatValidUntil))}${(function(){const dl=_daysUntil(m.caveatValidUntil);return dl<0?` <span class="tag" style="background:#8c2f39;color:#fff">Lapsed</span>`:(dl<=15?` <span class="tag" style="background:var(--brass);color:#fff">${dl}d left</span>`:"");})()}</b></div>`:""}`:""}
-        ${m.caseNo?`<div class="row"><span class="k" style="min-width:96px">Case No.</span><b>${esc(m.caseNo)}</b></div>`:""}
+        ${(function(){
+          if(m.kind!=="ia") return "";
+          const p=m.parentId?matterById(m.parentId):null;
+          return `<div class="row"><span class="k" style="min-width:96px">I.A.</span><b><span class="tag" style="background:#6b1f1f;color:#fff">Interlocutory Application</span></b></div>`
+            +(m.iaNo?`<div class="row"><span class="k" style="min-width:96px">I.A. No.</span><b>${esc(m.iaNo)}</b></div>`:"")
+            +(p?`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b><a href="#" onclick="openMatterDetail('${p.id}');return false" style="color:var(--seal);text-decoration:none">${esc(p.code)} — ${esc(p.parties||p.client||"")}</a></b></div><div class="row"><span class="k" style="min-width:96px">Parent's No.</span><b>${esc(_caseNoOrDiary(p))}</b></div>`
+              :`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b style="color:var(--disposed)">No parent case linked — edit to select one</b></div>`);
+        })()}
+        ${(m.kind!=="ia"&&m.caseNo)?`<div class="row"><span class="k" style="min-width:96px">Case No.</span><b>${esc(m.caseNo)}</b></div>`:""}
         ${m.court?`<div class="row"><span class="k" style="min-width:96px">Court</span><b>${esc(m.court)}</b></div>`:""}
         ${m.matterType?`<div class="row"><span class="k" style="min-width:96px">Type</span><b>${esc(m.matterType)}</b></div>`:""}
         ${m.appearFor?`<div class="row"><span class="k" style="min-width:96px">We appear for</span><b>${esc(m.appearFor)}</b></div>`:""}
@@ -13428,6 +13535,7 @@ function renderMatterDetail(){
     </div>
     ${staff?"":_matterFeeStrip(m)}
     ${_matterListingsCard(m)}
+    ${_iaMatterCard(m)}
     ${_vkMatterCard(m)}
     ${_scLinksCard(m)}
 
@@ -15390,10 +15498,15 @@ function renderMatters(){
     const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(m.code)}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code)}</a>`;
     const title = m.parties || m.client || "\u2014";
     const nextCell = m.nextDate ? fmtDate(m.nextDate) : "\u2014";
-    const numCell = m.caseNo ? esc(m.caseNo) : (m.diaryNo ? "Diary "+esc(m.diaryNo) : "\u2014");
+    // An I.A. carries no Diary/Case number of its own — show its own I.A. number, and
+    // a "filed in <parent>" line under the title so its place in the case is obvious
+    // without opening it.
+    const iaParent = m.kind==="ia" ? matterById(m.parentId) : null;
+    const titleCell = `<b>${esc(title)}</b>${iaParent?`<div class="hint">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}`;
+    const numCell = m.kind==="ia" ? (m.iaNo?("I.A. "+esc(m.iaNo)):"I.A. — pending") : (m.caseNo ? esc(m.caseNo) : (m.diaryNo ? "Diary "+esc(m.diaryNo) : "\u2014"));
     return `<tr>
       <td class="mono">${codeCell}</td>
-      <td><b>${esc(title)}</b></td>
+      <td>${titleCell}</td>
       <td>${numCell}</td>
       <td>${nextCell}</td>
       <td>${statusTag}</td>
@@ -16585,6 +16698,14 @@ function pushBrandingToAllStaff(){
     address: DB.settings.address||"",
     mobile: DB.settings.mobile||DB.settings.contact||"",
     email: DB.settings.email||"",
+    // AoR code / enrolment: without these, a staff-generated vakalatnama (or any
+    // other chamber document) has nothing to fall back on but the owner's PRIVATE
+    // settings — which a staff device never receives — so it silently printed with
+    // no code at all. _chamberDocSettings() already reads aorCode/barId/enrolmentNo
+    // from this same synced staff profile; they were just never being SENT.
+    aorCode: DB.settings.aorCode||"",
+    barId: DB.settings.barId||DB.settings.enrolmentNo||"",
+    enrolmentNo: DB.settings.enrolmentNo||"",
     driveFolderUrl: DB.settings.driveFolderUrl||"",
     unassignedFolderUrl: DB.settings.unassignedFolderUrl||"", generalExpFolderUrl: DB.settings.generalExpFolderUrl||""
   };
@@ -17685,6 +17806,17 @@ function bootAfterCloud(){
   // Finding 12 — backfill the canonical client registry (stamps clientId on
   // matters & notices, building stable identities). Best-effort, one-time-ish.
   try{ _backfillClientRegistry(); _backfillRefRegistry(); _upgradeVakInvoices(); save(); }catch(e){}
+  // One-time catch-up: pushBrandingToAllStaff() only ever ran on a settings SAVE, and its
+  // payload never included the AoR code / enrolment number until now — so any chamber
+  // whose owner hasn't re-saved Settings since has staff devices missing it permanently
+  // (a staff-generated vakalatnama prints the advocate's name with no code at all). Fire
+  // it once automatically rather than requiring the owner to know to open Settings and
+  // hit Save just to propagate a field they never touched.
+  try{
+    if(DB.deviceRole!=="staff" && !DB.settings.__aorPushedToStaff && (DB.settings.aorCode||DB.settings.barId||DB.settings.enrolmentNo)){
+      pushBrandingToAllStaff(); DB.settings.__aorPushedToStaff=true; save();
+    }
+  }catch(e){}
   // Finding 11 — fire notifications for anything due today (if enabled).
   try{ if(_notifyEnabled()) setTimeout(function(){ _fireDueNotifications(false); }, 3500); }catch(e){}
 }
@@ -20322,7 +20454,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0400";
+  window.APP_VERSION = "2026.09.20-0500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
