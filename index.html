@@ -8776,13 +8776,25 @@ function printCauseList(iso, includeMeetings, opts){
     const de=(m.dates||[]).find(d=>d.date===iso);
     if(m.nextDate===iso || de){
       const d=de||{};
+      // The SAVED entry (d) is written ONCE by the auto-tracker and never refreshed —
+      // see _liveListingFor's own note (used the same way for the referring-advocate
+      // WhatsApp message) for the full story. The home screen's court card re-fetches
+      // and reads fresh on every render, which is why the actual printed cause list
+      // could show a stale court/item number the home screen had already corrected.
+      // Live wins here for the same reason; the saved entry is still what supplies
+      // caseNo/diaryNo/title (those don't come from the fetch at all) and is the only
+      // source for a forum this app's fetcher doesn't cover.
+      const live=_liveListingFor(m, iso);
+      const courtNo = (live&&live.court&&live.court!=="—") ? live.court : d.courtNo||"";
+      const itemNo  = (live&&live.item) ? live.item : d.itemNo||"";
+      const coramV  = (live&&live.coram) ? live.coram : d.coram||"";
       shownIds.add(m.id);
       rows.push({
         matterId:m.id,
-        forum:m.court||"", court:d.courtNo||"", item:d.itemNo||"",
+        forum:m.court||"", court:courtNo, item:itemNo,
         timingMode:d.timingMode||"default", courtFrom:d.courtFrom||"", courtTo:d.courtTo||"",
         specialTime:d.specialTime||"", __defaultTiming:_courtDefaultTiming(m.court).replace(/ (AM|PM)/g,"").replace(" – ","–"),
-        coram:d.coram||"", caseNo:m.caseNo||"", diaryNo:m.diaryNo||"", title:m.parties||m.client||"", team:d.team||"",
+        coram:coramV, caseNo:m.caseNo||"", diaryNo:m.diaryNo||"", title:m.parties||m.client||"", team:d.team||"",
         mainTotal:d.mainTotal||"", mainFresh:d.mainFresh||"", suppTotal:d.suppTotal||"",
         suppFresh:d.suppFresh||"", seqPos:d.seqPos||"",
         __adv: dayAdvance && d.src==="cl",
@@ -20454,7 +20466,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0500";
+  window.APP_VERSION = "2026.09.20-0600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
