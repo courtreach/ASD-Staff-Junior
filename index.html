@@ -8419,12 +8419,14 @@ function _clRenderRefList(iso){
       // Default to the referring/engaging advocate already on the matter (m.refName),
       // falling back to any cause-list-specific name (m.refAdv). Ticked by default when set.
       const advNm=m.refAdv||m.refName||"";
+      const canNotify = advNm && _waNumber(_refAdvPhone(m)) && (m.dates||[]).some(x=>x.date===iso);
       return `<div style="display:flex;align-items:flex-start;gap:8px;margin:8px 0">
         <input type="checkbox" id="clRef_${m.id}" ${advNm?"checked":""} style="flex:0 0 auto;margin-top:6px">
         <div style="flex:1;min-width:0">
           <div style="font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
           <input class="in" id="clRefName_${m.id}" placeholder="Referring advocate's name" value="${esc(advNm)}" style="margin-top:3px;font-size:12.5px;padding:7px 10px">
         </div>
+        ${canNotify?`<button type="button" class="btn ghost sm" style="flex:0 0 auto;align-self:center;white-space:nowrap" onclick="notifyRefAdvocate('${m.id}','${iso}')">📱 Notify</button>`:""}
       </div>`;
     }).join("");
 }
@@ -13231,6 +13233,85 @@ function _waSend(num){
   try{ window.open("https://wa.me/"+num+"?text="+encodeURIComponent(t),"_blank","noopener"); }catch(e){}
   closeModal();
 }
+// ===== WhatsApp intimation to the REFERRING ADVOCATE about a case listing =====
+// Same one-tap pattern as messageClient() above: compose, let the user (or staff)
+// review/edit, then open WhatsApp with the text pre-filled. WhatsApp itself never
+// allows a page to press Send on someone's behalf, so "automatic" here means the
+// message needs no typing — only the one tap WhatsApp itself always requires.
+
+// The raw coram is fetch/typed text like "HON'BLE MR. JUSTICE A.B. SHARMA; HON'BLE
+// MS. JUSTICE C.D. RAO" — exactly right for a cause list, wrong for a message meant
+// to be read casually. Reduce it to plain names, keeping "Justice" as a readable
+// label rather than dropping it the way the printed cause list does.
+function _plainBench(raw){
+  raw=String(raw||"").trim(); if(!raw) return "";
+  const tc=x=>x.toLowerCase().replace(/\b([a-z])/g,c=>c.toUpperCase());
+  // A plain .split() on a pattern that never matches returns [the whole string] —
+  // length 1, not 0 — so "did we actually find HON'BLE" has to be tested directly,
+  // not inferred from the split result being non-empty.
+  if(!/HON'?BLE/i.test(raw)) return raw.replace(/\s+/g," ").trim();
+  const parts=raw.split(/HON'?BLE/i).map(x=>x.trim()).filter(Boolean);
+  const names=parts.map(p=>{
+    if(/CHIEF\s+JUSTICE/i.test(p)) return "Chief Justice";
+    const bare=tc(p.replace(/^(THE\s+)?(MR|MRS|MS|DR|SMT|KUM)\b\.?\s*/i,"")
+                   .replace(/\bJUSTICE\b\.?\s*/i,"").replace(/[;,.]+$/,"").trim());
+    return bare?("Justice "+bare):"";
+  }).filter(Boolean);
+  if(!names.length) return raw.replace(/\s+/g," ").trim();
+  if(names.length===1) return names[0];
+  if(names.length===2) return names.join(" and ");
+  return names.slice(0,-1).join(", ")+" and "+names[names.length-1];
+}
+// The matter's own referring-advocate phone field wins; fall back to whatever the
+// referring-advocate REGISTRY has on file for that name, so a number saved there
+// (but not re-typed onto every matter) is still found.
+function _refAdvPhone(m){
+  if(m&&m.refContact) return m.refContact;
+  if(m&&m.refName){ try{ const e=_refRegEntry("ra_"+_refUid(m.refName)); if(e&&e.phone) return e.phone; }catch(err){} }
+  return "";
+}
+function _raListingMsg(m, d){
+  const s=DB.settings||{};
+  const title=(m.parties||m.client||"the matter").trim();
+  // _caseNoOrDiary prints "\u2014" (an em dash) as its OWN placeholder for "nothing on
+  // file" — right for a column in a table, wrong inside a sentence: "(\u2014)" reads as
+  // a typo, not as "no number yet". Treat that placeholder as no number for this message.
+  const numRaw=_caseNoOrDiary(m);
+  const num=(numRaw&&numRaw!=="\u2014")?numRaw:"";
+  const dateStr=(d&&d.date)?fmtDate(d.date):"";
+  const lines=[`Greetings ${(m.refName||"").trim()||"Sir/Madam"},`, "",
+    `This is to inform you that ${title}${num?" ("+num+")":""} is listed`+(dateStr?` on ${dateStr}`:"")+" as under:", ""];
+  if(d&&d.courtNo) lines.push(`*Court No.: ${d.courtNo}*`);
+  if(d&&d.itemNo)  lines.push(`*Item No.: ${d.itemNo}*`);
+  const bench=d?_plainBench(d.coram):"";
+  if(bench) lines.push(`Bench: ${bench}`);
+  lines.push("", "Regards,", s.advName||s.chamberName||"Chamber");
+  if(s.designation) lines.push(s.designation);
+  return lines.join("\n");
+}
+// matterId + the ISO date of the specific listing (a matter can have several dates
+// on record; the message is always about ONE hearing, so the caller names which).
+function notifyRefAdvocate(matterId, iso){
+  const m=matterById(matterId); if(!m) return;
+  if(!m.refName){ toast("No referring advocate on this matter.",true); return; }
+  const d=(m.dates||[]).find(x=>x.date===iso);
+  if(!d){ toast("No hearing-date details on record for that day.",true); return; }
+  const num=_waNumber(_refAdvPhone(m));
+  if(!num){ toast("No phone number on file for the referring advocate — add one via Edit.",true); return; }
+  openModal("Notify referring advocate on WhatsApp", `
+    <div class="hint" style="margin-bottom:10px">To <b>${esc(m.refName||"")}</b> · ${esc(_refAdvPhone(m)||"")}. Edit if you like, then open WhatsApp to send.</div>
+    <textarea class="in" id="raNotifyMsg" style="min-height:190px;font-family:inherit">${esc(_raListingMsg(m,d))}</textarea>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn seal" onclick="_raNotifySend('${num}')">Open WhatsApp ↗</button>
+    </div>`);
+}
+function _raNotifySend(num){
+  const t=(document.getElementById("raNotifyMsg")||{}).value||"";
+  try{ window.open("https://wa.me/"+num+"?text="+encodeURIComponent(t),"_blank","noopener"); }catch(e){}
+  closeModal();
+}
+
 // ===== Outstanding-fees tracker: who owes what (billed − received, per matter) =====
 function _matterOutstanding(){
   const byMatter={};
@@ -13330,7 +13411,7 @@ function renderMatterDetail(){
         <button class="btn ghost sm" onclick="_afterHearing('${m.id}')" style="margin-right:6px">After hearing</button>
         <button class="btn ghost sm" onclick="_limCalc('${m.id}')" style="margin-right:6px">Limitation</button>
         <button class="btn seal sm" onclick="addDate('${m.id}')">+ Add date</button></div>
-      ${(Array.isArray(m.dates)&&m.dates.length)?`<div class="lrows">${m.dates.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(d=>{const fut=d.date>=todayISO();return `<div class="lrow"><div class="l"><div class="t">${fmtDate(d.date)}${fut?` <span class="tag active">upcoming</span>`:""}${d.src==="cl"?` <span class="tag" style="background:var(--brass);color:#fff;border:none" title="Added automatically from the Supreme Court cause list — edit or delete if wrong">from cause list</span>`:""}</div><div class="s">${esc(d.reason||"")}${d.note?" · "+esc(d.note):""}${d.createdBy?" · "+esc(d.createdBy):""}</div></div><div style="display:flex;gap:6px">${fut?`<button class="row-act" onclick="addHearingToCal('${m.id}','${d.id}')" title="Add to my phone calendar with a reminder">＋Cal</button>`:""}<button class="row-act" onclick="editDate('${m.id}','${d.id}')">Edit</button><button class="row-act" onclick="delDate('${m.id}','${d.id}')">Delete</button></div></div>`;}).join("")}</div>`:`<div class="empty" style="padding:12px">No dates recorded. Add the first hearing date.</div>`}
+      ${(Array.isArray(m.dates)&&m.dates.length)?`<div class="lrows">${m.dates.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(d=>{const fut=d.date>=todayISO();return `<div class="lrow"><div class="l"><div class="t">${fmtDate(d.date)}${fut?` <span class="tag active">upcoming</span>`:""}${d.src==="cl"?` <span class="tag" style="background:var(--brass);color:#fff;border:none" title="Added automatically from the Supreme Court cause list — edit or delete if wrong">from cause list</span>`:""}</div><div class="s">${esc(d.reason||"")}${d.note?" · "+esc(d.note):""}${d.createdBy?" · "+esc(d.createdBy):""}</div></div><div style="display:flex;gap:6px">${(fut&&m.refName&&_waNumber(_refAdvPhone(m)))?`<button class="row-act" onclick="notifyRefAdvocate('${m.id}','${d.date}')" title="Message the referring advocate about this listing">📱 Notify</button>`:""}${fut?`<button class="row-act" onclick="addHearingToCal('${m.id}','${d.id}')" title="Add to my phone calendar with a reminder">＋Cal</button>`:""}<button class="row-act" onclick="editDate('${m.id}','${d.id}')">Edit</button><button class="row-act" onclick="delDate('${m.id}','${d.id}')">Delete</button></div></div>`;}).join("")}</div>`:`<div class="empty" style="padding:12px">No dates recorded. Add the first hearing date.</div>`}
     </div>
 
     <div class="card">
@@ -20216,7 +20297,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.03-0200";
+  window.APP_VERSION = "2026.09.20-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
