@@ -13252,10 +13252,10 @@ function _plainBench(raw){
   if(!/HON'?BLE/i.test(raw)) return raw.replace(/\s+/g," ").trim();
   const parts=raw.split(/HON'?BLE/i).map(x=>x.trim()).filter(Boolean);
   const names=parts.map(p=>{
-    if(/CHIEF\s+JUSTICE/i.test(p)) return "Chief Justice";
+    if(/CHIEF\s+JUSTICE/i.test(p)) return "Hon'ble Chief Justice";
     const bare=tc(p.replace(/^(THE\s+)?(MR|MRS|MS|DR|SMT|KUM)\b\.?\s*/i,"")
                    .replace(/\bJUSTICE\b\.?\s*/i,"").replace(/[;,.]+$/,"").trim());
-    return bare?("Justice "+bare):"";
+    return bare?("Hon'ble Justice "+bare):"";
   }).filter(Boolean);
   if(!names.length) return raw.replace(/\s+/g," ").trim();
   if(names.length===1) return names[0];
@@ -13287,7 +13287,11 @@ function _raListingMsg(m, d){
   if(d&&d.itemNo)  lines.push(`*Item No.: ${d.itemNo}*`);
   const bench=d?_plainBench(d.coram):"";
   if(bench) lines.push(`Bench: ${bench}`);
-  lines.push("", "Regards,", s.advName||s.chamberName||"Chamber");
+  const signName=s.advName||s.chamberName||"Chamber";
+  // A message sent BY STAFF should not read as though the AoR personally wrote it —
+  // sign it from his office instead. Sent by the owner's own device, the name stands
+  // as it always has.
+  lines.push("", "Regards,", isStaffView()?("Office of "+signName):signName);
   if(s.designation) lines.push(s.designation);
   return lines.join("\n");
 }
@@ -20318,7 +20322,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0300";
+  window.APP_VERSION = "2026.09.20-0400";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
