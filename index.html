@@ -404,6 +404,44 @@
   .aff-dep2{text-align:right;margin-top:44px;letter-spacing:.02em}
   @media print{ .aff-doc{width:100%} }
 
+  /* ===== INSTRUCTIONS PAGE (goes before Vakalatnama/Memo/Affidavit) =====
+     Letterhead reuses .tpl-mast etc. (already styled, already coloured) — only
+     what's below it is new, and stays plain black & white by the owner's choice.
+     Screen preview is a fixed 720px box, matching .vak-doc/.aff-doc exactly, since
+     this page is meant to sit in the SAME print job as those (one shared @page
+     margin — see _tplReserveForPrint) and needs to go fluid at print time the
+     same way they do. */
+  .instr-page{width:720px;background:#fff;color:#000;margin:0 auto 18px;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;--tpx-ox:#6b1f1f;--tpx-gold:#9a7b3f}
+  @media print{ .instr-page{width:100%} }
+  .instr-banner{margin:10px 0 0;border:1px solid #000;border-left:4px solid #000;
+    background:#fff;border-radius:6px;padding:6px 12px;text-align:center}
+  .instr-banner b{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#000}
+  .instr-banner div{font-size:9.5px;color:#444;margin-top:1px}
+  .instr-dband{text-align:center;padding:11px 0 3px}
+  .instr-dtitle{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:#000;border:1px solid #000;border-radius:18px;padding:5px 18px}
+  .instr-body{padding:9px 0 4px;font-family:Garamond,'EB Garamond','Adobe Garamond Pro','Garamond Premier Pro','Times New Roman',serif}
+  .instr-list{list-style:none;margin:0;padding:0;counter-reset:instr}
+  .instr-list>li{counter-increment:instr;display:flex;gap:9px;padding:5px 0;border-top:1px solid #ddd}
+  .instr-list>li:first-child{border-top:none}
+  .instr-list>li::before{content:counter(instr);flex:0 0 19px;width:19px;height:19px;border-radius:50%;
+    border:1.3px solid #000;color:#000;background:#fff;font-size:10.5px;font-weight:700;display:flex;
+    align-items:center;justify-content:center;font-family:"Inter","Helvetica Neue",Arial,sans-serif}
+  .instr-list>li>div{flex:1;font-size:11pt;line-height:1.32;text-align:justify;color:#111}
+  .instr-list b{color:#000}
+  .instr-contact-lbl{margin:8px 0 5px;font-size:9.5px;font-weight:700;letter-spacing:.03em;color:#333;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif}
+  .instr-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .instr-tile{border:1px solid #000;border-radius:7px;padding:7px 9px;background:#fff;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif}
+  .instr-tile-lbl{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#555;margin-bottom:3px}
+  .instr-tile-val{font-size:11.5px;font-weight:700;color:#000;line-height:1.28;word-break:break-word}
+  /* bilingual: each point splits English | मराठी side by side, smaller to still fit one page */
+  .instr-list.bi>li>div{display:flex;gap:10px}
+  .instr-list.bi .instr-en,.instr-list.bi .instr-mr{flex:1;min-width:0;font-size:9pt;line-height:1.26}
+  .instr-list.bi .instr-mr{border-left:1px solid #ddd;padding-left:10px}
+
   /* ===== RECEIPT ===== */
   .rcpt-body{font-size:15px;line-height:1.9;color:#3a352e;margin:0;font-weight:400;max-width:560px}
   .rcpt-body b{color:#1a1a18;font-weight:600}
@@ -5957,6 +5995,12 @@ function _tplReserveForPrint(){
     // just give the page normal, generous pleading margins — no measured-band dance needed.
     // Page margins copied from the owner's Word samples (twips → inches):
     // top 1260, right 1008, bottom 1354, left 1800.
+    // The instructions page shares THIS branch only when it is actually sharing the
+    // print job with a vakalatnama/affidavit — only one @page margin can apply to a
+    // whole job, so if a vak-doc is present, the instructions page must accept its
+    // narrower pleading margins too. Sent on its OWN, an instructions page has no such
+    // constraint and falls through to the generic branch below instead, which gives it
+    // the wider standard margins its layout was actually designed for.
     if(area.querySelector(".vak-doc,.aff-doc")){ st0.textContent="@media print{@page{margin:0.875in 0.7in 0.94in 1.25in;size:A4;}}"; return; }
     var foot=area.querySelector(".tpl-foot");
     var rh=area.querySelector(".tpl-run-head");
@@ -7664,6 +7708,52 @@ function _vkRec(id){ return (DB.vakalatnamas||[]).find(x=>x.id===id); }
    The court, jurisdiction and case-type heading still have to be right, so those are
    asked for; everything below them prints blank. Nothing is saved to the register —
    a blank form is stationery, not a record. */
+/* ===== Instructions page — precedes Vakalatnama / Memo / Affidavit ===========
+   Content only; nothing here decides WHERE it's used — see _vkDoBlank() and
+   _sendInstructionsOnly() below for the two ways it's surfaced. */
+const INSTR_POINTS_EN = [
+  'This document contains, in this order: <b>Vakalatnama</b>, <b>Memo of Appearance</b> and <b>Affidavit</b>.',
+  "Fill every blank space in ink, in your own hand. Sign at every place marked for signature. <b>If you cannot sign, put your left thumb impression instead</b> (right thumb if the left hand cannot be used). If there is more than one executant, each must sign separately. Leave nothing blank — contact us first if something doesn't apply to you.",
+  '<b>Notarise the Vakalatnama and the Affidavit only</b> — the Memo of Appearance does not need notarising. Carry a photo ID (Aadhaar / PAN / Passport / Voter ID) to the Notary.',
+  'Print on plain <b>A4</b> paper.',
+  'After notarising, scan the complete document with a <b>proper scanner</b> (not a phone photo) and send it to us — please send it to the <b>phone number or email address mentioned below</b>.',
+  'Send the signed, notarised <b>originals</b> — please send them to the <b>address mentioned below</b>.',
+  'Any difficulty — contact us <b>before signing</b>.'
+];
+const INSTR_POINTS_MR = [
+  'या दस्तऐवजात क्रमाने आहे: <b>वकालतनामा</b>, <b>हजेरी टिपण</b> आणि <b>प्रतिज्ञापत्र</b>.',
+  'प्रत्येक रिकामी जागा शाईने, स्वतःच्या हस्ताक्षरात भरा. प्रत्येक चिन्हांकित जागी स्वाक्षरी करा. <b>स्वाक्षरी करता येत नसल्यास डाव्या हाताच्या अंगठ्याचा ठसा द्या</b> (डावा हात वापरता येत नसल्यास उजव्या हाताचा). एकापेक्षा अधिक स्वाक्षरीकर्ते असल्यास प्रत्येकाने स्वतंत्र स्वाक्षरी करावी. कोणतीही जागा रिकामी ठेवू नका — लागू न होणाऱ्या बाबीसाठी आधी आमच्याशी संपर्क साधा.',
+  '<b>फक्त वकालतनामा व प्रतिज्ञापत्र नोटराइज्ड करा</b> — हजेरी टिपण नोटराइज्ड करण्याची गरज नाही. नोटरीकडे छायाचित्र ओळखपत्र (आधार / पॅन / पासपोर्ट / मतदार ओळखपत्र) घेऊन जा.',
+  'साध्या <b>A4</b> कागदावर छापा.',
+  'नोटरीकरणानंतर, संपूर्ण दस्तऐवज <b>योग्य स्कॅनरने</b> स्कॅन करा (मोबाईल फोटो नव्हे) आणि आम्हाला पाठवा — कृपया <b>खाली नमूद केलेल्या फोन नंबर किंवा ईमेल पत्त्यावर</b> पाठवा.',
+  'स्वाक्षरी व नोटरीकरण झालेली <b>मूळ कागदपत्रे</b> — कृपया <b>खाली नमूद केलेल्या पत्त्यावर</b> पाठवा.',
+  'काही अडचण असल्यास — <b>स्वाक्षरी करण्यापूर्वी</b> आमच्याशी संपर्क साधा.'
+];
+function _instrPageHTML(opts){
+  opts=opts||{};
+  const bilingual=!!opts.bilingual;
+  const c=opts.contact||{};
+  const s=_chamberDocSettings({});
+  const list = bilingual
+    ? `<ol class="instr-list bi">${INSTR_POINTS_EN.map((en,i)=>`<li><div><div class="instr-en">${en}</div><div class="instr-mr">${INSTR_POINTS_MR[i]}</div></div></li>`).join("")}</ol>`
+    : `<ol class="instr-list">${INSTR_POINTS_EN.map(en=>`<li><div>${en}</div></li>`).join("")}</ol>`;
+  const tiles = `<div class="instr-contact-lbl">${bilingual?"Send the scanned copy and the signed originals to · स्कॅन प्रत व मूळ कागदपत्रे पाठवण्यासाठी":"Send the scanned copy and the signed originals to"}</div>
+    <div class="instr-tiles">
+      <div class="instr-tile"><div class="instr-tile-lbl">${bilingual?"Phone / WhatsApp · फोन":"Phone / WhatsApp"}</div><div class="instr-tile-val">${esc(c.phone||"—")}</div></div>
+      <div class="instr-tile"><div class="instr-tile-lbl">${bilingual?"Email · ईमेल":"Email"}</div><div class="instr-tile-val">${esc(c.email||"—")}</div></div>
+      <div class="instr-tile"><div class="instr-tile-lbl">${bilingual?"Address · पत्ता":"Address"}</div><div class="instr-tile-val">${esc(c.address||"—")}</div></div>
+    </div>`;
+  return `<div class="tpl instr-page">
+    ${_tplMast(s)}
+    <div class="instr-banner">
+      <b>${bilingual?"For Your Information — Not Part of the Document · ही माहितीसाठी आहे — कृपया छापू नका":"For Your Information — Not Part of the Document, Please Do Not Print This Page"}</b>
+      <div>${bilingual?"This page will not appear when the Vakalatnama, Memo of Appearance and Affidavit are printed. · हे पान वकालतनामा, हजेरी टिपण व प्रतिज्ञापत्र छापताना समाविष्ट होणार नाही."
+        :"This page is not part of the Vakalatnama, Memo of Appearance or Affidavit and should not be printed along with them."}</div>
+    </div>
+    <div class="instr-dband"><div class="instr-dtitle">${bilingual?"Instructions · सूचना":"Instructions"}</div></div>
+    <div class="instr-body">${list}${tiles}</div>
+  </div>`;
+}
 function _vkBlankForm(){
   const forums=FORUMS, types=typesForForum("Supreme Court of India");
   openModal("Blank vakalatnama", `
@@ -7678,8 +7768,20 @@ function _vkBlankForm(){
       <input type="checkbox" id="vkbMemo" checked> Include the Memo of Appearance</label>
     <label class="checkline" style="display:flex;align-items:center;gap:8px;margin-top:8px">
       <input type="checkbox" id="vkbAff"> Also print a blank affidavit</label>
+    <label class="checkline" style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <input type="checkbox" id="vkbInstr" onchange="_vkbInstrToggle()"> Include an instructions page (how to fill, notarise &amp; send back)</label>
+    <div id="vkbInstrWrap" style="display:none;margin-top:8px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)">
+      <div class="grid g2">
+        <div><label class="fld">Language</label>
+          <select class="in" id="vkbInstrLang"><option value="en">English only</option><option value="bi">English + Marathi</option></select></div>
+        <div><label class="fld">Send-back contact</label>
+          <select class="in" id="vkbInstrContact">${instrContactsList().length?instrContactsList().map(c=>`<option value="${c.id}" ${c.isDefault?"selected":""}>${esc(c.label||"Contact")}</option>`).join(""):`<option value="">— None set up in Settings —</option>`}</select></div>
+      </div>
+      <div class="note" style="margin-top:6px">${instrContactsList().length?"Add or edit these under Settings → Instructions — send-back contacts.":"No contact is set up yet — add one under Settings → Instructions — send-back contacts, or the page will print with blank phone/email/address."}</div>
+    </div>
     <div class="btn-row" style="margin-top:16px">
       <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn ghost" onclick="_sendInstructionsOnly()">Instructions only</button>
       <button class="btn" onclick="_vkDoBlank('word')">Word (.docx)</button>
       <button class="btn seal" onclick="_vkDoBlank()">Print / Save PDF</button>
     </div>`);
@@ -7689,6 +7791,20 @@ function _vkbForumChange(){
   const t=document.getElementById("vkbType"); if(!t) return;
   const list=typesForForum(f); const opts=(list&&list.length)?list:SC_TYPES;
   t.innerHTML=opts.map(x=>`<option>${esc(x)}</option>`).join("");
+}
+function _vkbInstrToggle(){
+  const on=!!(document.getElementById("vkbInstr")||{}).checked;
+  const w=document.getElementById("vkbInstrWrap"); if(w) w.style.display=on?"block":"none";
+}
+// Reads the two instructions options from whichever dialog they're in (the blank-form
+// dialog's fields, if present) and returns the {bilingual, contact} _instrPageHTML()
+// wants — falling back sensibly when the picker isn't on screen at all (e.g. called from
+// a surface with no language/contact choice of its own).
+function _vkbInstrOpts(){
+  const lang=(document.getElementById("vkbInstrLang")||{}).value||"en";
+  const cid=(document.getElementById("vkbInstrContact")||{}).value||"";
+  const c=(cid&&instrContactById(cid)) || defaultInstrContact() || {};
+  return {bilingual: lang==="bi", contact:{phone:c.phone||"",email:c.email||"",address:c.address||""}};
 }
 // Build the blank record the two renderers understand. Not stored anywhere.
 function _vkBlankRecord(forum, type, withMemo){
@@ -7713,6 +7829,8 @@ function _vkDoBlank(mode){
   const type=(document.getElementById("vkbType")||{}).value||"SLP (Civil)";
   const withMemo=!!(document.getElementById("vkbMemo")||{}).checked;
   const withAff=!!(document.getElementById("vkbAff")||{}).checked;
+  const withInstr=!!(document.getElementById("vkbInstr")||{}).checked;
+  const instrOpts=withInstr?_vkbInstrOpts():null;
   const rec=_vkBlankRecord(forum, type, withMemo);
   closeModal();
   const area=document.getElementById("receiptArea");
@@ -7725,17 +7843,63 @@ function _vkDoBlank(mode){
     printAffidavit(rec,{noPrint:true});
     area.innerHTML=vak+area.innerHTML;
   }
+  // The instructions page goes FIRST — see _instrPageHTML's own note on why it shares
+  // the vakalatnama's page margins rather than the wider standard letterhead margins:
+  // one print job can only carry one @page rule.
+  if(withInstr && area){ area.innerHTML=_instrPageHTML(instrOpts)+area.innerHTML; }
   if(mode==="word"){
     let ok=false;
     try{ ok=_docxFromReceiptArea(name); }catch(e){ ok=false; }
-    toast(ok ? "Word file downloaded — open it to fill the blanks."
+    if(ok && withInstr) toast("Word file downloaded — note the instructions page isn't included in it; print/share that separately.");
+    else toast(ok ? "Word file downloaded — open it to fill the blanks."
              : "Could not build the Word file. Use Print / Save PDF instead.", !ok);
     return;
   }
   setTimeout(()=>_printAs(name), withAff?160:120);
 }
-window._vkBlankForm=_vkBlankForm; window._vkbForumChange=_vkbForumChange;
+// Plain-text rendition of the instructions — for a quick WhatsApp/email text share
+// where a formatted PDF is more than's needed. Strips the <b> markup the HTML
+// version uses for emphasis; the words carry the emphasis in plain text just fine.
+function _instrShareText(opts){
+  opts=opts||_vkbInstrOpts();
+  const bilingual=opts.bilingual, c=opts.contact||{};
+  const strip=x=>String(x||"").replace(/<[^>]+>/g,"");
+  const lines=["Instructions — Vakalatnama, Memo of Appearance & Affidavit",""];
+  INSTR_POINTS_EN.forEach((en,i)=>{
+    lines.push((i+1)+". "+strip(en));
+    if(bilingual) lines.push("   "+strip(INSTR_POINTS_MR[i]));
+  });
+  lines.push("", "Send the scanned copy and the signed originals to:");
+  if(c.phone) lines.push("Phone/WhatsApp: "+c.phone);
+  if(c.email) lines.push("Email: "+c.email);
+  if(c.address) lines.push("Address: "+c.address);
+  return lines.join("\n");
+}
+function _instrShareTextNow(){
+  const text=_instrShareText();
+  if(navigator.share){ navigator.share({text:text}).catch(()=>{}); }
+  else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(()=>toast("Instructions copied — paste it into WhatsApp or an email.")).catch(()=>toast("Could not copy the text.",true)); }
+  else{ toast("Sharing isn't supported in this browser.",true); }
+}
+// The standalone "just send the instructions" option — no vakalatnama/affidavit
+// involved. Reads the same language/contact fields the blank-form dialog exposes
+// when present (defaulting sensibly when they aren't, so this also works called
+// from elsewhere, e.g. a matter's own Vakalatnama card).
+function _sendInstructionsOnly(){
+  const opts=_vkbInstrOpts();
+  closeModal();
+  const area=document.getElementById("receiptArea");
+  if(area) area.innerHTML=_instrPageHTML(opts);
+  openModal("Send instructions", `
+    <div class="hint" style="margin-bottom:12px">A PDF opens in your print sheet — choose <b>Save as PDF</b>, then share it on WhatsApp or by email. Or share it as plain text below.</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn seal" onclick="closeModal();setTimeout(()=>_printAs('Instructions — Vakalatnama &amp; Affidavit'),120)"><span>🖨</span> Print / Save PDF</button>
+      <button class="btn ghost" onclick="_instrShareTextNow()"><span>💬</span> Share as text</button>
+    </div>`);
+}
+window._vkBlankForm=_vkBlankForm; window._vkbForumChange=_vkbForumChange; window._vkbInstrToggle=_vkbInstrToggle;
 window._vkDoBlank=_vkDoBlank; window._docxFromReceiptArea=_docxFromReceiptArea; window._vkBlankRecord=_vkBlankRecord;
+window._sendInstructionsOnly=_sendInstructionsOnly; window._instrShareTextNow=_instrShareTextNow; window._instrPageHTML=_instrPageHTML;
 /* ---- Raise a fee invoice off a vakalatnama ----------------------------------
    Opens the ordinary invoice form pre-filled from the vakalatnama (case or
    bill-to party, a fee line naming the matter type, and the cause title in the
@@ -7838,14 +8002,14 @@ function _vkMatterCard(m){
   const list=(DB.vakalatnamas||[]).filter(v=>v.matterId===m.id).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   if(!list.length) return `<div class="card">
     <div class="card-head"><div><h2>Vakalatnama</h2><div class="hint">No vakalatnama linked to this case yet.</div></div>
-      <button class="btn ghost sm" onclick="_vkNewForMatter('${m.id}')">+ Generate</button></div>
+      <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="_sendInstructionsOnly()">Instructions</button><button class="btn ghost sm" onclick="_vkNewForMatter('${m.id}')">+ Generate</button></div></div>
   </div>`;
   const rows=list.map(v=>`<div class="lrow"><div class="l"><div class="t">${esc(v.executants&&v.executants[0]&&v.executants[0].name||v.partyA||"Executant")}</div>
     <div class="s">${fmtDate(v.date)} · ${esc(v.matterType||"")}</div></div>
     <div><button class="row-act" onclick="_previewVakalatnama('${v.id}')">View</button><button class="row-act" onclick="_vkActions('${v.id}')" aria-label="More actions" title="More actions">⋯</button></div></div>`).join("");
   return `<div class="card">
     <div class="card-head"><div><h2>Vakalatnama</h2><div class="hint">${list.length} on record for this case.</div></div>
-      <button class="btn ghost sm" onclick="_vkNewForMatter('${m.id}')">+ Add another</button></div>
+      <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="_sendInstructionsOnly()" title="Send just the signing/notarising instructions">Instructions</button><button class="btn ghost sm" onclick="_vkNewForMatter('${m.id}')">+ Add another</button></div></div>
     <div class="lrows">${rows}</div>
   </div>`;
 }
@@ -16450,6 +16614,7 @@ function renderSettings(){
   const SECTIONS=[
     {id:"chamber", label:"Chamber details", desc:"Name, advocate, court, address, PAN"},
     {id:"banking", label:"Bank accounts & UPI", desc:"Accounts and UPI IDs for invoices"},
+    {id:"instr", label:"Instructions — send-back contacts", desc:"Phone, email & address for signing instructions"},
     {id:"numbering", label:"Numbering & book-keeping", desc:"Receipt series, FY, 44ADA/books"},
     {id:"rcm", label:"RCM note", desc:"Footer note on receipts"},
     {id:"security", label:"Account & security", desc:"Your login and cloud sync"}
@@ -16471,10 +16636,11 @@ function setSectionBack(){
 }
 function openSetSection(which){
   const s=DB.settings;
-  const back=`<div class="subback"><button onclick="setSectionBack()">‹ Settings</button><span>${which==="banking"?"Bank & UPI":which}</span></div>`;
+  const back=`<div class="subback"><button onclick="setSectionBack()">‹ Settings</button><span>${which==="banking"?"Bank & UPI":(which==="instr"?"Instructions":which)}</span></div>`;
   let html="";
   if(which==="chamber") html=setSecChamber(s);
   else if(which==="banking") html=setSecBanking(s);
+  else if(which==="instr") html=setSecInstr(s);
   else if(which==="numbering") html=setSecNumbering(s);
   else if(which==="rcm") html=setSecRcm(s);
   else if(which==="security") html=setSecSecurity(s);
@@ -16599,6 +16765,66 @@ function removeSignature(){
   save();
   toast("Signature removed.");
 }
+/* ---- Instructions page — send-back contact bundles --------------------------
+   A bundle carries phone + email + address TOGETHER under one label ("Main
+   office", "Clerk desk"...), so picking one bundle sets all three fields for the
+   instructions page at once — the "select the inputted one for all" the owner
+   asked for — while still leaving each field editable per-generation without
+   touching what's saved here. Deliberately mirrors banksList()/bankOneHTML()
+   below, field for field, rather than inventing a new editor pattern. */
+function instrContactsList(){ return (DB.settings.instrContacts && DB.settings.instrContacts.length) ? DB.settings.instrContacts : []; }
+function defaultInstrContact(){ const l=instrContactsList(); return l.find(x=>x.isDefault) || l[0] || null; }
+function instrContactById(id){ return instrContactsList().find(x=>x.id===id) || null; }
+function instrContactOneHTML(c){
+  return `<div class="bank-row" data-cid="${c.id}">
+    <div class="bank-row-head">
+      <input class="in instr-c-label" value="${esc(c.label||"")}" placeholder="Label (e.g. Main office)" style="font-weight:600">
+      <label class="bank-def"><input type="radio" name="instrContactDefault" value="${c.id}" ${c.isDefault?"checked":""}> Default</label>
+      <button class="row-act" onclick="removeInstrContactRow('${c.id}')" title="Remove">✕</button>
+    </div>
+    <div class="grid g2" style="margin-top:9px">
+      <div><label class="fld">Phone / WhatsApp</label><input class="in instr-c-phone" value="${esc(c.phone||"")}" placeholder="+91 98XXXXXXXX"></div>
+      <div><label class="fld">Email</label><input class="in instr-c-email" value="${esc(c.email||"")}" placeholder="office@chamber.com"></div>
+    </div>
+    <div style="margin-top:9px"><label class="fld">Address</label><input class="in instr-c-addr" value="${esc(c.address||"")}" placeholder="Chambers of ..., address, city, PIN"></div>
+  </div>`;
+}
+function instrContactListHTML(){
+  const list=instrContactsList();
+  if(!list.length){ return instrContactOneHTML({id:uid(),label:"",phone:"",email:"",address:"",isDefault:true}); }
+  return list.map(instrContactOneHTML).join("");
+}
+function collectInstrContactsFromDOM(){
+  const rows=document.querySelectorAll("#instrContactList .bank-row");
+  const list=[];
+  const defId=(document.querySelector('input[name="instrContactDefault"]:checked')||{}).value;
+  rows.forEach(r=>{
+    const g=cls=>{ const el=r.querySelector("."+cls); return el?el.value.trim():""; };
+    const id=r.getAttribute("data-cid");
+    const c={id, label:g("instr-c-label")||g("instr-c-phone")||"Contact", phone:g("instr-c-phone"),
+      email:g("instr-c-email"), address:g("instr-c-addr"), isDefault:id===defId};
+    if(c.phone||c.email||c.address) list.push(c);
+  });
+  if(list.length && !list.some(c=>c.isDefault)) list[0].isDefault=true;
+  return list;
+}
+function addInstrContactRow(){
+  DB.settings.instrContacts = collectInstrContactsFromDOM();
+  DB.settings.instrContacts.push({id:uid(),label:"",phone:"",email:"",address:"",isDefault:DB.settings.instrContacts.length===0});
+  document.getElementById("instrContactList").innerHTML=instrContactListHTML();
+}
+function removeInstrContactRow(id){
+  DB.settings.instrContacts = collectInstrContactsFromDOM().filter(c=>c.id!==id);
+  document.getElementById("instrContactList").innerHTML=instrContactListHTML();
+}
+function setSecInstr(s){
+  return `<div class="card">
+      <h2>Instructions — send-back contacts</h2>
+      <div class="hint">Where a signed, notarised Vakalatnama/Affidavit should be sent back to. Add one or more — each is picked as a whole when you generate the instructions page, but every field can still be adjusted at that point without changing what's saved here.</div>
+      <div id="instrContactList">${instrContactListHTML()}</div>
+      <button class="btn ghost sm" onclick="addInstrContactRow()" style="margin-top:12px">+ Add contact</button>
+    </div>`;
+}
 function setSecBanking(s){
   return `<div class="card">
       <h2>Bank accounts</h2>
@@ -16682,6 +16908,7 @@ function saveSettings(){
   if(has("stPlace")) s.place=gv("stPlace");
   // Banking section
   if(document.getElementById("bankList")){ s.banks=collectBanksFromDOM(); const db0=defaultBank(); if(db0){ s.bankName=db0.name; s.bankBranch=db0.branch; s.bankAcc=db0.acc; s.bankIfsc=db0.ifsc; } }
+  if(document.getElementById("instrContactList")){ s.instrContacts=collectInstrContactsFromDOM(); }
   if(document.getElementById("upiList")){ s.upis=collectUpisFromDOM(); const du0=defaultUpi(); s.bankUpi=du0?du0.vpa:""; }
   // Numbering & mode
   if(has("stPrefix")) s.receiptPrefix=gv("stPrefix")||"R";
@@ -20466,7 +20693,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.20-0600";
+  window.APP_VERSION = "2026.09.22-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
