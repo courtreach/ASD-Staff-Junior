@@ -1,32 +1,16 @@
 {
-  "generated_at": "2026-09-23T18:11:56.308073Z",
+  "generated_at": "2026-09-23T20:47:40.272703Z",
   "window": [
-    "2026-09-23",
     "2026-09-24",
     "2026-09-25",
     "2026-09-28",
     "2026-09-29",
     "2026-09-30",
     "2026-10-01",
-    "2026-10-02"
+    "2026-10-02",
+    "2026-10-05"
   ],
   "by_date": {
-    "2026-09-23": {
-      "lists_found": [
-        "Miscellaneous - Supplementary",
-        "Regular / Final - Main",
-        "Regular / Final - Supplementary",
-        "Registrar - Main",
-        "Registrar - Supplementary",
-        "Curative & Review (circulation)",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 0,
-      "matches": []
-    },
     "2026-09-24": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -133,8 +117,101 @@
           "text": "1496 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
         }
       ]
+    },
+    "2026-09-29": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 1,
+      "matches": [
+        {
+          "for_date": "2026-09-29",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1416",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "1416 SLP(C) No. 9386/2023 SRI MANNADHESWARAR SRI PANCHAIMMAN TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS."
+        }
+      ]
+    },
+    "2026-09-30": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 0,
+      "matches": []
+    },
+    "2026-10-01": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 0,
+      "matches": []
+    },
+    "2026-10-05": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 2,
+      "matches": [
+        {
+          "for_date": "2026-10-05",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "194",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "194 SLP(C) No. 32702/2025 PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS. Versus COMPUTER TEACHERS WELFARE SOCIETY AND ORS."
+        },
+        {
+          "for_date": "2026-10-05",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "853",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "853 SLP(C) No. GOPAL KRISHNA MOHAN (D) THR. LRS. AND ORS. Versus MEERA VISHWANATHAN AND ORS."
+        }
+      ]
     }
   },
-  "match_count": 4,
+  "match_count": 7,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
