@@ -8037,9 +8037,12 @@ function _expenseFolderUrl(e){
     || _chamberFolderUrl();
 }
 /* Where a document should be filed: by CASE when it belongs to one, else the
-   category folder under the Unassigned area. Falls back to the chamber folder. */
+   category folder under the Unassigned area. Falls back to the chamber folder.
+   Financial documents (receipts, invoices, salary slips) are owner-only, so they
+   NEVER go to a case folder (staff can open those) — always the owner's own folders. */
+const _OWNER_ONLY_DOCS={receipt:1,invoice:1,salary:1};
 function _docFolderUrl(kind, matterId){
-  if(matterId){ const m=matterById(matterId); if(m&&m.folderUrl) return m.folderUrl; }
+  if(matterId && !_OWNER_ONLY_DOCS[kind]){ const m=matterById(matterId); if(m&&m.folderUrl) return m.folderUrl; }
   const s=DB.settings||{};
   const cat = kind==="receipt" ? s.receiptFolderUrl
             : kind==="invoice" ? s.invoiceFolderUrl
@@ -8050,14 +8053,18 @@ function _docFolderUrl(kind, matterId){
   return cat || remembered || s.unassignedFolderUrl || _chamberFolderUrl();
 }
 function _docFolderLabel(kind, matterId){
-  if(matterId){ const m=matterById(matterId); if(m&&m.folderUrl) return "this case's folder"; }
+  if(matterId && !_OWNER_ONLY_DOCS[kind]){ const m=matterById(matterId); if(m&&m.folderUrl) return "this case's folder"; }
   return ({receipt:"the Receipts folder",invoice:"the Invoices folder",voucher:"the Vouchers folder",salary:"the Salary Slips folder"}[kind]) || "the chamber folder";
 }
 // A short, exact "where this document belongs" line derived from the routing.
 function _docDestLine(kind, matterId){
-  if(matterId){ const m=matterById(matterId); if(m){ return `Case folder · <b>${esc(m.code||m.caseNo||"this case")}</b>`; } }
   const fy=fyLabel(DB.settings.fyStart);
   const cat={receipt:"Receipts",invoice:"Invoices",voucher:"Vouchers",salary:"Salary Slips"}[kind]||"Chamber";
+  if(matterId){ const m=matterById(matterId); if(m){
+    const code=esc(m.code||m.caseNo||"this case");
+    if(_OWNER_ONLY_DOCS[kind]) return `${esc(cat)} ▸ <b>FY ${esc(fy)}</b> · name it with <b>${code}</b> <span class="hint">(owner-only — not the case folder)</span>`;
+    return `Case folder · <b>${code}</b>`;
+  } }
   return `${esc(cat)} ▸ <b>FY ${esc(fy)}</b> sub-folder`;
 }
 // Remember the folder a category was last filed into, so one-tap open keeps working.
@@ -16684,8 +16691,8 @@ function setSecChamber(s){
         <div><label class="fld">Voucher required above (₹)</label><input class="in" id="stVoucherThresh" inputmode="numeric" value="${esc(String(s.voucherThreshold||1000))}" placeholder="1000"></div>
       </div>
       <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
-        <label class="fld">Document cloud folders <span style="color:var(--muted);font-weight:400">(for documents not tied to a case)</span></label>
-        <div class="hint" style="margin-bottom:10px">Paste a OneDrive/Drive folder link for each type. When you generate a document that belongs to a case, the app opens that case's folder instead; only case-less documents use these.</div>
+        <label class="fld">Document cloud folders <span style="color:var(--muted);font-weight:400">(financial documents, and documents not tied to a case)</span></label>
+        <div class="hint" style="margin-bottom:10px">Paste a OneDrive/Drive folder link for each type. <b>Receipts, invoices and salary slips always go to these folders — even for a case</b> — so keep them in a folder that is <b>not shared with staff</b>. Other documents that belong to a case go to that case's folder.</div>
         <div class="grid g2">
           <div><label class="fld">Receipts folder</label><input class="in" id="stReceiptFolder" value="${esc(s.receiptFolderUrl||"")}" placeholder="https://1drv.ms/..."></div>
           <div><label class="fld">Invoices folder</label><input class="in" id="stInvoiceFolder" value="${esc(s.invoiceFolderUrl||"")}" placeholder="https://1drv.ms/..."></div>
@@ -20693,7 +20700,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.09.22-0100";
+  window.APP_VERSION = "2026.10.01-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
