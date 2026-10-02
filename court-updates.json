@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-02T14:30:59.893258Z",
+  "generated_at": "2026-10-02T19:30:39.462402Z",
   "window": [
-    "2026-10-02",
     "2026-10-05",
     "2026-10-06",
     "2026-10-07",
     "2026-10-08",
     "2026-10-09",
     "2026-10-12",
-    "2026-10-13"
+    "2026-10-13",
+    "2026-10-14"
   ],
   "by_date": {
     "2026-10-05": {
@@ -190,6 +190,16 @@
           "text": "1251 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
         }
       ]
+    },
+    "2026-10-14": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 0,
+      "matches": []
     }
   },
   "match_count": 6,
