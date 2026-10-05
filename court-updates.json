@@ -1,81 +1,16 @@
 {
-  "generated_at": "2026-10-05T17:23:32.060659Z",
+  "generated_at": "2026-10-05T23:20:23.661419Z",
   "window": [
-    "2026-10-05",
     "2026-10-06",
     "2026-10-07",
     "2026-10-08",
     "2026-10-09",
     "2026-10-12",
     "2026-10-13",
-    "2026-10-14"
+    "2026-10-14",
+    "2026-10-15"
   ],
   "by_date": {
-    "2026-10-05": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Registrar - Main",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 3,
-      "matches": [
-        {
-          "for_date": "2026-10-05",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "7",
-          "item": "15",
-          "coram": "HON'BLE MR. JUSTICE DIPANKAR DATTA; HON'BLE MR. JUSTICE SHEEL NAGU",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate"
-          ],
-          "confidence": "medium",
-          "text": "15 Diary No. 30889-2026 SK. IBRAHIM AND ANR. Versus THE STATE OF MAHARASHTRA AND ORS."
-        },
-        {
-          "for_date": "2026-10-05",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "11",
-          "item": "46",
-          "coram": "HON'BLE MR. JUSTICE ARAVIND KUMAR; HON'BLE MR. JUSTICE VIPUL M. PANCHOLI",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate"
-          ],
-          "confidence": "medium",
-          "text": "46 SLP(C) No. 32702/2025 PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS. Versus COMPUTER TEACHERS WELFARE SOCIETY AND ORS."
-        },
-        {
-          "for_date": "2026-10-05",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "11",
-          "item": "46.1",
-          "coram": "HON'BLE MR. JUSTICE ARAVIND KUMAR; HON'BLE MR. JUSTICE VIPUL M. PANCHOLI",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate"
-          ],
-          "confidence": "medium",
-          "text": "PUNJAB INFORMATION AND COMMUNICATION SLP(C) No. TECHNOLOGY EDUCATION SOCIETY (PICTES) AND 16160-16164/2026 ORS. DAILY CAUSE LIST FOR DATED : 05-10-2026 COURT NO. : 11 Versus HARCHARAN SINGH AND ORS."
-        }
-      ]
-    },
     "2026-10-06": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -208,8 +143,36 @@
       "has_main": false,
       "match_count": 0,
       "matches": []
+    },
+    "2026-10-15": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 1,
+      "matches": [
+        {
+          "for_date": "2026-10-15",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "64",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate"
+          ],
+          "confidence": "medium",
+          "text": "64 SLP(Crl) No. 8841/2026 FAVAS RAHIMT Versus STATE OF KERALA"
+        }
+      ]
     }
   },
-  "match_count": 6,
+  "match_count": 4,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
