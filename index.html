@@ -1910,6 +1910,42 @@
   .role-pick button.sel{border-color:var(--seal);background:var(--seal-soft,#f3e9e6)}
   .role-pick .rt{font-size:15px;font-weight:700;color:var(--ink)}
   .role-pick .rd{font-size:12px;color:var(--muted);margin-top:4px}
+  /* ---- Files screen (case papers) ---- */
+  .fv-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .fv-title{font-size:18px;font-weight:700;line-height:1.3}
+  .fv-path{font-size:12px;color:var(--muted);word-break:break-word;margin-top:3px}
+  .fv-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 8px}
+  .fv-search{flex:1;min-width:180px;padding:10px 12px 10px 34px;border:1px solid var(--line);border-radius:10px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236d675e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 11px center;font-size:15px}
+  .fv-search:focus{outline:none;border-color:var(--seal);box-shadow:0 0 0 3px var(--seal-soft)}
+  .fv-sort{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px}
+  .fv-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .fv-chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:20px;padding:5px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+  .fv-chip b{font-weight:600;color:var(--muted);margin-left:3px}
+  .fv-chip.on{background:var(--seal);border-color:var(--seal);color:#fff}
+  .fv-chip.on b{color:#fff;opacity:.85}
+  .fv-group{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 2px 6px}
+  .fv-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:7px}
+  .fv-row:hover{border-color:#d6cdbb}
+  .fv-ic{flex:none;width:40px;height:46px;border-radius:7px;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;position:relative;letter-spacing:.02em}
+  .fv-ic:after{content:"";position:absolute;top:0;right:0;border-style:solid;border-width:0 11px 11px 0;border-color:transparent #fff rgba(255,255,255,.35) transparent}
+  .fv-ic.dir{background:#e9dfc8 !important;color:#7a6435;font-size:20px;align-items:center;padding:0}
+  .fv-ic.dir:after{display:none}
+  .fv-main{flex:1;min-width:0;cursor:pointer}
+  .fv-name{font-size:15px;font-weight:600;color:var(--ink);line-height:1.35;word-break:break-word}
+  .fv-meta{font-size:12.5px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .fv-num{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--seal);background:var(--seal-soft);border-radius:5px;padding:1px 6px}
+  .fv-acts{display:flex;gap:6px;flex:none}
+  .fv-acts button{border:1px solid var(--line);background:var(--paper2);color:var(--seal);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
+  .fv-acts button:hover{background:var(--seal-soft);border-color:var(--seal)}
+  .fv-empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:14px}
+  .fv-hit{background:#fff1b8;border-radius:2px}
+  .fv-res{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;cursor:pointer}
+  .fv-res:hover{border-color:var(--seal)}
+  @media (max-width:560px){
+    .fv-row{flex-wrap:wrap}
+    .fv-acts{width:100%;padding-left:52px}
+    .fv-acts button{flex:1}
+  }
 </style>
 <meta name="theme-color" content="#6b1f1f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1949,6 +1985,7 @@
   <section class="panel" id="panel-matterdetail"></section>
   <section class="panel" id="panel-pastcases"></section>
   <section class="panel" id="panel-register"></section>
+  <section class="panel" id="panel-files"></section>
   <section class="panel" id="panel-appts"></section>
   <section class="panel" id="panel-unassigned"></section>
   <section class="panel" id="panel-exadv"></section>
@@ -15712,7 +15749,7 @@ function renderMatters(){
       <td>${nextCell}</td>
       <td>${statusTag}</td>
       <td style="white-space:nowrap">
-        <button class="row-act" onclick="editMatter('${m.id}')">Edit</button>${isStaffView()?"":`<button class="row-act" onclick="deleteMatterPrompt('${m.id}','matters')" title="Delete this entry" style="color:var(--seal)">Delete</button>`}
+        ${_canFiles(m)?`<button class="row-act" onclick="openFiles(${+m.serial})" title="Papers in this case's folder" style="font-weight:700">Files</button>`:""}<button class="row-act" onclick="editMatter('${m.id}')">Edit</button>${isStaffView()?"":`<button class="row-act" onclick="deleteMatterPrompt('${m.id}','matters')" title="Delete this entry" style="color:var(--seal)">Delete</button>`}
       </td></tr>`;
   }).join("");
   document.getElementById("panel-matters").innerHTML = `
@@ -18313,7 +18350,7 @@ function renderCaseRegister(){
       <td>${ch}</td>
       <td>${numCell}</td>
       <td>${listed}${st}</td>
-      <td style="white-space:nowrap"><button class="row-act" onclick="_regOpen('${r.id}')">${m?"File":"Open"}</button></td></tr>`;
+      <td style="white-space:nowrap"><button class="row-act" style="font-weight:700" onclick="openFiles(${+r.serial})">Files</button><button class="row-act" onclick="_regOpen('${r.id}')">Details</button></td></tr>`;
   }).join("");
   panel.innerHTML=`
     <div class="card">
@@ -18325,6 +18362,7 @@ function renderCaseRegister(){
         ${fbtn("all","All")}${fbtn("AD","AD Chamber")}${fbtn("SD","SD Chamber")}${fbtn("listed","Listed")}${fbtn("nonum","Not confirmed")}${nConfirm?fbtn("confirm",`To confirm — recent SD (${nConfirm})`):""}
         <input class="in" style="flex:1;min-width:160px;max-width:320px;margin-left:auto" placeholder="Search number, name or SLP/Diary" value="${esc(_regQuery)}" oninput="_regSetQuery(this.value)">
       </div>
+      <div style="margin:0 0 10px"><input class="fv-search" style="width:100%" placeholder="Find a paper in any case — e.g. paper book, written submissions, Jintur" value="${esc(_gpQuery)}" oninput="_gpSearch(this.value)"><div id="gpResults"></div></div>
       ${reg.length?`<div class="tbl-wrap"><table class="sr-num"><thead><tr><th>No.</th><th>Case</th><th>Chamber</th><th>Petition / Diary No.</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="6" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>`
       :`<div class="empty">The register is empty. Use <b>Import</b> (Settings → Case register) to load the Master Cases Folder register.</div>`}
     </div>`;
@@ -18336,7 +18374,6 @@ function _regOpen(id){
   const today=todayISO();
   const lrows=L.length?`<div class="lrows" style="margin-top:6px">${L.slice(-6).map(x=>`<div class="lrow"><div class="l"><div class="t">${fmtDate(x.date)}${x.date>=today?` <span class="tag active">upcoming</span>`:""}</div><div class="s">${x.court&&x.court!=="—"?"Court "+esc(x.court):"—"}${x.item?" · Item "+esc(x.item):""}${x.coram?" · "+esc(_plainBench?_plainBench(x.coram):x.coram):""}</div></div></div>`).join("")}</div>`:`<div class="hint">Not found in the fetched Supreme Court cause lists.</div>`;
   const adOpts=(DB.matters||[]).filter(x=>!isVoided(x)&&(x.kind==="case"||x.kind==="caveat")&&(!x.serial||x.id===r.matterId)).sort((a,b)=>String(b.opened||"").localeCompare(String(a.opened||""))).map(x=>`<option value="${x.id}" ${x.id===r.matterId?"selected":""}>${esc(x.code||"")} — ${esc(x.parties||x.client||"")}</option>`).join("");
-  setTimeout(()=>_loadPapersInto("rgPapers", r.serial, r.folder), 0);
   openModal(`File No. ${String(r.serial).padStart(3,"0")}`, `
     <div style="font-size:15px;font-weight:700">${esc(r.title||"")}</div>
     <div class="hint" style="margin:2px 0 10px"><span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)} Chamber</span> · came in ${esc(fmtDate(r.date))}${r.batch?" · "+esc(r.batch):""}</div>
@@ -18350,7 +18387,7 @@ function _regOpen(id){
       <div id="rgMergedWrap" style="display:${r.status==="merged"?"block":"none"}"><label class="fld">Merged into file No.</label><input class="in mono" id="rgMerged" value="${esc(String(r.mergedInto||""))}" placeholder="e.g. 212"></div>
     </div>
     ${r.chamber==="AD"?`<div style="margin-top:10px"><label class="fld">Linked matter in the app</label><select class="in" id="rgMatter"><option value="">— none —</option>${adOpts}</select></div>`:""}
-    <div class="eyebrow" style="margin-top:12px">Papers in the folder</div><div id="rgPapers" class="hint">Loading…</div>
+    <button class="btn seal" style="width:100%;margin-top:12px" onclick="closeModal();openFiles(${+r.serial})">📁 Open files</button>
     <div class="eyebrow" style="margin-top:12px">Supreme Court listings</div>${lrows}
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button>${m?`<button class="btn ghost" onclick="closeModal();openMatterDetail('${m.id}')">Open matter</button>`:""}<button class="btn seal" onclick="_regSave('${r.id}')">Save</button></div>`);
 }
@@ -18384,10 +18421,9 @@ function _loadPapersInto(elId, serial, folder){
     .catch(()=>{ if(cached===undefined&&el()) el().innerHTML=`<div class="hint">Could not load the paper list (offline?).</div>`; });
 }
 function _folderPapersCard(m){
-  if(!m||!m.serial) return "";
-  if(isStaffView() && !(m.folder && /^AD Chamber\//.test(m.folder) && _gkUrl())) return "";
-  setTimeout(()=>_loadPapersInto("mdPapers", m.serial, m.folder), 0);
-  return `<div class="card"><div class="card-head"><div><h2>Papers in the folder</h2><div class="hint">File ${esc(String(m.serial))}${m.folder?" · "+esc(m.folder):""}</div></div></div><div id="mdPapers" class="hint">Loading…</div></div>`;
+  if(!_canFiles(m)) return "";
+  return `<div class="card"><div class="card-head"><div><h2>Files</h2><div class="hint">File ${esc(String(m.serial))}${m.folder?" · "+esc(m.folder):""}</div></div>
+    <button class="btn seal sm" onclick="openFiles(${+m.serial})">Open files</button></div></div>`;
 }
 // New SD Chamber file: owner only, register entry only (no matter, so staff never see it).
 // The ASDC Helper on the Mac creates "SD Chamber/<Title> (NNN)" on its next run.
@@ -18643,6 +18679,148 @@ function setSecDocuments(s){
   <div class="card"><h2>Shared live</h2><div class="hint" style="margin-bottom:6px">Files you shared so the receiver's edits change your file. Stop any of them here.</div>
     ${ls.length?`<div class="lrows">${ls.map(row).join("")}</div>`:`<div class="empty" style="padding:12px">Nothing shared live.</div>`}</div>`;
 }
+/* ===========================================================
+   FILES SCREEN — one case's papers: clear names, type icons, search,
+   type filters, sort, Open / Edit / Share. Older folders open in place.
+   =========================================================== */
+var _fv={serial:null,folder:"",title:"",chamber:"",sub:"",idx:null,q:"",type:"all",sort:"num",loading:false,err:""};
+function _canFiles(m){
+  if(!m||!m.serial||m.kind==="ia") return false;
+  if(!isStaffView()) return true;
+  return !!(m.folder && /^AD Chamber\//.test(m.folder) && _gkUrl());
+}
+function openFiles(serial, q){
+  serial=+serial;
+  const r=(DB.register||[]).find(x=>+x.serial===serial);
+  const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===serial);
+  _fv={serial, folder:(r&&r.folder)||(m&&m.folder)||"", title:(r&&r.title)||(m&&(m.parties||m.client))||"", chamber:(r&&r.chamber)||(m&&m.chamber)||"",
+       sub:"", idx:null, q:q||"", type:"all", sort:"num", loading:true, err:""};
+  if(isStaffView()){
+    try{ _shellTab="files"; renderStaffBotNav&&renderStaffBotNav(); }catch(e){}
+    document.querySelectorAll("#appRoot .panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("panel-files").classList.add("active");
+    renderFilesPage(); window.scrollTo({top:0,behavior:"smooth"});
+  }else openSub("files");
+  _filesLoad();
+}
+function _filesLoad(){
+  const f=_fv; f.loading=true; f.err=""; renderFilesPage();
+  const path=f.folder+(f.sub?"/"+f.sub:"");
+  const done=fx=>{ if(_fv!==f) return; f.idx=fx; f.loading=false; f.title=f.title||(fx&&fx.title)||""; renderFilesPage(); };
+  const fail=msg=>{ if(_fv!==f) return; f.loading=false; f.err=msg; renderFilesPage(); };
+  const live=()=>{
+    if(!f.folder) return fail("This case has no folder in the Master Cases Folder yet.");
+    if(!_gkUrl()) return f.sub?fail("Opening older folders needs Settings → Documents (OneDrive) to be connected."):fail(isStaffView()?"Files can be opened once the Head of Chamber has set up Documents.":"No paper list yet — it appears once the ASDC Helper on your Mac has run.");
+    _gk("/api/list",{folder:path}).then(d=>done(_liveItemsToIndex(d.folder||path,d.items))).catch(e=>fail(e.message));
+  };
+  if(!isStaffView() && !f.sub && window.FB && FB.getFolderIndex){
+    const c=window.__folderIdx[f.serial]; if(c) done(c);
+    FB.getFolderIndex(f.serial).then(fx=>{ if(fx){ window.__folderIdx[f.serial]=fx; if(!f.folder&&fx.folder) f.folder=fx.folder; done(fx); } else if(!c) live(); }).catch(()=>{ if(!c) live(); });
+  } else live();
+}
+function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _filesLoad(); }
+function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _filesLoad(); }
+const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
+const _FV_GROUP={N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
+function _fileKind(ext){ ext=String(ext||"").toLowerCase(); if(/^\.(docx?|rtf|odt)$/.test(ext)) return "word"; if(ext===".pdf") return "pdf"; if(/^\.(jpe?g|png|heic|gif|webp|tiff?)$/.test(ext)) return "img"; if(/^\.(xlsx?|csv)$/.test(ext)) return "xls"; return "file"; }
+const _FK={word:["W","#2b579a"],pdf:["PDF","#b3261e"],img:["IMG","#3d7a46"],xls:["X","#1d6f42"],file:["FILE","#7b746a"]};
+function _cleanDesc(desc,title){
+  let d=String(desc||"");
+  d=d.replace(/\.[a-z0-9]{2,5}$/i,"");
+  const t=String(title||"").trim();
+  if(t && d.toLowerCase().indexOf(t.toLowerCase())===0) d=d.slice(t.length).replace(/^\s*[-–:]\s*/,"");
+  return d.trim()||String(desc||"");
+}
+function _hl(text,q){ const t=String(text==null?"":text); if(!q) return esc(t); const i=t.toLowerCase().indexOf(String(q).toLowerCase()); if(i<0) return esc(t); return esc(t.slice(0,i))+'<span class="fv-hit">'+esc(t.slice(i,i+q.length))+'</span>'+esc(t.slice(i+q.length)); }
+function _fvRows(){
+  const f=_fv, fx=f.idx||{items:[],bundles:[]};
+  const title=f.title||fx.title||"";
+  const files=(fx.items||[]).map(i=>Object.assign({},i,{_t:i.letter||"X", _label:_cleanDesc(i.desc||i.name,title)}));
+  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:"dir",_label:b.name}));
+  return {files,dirs,title};
+}
+function _fvSetQ(v){ _fv.q=String(v||""); _fvRenderList(); }
+function _fvSetType(t){ _fv.type=t; renderFilesPage(); }
+function _fvSetSort(v){ _fv.sort=v; _fvRenderList(); }
+function _fvQuote(s){ return JSON.stringify(String(s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
+function _fvRenderList(){
+  const box=document.getElementById("fvList"); if(!box) return;
+  const f=_fv; const {files,dirs}=_fvRows();
+  const q=f.q.trim().toLowerCase();
+  const match=x=>!q||(x._label+" "+(x.num||"")+" "+x.name+" "+(x.mtime?fmtDate(x.mtime):"")).toLowerCase().indexOf(q)>=0;
+  let fl=files.filter(x=>(f.type==="all"||x._t===f.type)&&match(x));
+  const dl=dirs.filter(x=>(f.type==="all"||f.type==="dir")&&match(x));
+  const can=!!_gkUrl(); const base=(f.idx&&f.idx.folder)||(f.folder+(f.sub?"/"+f.sub:""));
+  const row=x=>{
+    const k=can?_paperReg({path:base+"/"+x.name,name:x.name,size:x.size,ext:x.ext||""}):-1;
+    const kind=_fileKind(x.ext); const lab=_FK[kind][0], col=_FK[kind][1];
+    return `<div class="fv-row">
+      <div class="fv-ic" style="background:${col}">${lab}</div>
+      <div class="fv-main" ${k>=0?`onclick="_paperOpen(${k})" title="Open"`:""}>
+        <div class="fv-name">${_hl(x._label,q)}</div>
+        <div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div>
+      </div>
+      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button></div>`:""}
+    </div>`;
+  };
+  const drow=x=>`<div class="fv-row"><div class="fv-ic dir">📁</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>older folder, kept as it was</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
+  let h="";
+  if(f.sort==="new"){
+    fl=fl.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||"")));
+    h=fl.map(row).join("")+(dl.length?`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join(""):"");
+  }else{
+    ["N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`+g.map(row).join(""); });
+    if(dl.length) h+=`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join("");
+  }
+  if(!h) h=`<div class="fv-empty">${q?`Nothing matches “${esc(f.q)}”.`:"No papers of this kind."}</div>`;
+  if(!can && !isStaffView() && (fl.length||dl.length)) h=`<div class="hint" style="margin-bottom:8px">To open, edit and share, finish <b>Settings → Documents (OneDrive)</b>.</div>`+h;
+  box.innerHTML=h;
+}
+function renderFilesPage(){
+  const panel=document.getElementById("panel-files"); if(!panel) return;
+  const f=_fv; const rows=_fvRows(), files=rows.files, dirs=rows.dirs, title=rows.title;
+  const staff=isStaffView();
+  const back=staff?`<div class="subnav"><button class="subnav-back" onclick="staffGo('matters')">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">Files</span></div>`:"";
+  const cnt=t=>t==="all"?files.length+dirs.length:(t==="dir"?dirs.length:files.filter(x=>x._t===t).length);
+  const chips=_FV_TYPES.filter(([t])=>t==="all"||cnt(t)).map(([t,l])=>`<button class="fv-chip ${f.type===t?"on":""}" onclick="_fvSetType('${t}')">${l}<b>${cnt(t)}</b></button>`).join("");
+  const ch=f.chamber?` <span class="tag" style="background:${f.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff;vertical-align:middle">${esc(f.chamber)}</span>`:"";
+  panel.innerHTML=`${back}
+    <div class="card">
+      <div class="fv-head">
+        <div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
+          <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>
+        <div style="display:flex;gap:6px">${f.sub?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_filesLoad()">Refresh</button></div>
+      </div>
+      ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:`
+      <div class="fv-tools">
+        <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
+        <select class="fv-sort" onchange="_fvSetSort(this.value)"><option value="num" ${f.sort==="num"?"selected":""}>By number</option><option value="new" ${f.sort==="new"?"selected":""}>Newest first</option></select>
+      </div>
+      <div class="fv-chips">${chips}</div>
+      <div id="fvList"></div>`)}
+    </div>`;
+  _fvRenderList();
+}
+// ---- Find a paper in any case (owner; uses every case's paper list kept by the helper)
+var _gpQuery="", _gpAll=null, _gpLoading=false;
+function _gpSearch(v){
+  _gpQuery=String(v||""); const box=document.getElementById("gpResults"); if(!box) return;
+  const q=_gpQuery.trim().toLowerCase();
+  if(q.length<3){ box.innerHTML=""; return; }
+  if(!_gpAll){
+    box.innerHTML=`<div class="hint" style="padding:6px 2px">Loading every case's paper list…</div>`;
+    if(_gpLoading) return; _gpLoading=true;
+    FB.getAllFolderIndex().then(all=>{ _gpAll=all||[]; _gpLoading=false; _gpSearch(_gpQuery); }).catch(e=>{ _gpLoading=false; box.innerHTML=`<div class="hint">${esc((e&&e.message)||"Could not load")}</div>`; });
+    return;
+  }
+  const words=q.split(/\s+/).filter(Boolean); const hits=[];
+  _gpAll.forEach(fx=>{ (fx.items||[]).forEach(i=>{ const lab=_cleanDesc(i.desc||i.name,fx.title); const hay=(fx.title+" "+lab+" "+(i.num||"")).toLowerCase(); if(words.every(w=>hay.indexOf(w)>=0)) hits.push({fx,i,lab}); }); });
+  hits.sort((a,b)=>String(b.i.mtime||"").localeCompare(String(a.i.mtime||"")));
+  const show=hits.slice(0,40);
+  box.innerHTML=hits.length?`<div class="hint" style="margin:6px 2px">${hits.length} paper${hits.length>1?"s":""} found${hits.length>40?" — showing the 40 newest":""}</div>`+show.map(h=>`<button class="fv-res" onclick="openFiles(${+h.fx.serial}, ${_fvQuote(h.i.num||h.lab)})"><div style="font-size:14px;font-weight:600">${_hl(h.lab,words[0])}</div><div class="hint"><span class="fv-num">${esc(h.i.num||"—")}</span> · ${esc(String(h.fx.serial).padStart(3,"0"))} ${esc(h.fx.title)} · ${esc(h.fx.chamber||"")}${h.i.mtime?" · "+esc(fmtDate(h.i.mtime)):""}</div></button>`).join("")
+    :`<div class="hint" style="padding:6px 2px">No paper matches “${esc(_gpQuery)}”.</div>`;
+}
+
 function _regSave(id){
   const r=_regById(id); if(!r) return;
   const nums=_parsePetNos((document.getElementById("rgNums")||{}).value);
@@ -18784,7 +18962,7 @@ function _regApplyMatches(){
   try{ renderAll(); }catch(e){}
   if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
 }
-try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window._regHealLinks=_regHealLinks; window._numKeys=_numKeys; window._matterKeys=_matterKeys; window._regConfirmed=_regConfirmed; window._regKeys=_regKeys; window._listingKeys=_listingKeys; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
+try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window.openFiles=openFiles; window.renderFilesPage=renderFilesPage; window._filesLoad=_filesLoad; window._filesSub=_filesSub; window._filesUp=_filesUp; window._fvSetQ=_fvSetQ; window._fvSetType=_fvSetType; window._fvSetSort=_fvSetSort; window._fvRenderList=_fvRenderList; window._canFiles=_canFiles; window._gpSearch=_gpSearch; window._cleanDesc=_cleanDesc; window._regHealLinks=_regHealLinks; window._numKeys=_numKeys; window._matterKeys=_matterKeys; window._regConfirmed=_regConfirmed; window._regKeys=_regKeys; window._listingKeys=_listingKeys; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
   window.renderAll = renderAll; window.todayISO = todayISO; window.onForumChange = onForumChange; window.typesForForum = typesForForum; window.FORUMS = FORUMS; window.onExpenseHeadChange = onExpenseHeadChange; window.onProofPicked = onProofPicked; window.viewProof = viewProof; window.removeProof = removeProof; window.addExpense = addExpense; window.saveExpense = saveExpense; window.EXPENSE_HEADS = EXPENSE_HEADS; window.attachLater = attachLater; window.saveLateProof = saveLateProof; window.peekNextVoucherNo = peekNextVoucherNo; window.peekNextNoticeNo = peekNextNoticeNo; window.openNoticeRegister = openNoticeRegister; window.openNoticeAssistant = openNoticeAssistant; window._naPick = _naPick; window._naCompose = _naCompose; window._draftNoticeBody = _draftNoticeBody; window._noticeBodyLayout = _noticeBodyLayout; window._renderNoticeRegister = _renderNoticeRegister; window._reprintNotice = _reprintNotice; window._delNotice = _delNotice; window._editNotice = _editNotice; window._afterHearing=_afterHearing; window._ahSave=_ahSave; window._ahToggleNext=_ahToggleNext; window._limCalc=_limCalc; window._limCompute=_limCompute; window._limRemind=_limRemind; window._matterFeeStrip=_matterFeeStrip; window._upcomingItems=_upcomingItems; window.openClients=openClients; window.renderClients=renderClients; window.openClientDetail=openClientDetail; window._buildClients=_buildClients; window.openRefAdvocates=openRefAdvocates; window.renderRefAdvocates=renderRefAdvocates; window.openRefAdvDetail=openRefAdvDetail; window._buildRefAdvs=_buildRefAdvs; window._resolveRefAdvId=_resolveRefAdvId; window._backfillRefRegistry=_backfillRefRegistry; window._regCode=_regCode; window.openSuccessStats=openSuccessStats; window.renderSuccessStats=renderSuccessStats; window._matterSuccess=_matterSuccess; window.PARTY_ROLES=PARTY_ROLES; window.RESULT_OPTIONS=RESULT_OPTIONS; window._needsAttentionHTML=_needsAttentionHTML; window._reviewMatter=_reviewMatter; window._reviewDate=_reviewDate; window._checkConflict=_checkConflict; window._showConflictWarning=_showConflictWarning; window._partyTokens=_partyTokens; window.saveMatter=saveMatter; window._resolveClientId=_resolveClientId; window._backfillClientRegistry=_backfillClientRegistry; window._mergeClients=_mergeClients; window._clientGroupKey=_clientGroupKey; window._showNoticeConflict=_showNoticeConflict; window._fillSnapList=_fillSnapList; window.restoreSnapshot=restoreSnapshot; window._dataIntegrityIssues=_dataIntegrityIssues; window.requestNotifyPermission=requestNotifyPermission; window._fireDueNotifications=_fireDueNotifications; window._notifyEnabled=_notifyEnabled; window.nextNoticeNo = nextNoticeNo; window.openLegalNotice = openLegalNotice; window.printLegalNotice = printLegalNotice; window._lnGo = _lnGo; window.nextVoucherNo = nextVoucherNo; window.idbGet = idbGet; window.idbPut = idbPut; window.exportData = exportData; window.importData = importData; window.nextReceiptNo = nextReceiptNo; window.peekNextReceiptNo = peekNextReceiptNo; window.onMDocsPicked=onMDocsPicked; window.addMDoc=addMDoc; window.saveMDoc=saveMDoc; window.viewDoc=viewDoc; window.assignDoc=assignDoc; window.saveAssign=saveAssign; window.delMDoc=delMDoc; window.renderDocIn=renderDocIn; window.renderDocFiled=renderDocFiled; window.renderDocFolders=renderDocFolders; window.setDocSearch=setDocSearch; window.toggleDocFolder=toggleDocFolder; window.docRowHTML=docRowHTML; window.convertToCase=convertToCase; window.doConvertToCase=doConvertToCase; window.setMatterKind=setMatterKind; window.nextQueryCode=nextQueryCode; window.peekNextQueryCode=peekNextQueryCode; window.onMdMatterChange=onMdMatterChange; window.onAdMatterChange=onAdMatterChange; window.matterFolderTitle=matterFolderTitle; window.addBankRow=addBankRow; window.removeBankRow=removeBankRow; window.bankListHTML=bankListHTML; window.collectBanksFromDOM=collectBanksFromDOM; window.defaultBank=defaultBank; window.bankById=bankById; window.banksList=banksList; window.addUpiRow=addUpiRow; window.removeUpiRow=removeUpiRow; window.upiListHTML=upiListHTML; window.collectUpisFromDOM=collectUpisFromDOM; window.defaultUpi=defaultUpi; window.upiById=upiById; window.upisList=upisList; window.openSetSection=openSetSection; window.setSectionBack=setSectionBack; window.thisMonthReceipts=thisMonthReceipts; window.cloudLogout=cloudLogout; window.doCloudLogout=doCloudLogout; window._startIdleTimer=_startIdleTimer; window._stopIdleTimer=_stopIdleTimer; window._resetIdleTimer=_resetIdleTimer; window.idleTimeoutMin=idleTimeoutMin; window.toggleDesktopView=toggleDesktopView; window.applyViewPref=applyViewPref; window.isDesktopView=isDesktopView; window.logActivity=logActivity; window.openActivity=openActivity; window.renderActivity=renderActivity; window.unreadActivityCount=unreadActivityCount; window._refreshActivityBadge=_refreshActivityBadge; window._markActivitySeen=_markActivitySeen; window.renderAccess=renderAccess; window.addAccessEmail=addAccessEmail; window.removeAccessEmail=removeAccessEmail; window.doRemoveAccessEmail=doRemoveAccessEmail; window.setAccessListActive=setAccessListActive; window.setAccessLocked=setAccessLocked; window.loadAccess=loadAccess; window.saveAccess=saveAccess; window.wipeAll=wipeAll; window.doWipe=doWipe; window.showCounter=showCounter; window._wipeCheck=_wipeCheck; window._saveLoginBranding=_saveLoginBranding; window.delInvoice=delInvoice; window.doDelInvoice=doDelInvoice; window.voidInvoice=voidInvoice; window.doVoidInvoice=doVoidInvoice; window.doDeleteMatter=doDeleteMatter; window.deleteMatterPrompt=deleteMatterPrompt; window.doDeleteMatterFrom=doDeleteMatterFrom; window.cancelMatter=cancelMatter; window.doCancelMatter=doCancelMatter; window.delReceipt=delReceipt; window.doDelReceipt=doDelReceipt; window.voidReceiptPrompt=voidReceiptPrompt; window.doVoidReceipt=doVoidReceipt; window.editReceipt=editReceipt; window.doEditReceipt=doEditReceipt; window._edRcPreview=_edRcPreview; window.softDelete=softDelete; window.voidRecord=voidRecord; window.isVoided=isVoided; window.openBilling=openBilling; window.renderInvoiceLedger=renderInvoiceLedger; window.renderBooksOverview=renderBooksOverview; window.renderIncomeBreakdown=renderIncomeBreakdown; window.setIncomePeriod=setIncomePeriod; window.billedFY=billedFY; window.outstandingFY=outstandingFY; window.monthlyFeesFY=monthlyFeesFY; window.taxComparison=taxComparison; window.openRetainer=openRetainer; window._rtPreview=_rtPreview; window._retainerReceipt=_retainerReceipt; window._retainerInvoice=_retainerInvoice; window._rcMatterChange=_rcMatterChange; window._rcSetKind=_rcSetKind; window._ivMatterChange=_ivMatterChange; window._ivSetKind=_ivSetKind; window.invoiceTotal=invoiceTotal; window.fyInvoices=fyInvoices; window.renderAdvances=renderAdvances; window.doAcceptAdvance=doAcceptAdvance; window.doRejectAdvance=doRejectAdvance; window.doRejectAdvance2=doRejectAdvance2; window.ownerGiveAdvance=ownerGiveAdvance; window.doOwnerGiveAdvance=doOwnerGiveAdvance; window.ownerRecordReturn=ownerRecordReturn; window.doOwnerRecordReturn=doOwnerRecordReturn; window.acceptAdvance=acceptAdvance; window.rejectAdvance=rejectAdvance; window.addAdvanceEntry=addAdvanceEntry; window.allPending=allPending; window.staffBalance=staffBalance; window.pendingBalanceImpact=pendingBalanceImpact; window.staffGo=staffGo; window.renderStaffHome=renderStaffHome; window.renderStaffRecord=renderStaffRecord; window.renderStaffUpload=renderStaffUpload; window.staffSubmitExpense=staffSubmitExpense; window.staffRecordReturn=staffRecordReturn; window.staffSubmitReturn=staffSubmitReturn; window.staffSubmitDoc=staffSubmitDoc; window.approveStaff=approveStaff; window.blockStaff=blockStaff; window.pushStaffBalance=pushStaffBalance; window.pushBrandingToAllStaff=pushBrandingToAllStaff; window._applyStaffBranding=_applyStaffBranding; window.staffRecTab=staffRecTab; window.staffSubmitAdvance=staffSubmitAdvance; window.renderStaffBilling=renderStaffBilling; window.staffMyBillTab=staffMyBillTab; window.staffEditBillProfile=staffEditBillProfile; window.staffSaveBillProfile=staffSaveBillProfile; window.staffMakeReceipt=staffMakeReceipt; window.staffPrintMyReceipt=staffPrintMyReceipt; window.staffMakeInvoice=staffMakeInvoice; window.staffPrintMyInvoice=staffPrintMyInvoice; window._staffRegister=_staffRegister; window._staffDocSave=_staffDocSave; window._myBillFoot=_myBillFoot; window._chamberDocSettings=_chamberDocSettings; window.openMatterDetail=openMatterDetail; window.renderMatterDetail=renderMatterDetail; window.isStaffView=isStaffView; window._matterListingsCard=_matterListingsCard; window._mlAddDate=_mlAddDate; window.addFiling=addFiling; window.doAddFiling=doAddFiling; window.delFiling=delFiling; window.addDocToMatter=addDocToMatter; window.doAddDocToMatter=doAddDocToMatter; window.delMatterDoc=delMatterDoc; window.addCaseExpense=addCaseExpense; window.doAddCaseExpense=doAddCaseExpense; window.delCaseExpense=delCaseExpense; window.renderStaffDocs=renderStaffDocs; window.renderStaffExpenses=renderStaffExpenses; window.staffAddDocGeneral=staffAddDocGeneral; window.doStaffAddDocGeneral=doStaffAddDocGeneral; window.staffAddExpenseGeneral=staffAddExpenseGeneral; window.doStaffAddExpenseGeneral=doStaffAddExpenseGeneral; window._geOpenFolder=_geOpenFolder; window._geFolderHint=_geFolderHint; window.staffRecordAdvance=staffRecordAdvance; window.doStaffRecordAdvance=doStaffRecordAdvance; window.rejectExpense=rejectExpense; window.doRejectExpense=doRejectExpense; window.rejectAdvanceEntry=rejectAdvanceEntry; window.doRejectAdvanceEntry=doRejectAdvanceEntry; window.deleteAdvanceEntry=deleteAdvanceEntry; window._canEditEntry=_canEditEntry; window.editAdvanceEntry=editAdvanceEntry; window.doEditAdvanceEntry=doEditAdvanceEntry; window.editCaseExpense=editCaseExpense; window.doEditCaseExpense=doEditCaseExpense; window.isRejected=isRejected; window._canDeleteOwn=_canDeleteOwn; window.removeStaff=removeStaff; window.doRemoveStaff=doRemoveStaff; window.addDate=addDate; window.doAddDate=doAddDate; window._adReasonChange=_adReasonChange; window.delDate=delDate; window.editDate=editDate; window.scHoliday=scHoliday; window.scIsPartial=scIsPartial; window.scDayKind=scDayKind; window.scDayLabel=scDayLabel; window.scOverlayOn=scOverlayOn; window._adDateCheck=_adDateCheck; window.markConcluded=markConcluded; window.doMarkConcluded=doMarkConcluded; window.reopenCase=reopenCase; window.addPastCase=addPastCase; window.doAddPastCase=doAddPastCase; window.doSavePastCase=doSavePastCase; window.renderPastCases=renderPastCases; window.openPastCases=openPastCases; window.peekNextPastCode=peekNextPastCode; window.peekNextMatterCode=peekNextMatterCode; window._maxSeq=_maxSeq; window.findDuplicateNumbers=findDuplicateNumbers; window.duplicateWarningHTML=duplicateWarningHTML; window.printVoucher=printVoucher; window.needsVoucher=needsVoucher; window.voucherThreshold=voucherThreshold; window._expenseFolderUrl=_expenseFolderUrl; window.openLedger=openLedger; window.renderLedger=renderLedger; window.renderReceiptLedger=renderReceiptLedger; window.openTodos=openTodos; window.addTodo=addTodo; window.doAddTodo=doAddTodo; window.editTodo=editTodo; window.doEditTodo=doEditTodo; window.resolveTodo=resolveTodo; window.doResolveTodo=doResolveTodo; window.reopenTodo=reopenTodo; window.deleteTodo=deleteTodo; window.renderTodos=renderTodos; window.TODO_PRIORITIES=TODO_PRIORITIES; window.BCI_TYPES=BCI_TYPES; window.staffEditMyName=staffEditMyName; window.pickMatterForDate=pickMatterForDate; window.todayWidgetHTML=todayWidgetHTML; window._todayItems=_todayItems; window.staffSaveMyName=staffSaveMyName; window.openAppointments=openAppointments; window.addAppointment=addAppointment; window._apKindChange=_apKindChange; window.doAddAppointment=doAddAppointment; window.editAppointment=editAppointment; window.doEditAppointment=doEditAppointment; window.delAppointment=delAppointment; window.renderAppointments=renderAppointments; window.openCalendar=openCalendar; window.renderCalendar=renderCalendar; window._calShift=_calShift; window._calGoToday=_calGoToday; window._calDayView=_calDayView; window._calSelect=_calSelect; window.calAddOnDate=calAddOnDate; window.calAddHearing=calAddHearing; window._chReasonChange=_chReasonChange; window.doCalAddHearing=doCalAddHearing; window.openDriveFolderHelp=openDriveFolderHelp; window._chamberFolderUrl=_chamberFolderUrl; window._caseFolderName=_caseFolderName; window._caseFolderBanner=_caseFolderBanner; window.setupCaseFolder=setupCaseFolder; window.saveCaseFolder=saveCaseFolder; window.openUnassigned=openUnassigned; window.renderUnassigned=renderUnassigned; window.setupUnassignedFolder=setupUnassignedFolder; window.saveUnassignedFolder=saveUnassignedFolder; window._reassignPicker=_reassignPicker; window.doReassign=doReassign; window._isUnassigned=_isUnassigned; window.matterCodeFor=matterCodeFor; window.addMatter=window.addMatter||addMatter; window.acceptedFor=acceptedFor; window.pendingFor=pendingFor; window.idbDel=idbDel; window.exportMatterToFolder=exportMatterToFolder; window.exportAllToFolder=exportAllToFolder; window.fsSupported=fsSupported; window.buildZip=buildZip; window.matterFolderName=matterFolderName; window.buildIndexText=buildIndexText; window.fileNameFor=fileNameFor; window.renderInvoice=renderInvoice; window.onInvStyleChange=onInvStyleChange; window.addInvLine=addInvLine; window.rmInvLine=rmInvLine; window.updInvLine=updInvLine; window.addInvExpense=addInvExpense; window.rmInvExp=rmInvExp; window.updInvExp=updInvExp; window.saveAndPrintInvoice=saveAndPrintInvoice; window.reprintInvoice=reprintInvoice; window.delInvoice=delInvoice; window.printInvoice=printInvoice; window.peekNextInvoiceNo=peekNextInvoiceNo; window.nextInvoiceNo=nextInvoiceNo; window.onDueModeChange=onDueModeChange; window.defaultAppName=defaultAppName; window.openSetPw=openSetPw; window.doSetPw=doSetPw; window.openChangePw=openChangePw; window.doChangePw=doChangePw; window.lockNow=lockNow; window.showLockScreen=showLockScreen; window.showRecovery=showRecovery; window.tryUnlock=tryUnlock; window.tryRecovery=tryRecovery; window.copyText=copyText; window.encEnabled=encEnabled; window.encSetup=encSetup; window.encUnlock=encUnlock; window.loadDecrypted=loadDecrypted; window.showRecoveryCode=showRecoveryCode; window.renderArchive=renderArchive; window.toggleArchMonth=toggleArchMonth; window.exportArchiveCSV=exportArchiveCSV; window.exportReceiptsCSV=exportReceiptsCSV; window.exportInvoicesCSV=exportInvoicesCSV; window.exportExpensesCSV=exportExpensesCSV; window.micButton=micButton; window._micToggle=_micToggle; window._verifyQRBlock=_verifyQRBlock; window.updFee=updFee; window.setTdsMode=setTdsMode; window.setTdsRate=setTdsRate; window.focusCustomRate=focusCustomRate; window.computeFee=computeFee; window.tdsFY=tdsFY; window.newRegimeTax=newRegimeTax; window.chamberLogoSVG=chamberLogoSVG; window.showGroup=showGroup; window.subGo=subGo; window.setActiveTab=setActiveTab; window._labelizeTables=_labelizeTables; window._startTableLabeler=_startTableLabeler; window._activityGoTo=_activityGoTo; window._activityHasTarget=_activityHasTarget; window.clearActivity=clearActivity; window.doClearActivity=doClearActivity; window.openSearch=openSearch; window._gsRun=_gsRun; window._gsGo=_gsGo; window._gsSearch=_gsSearch; window._docPrintChooser=_docPrintChooser; window.onSigPicked=onSigPicked; window._applyStripToggle=_applyStripToggle; window.removeSignature=removeSignature; window.printReceipt=printReceipt; window.shareDoc=shareDoc; window._knownClients=_knownClients; window._lookupClient=_lookupClient; window._attachClientAutofill=_attachClientAutofill; window._knownRefAdvs=_knownRefAdvs; window._lookupRefAdv=_lookupRefAdv; window._attachRefAdvAutofill=_attachRefAdvAutofill; window.reprint=reprint; window.renderSalary=renderSalary; window.openAddPerson=openAddPerson; window.doAddPerson=doAddPerson; window.openEditPerson=openEditPerson; window.doEditPerson=doEditPerson; window.doRemovePerson=doRemovePerson; window.openSalaryAdvance=openSalaryAdvance; window.doGiveSalaryAdvance=doGiveSalaryAdvance; window.openSalarySlip=openSalarySlip; window.quickPaySalary=quickPaySalary; window.doQuickPay=doQuickPay; window._qpWarn=_qpWarn; window.doGenerateSlip=doGenerateSlip; window.printSalarySlip=printSalarySlip; window.reprintSalarySlip=reprintSalarySlip; window._slToggleAdv=_slToggleAdv; window._slToggleLeave=_slToggleLeave; window._slLeaveMode=_slLeaveMode; window._slUpdateLeaveCalc=_slUpdateLeaveCalc; window.openPersonDetail=openPersonDetail; window.renderPersonDetail=renderPersonDetail; window.delSalaryAdv=delSalaryAdv; window.openRecordRepayment=openRecordRepayment; window.doRecordRepayment=doRecordRepayment; window.roleLabel=roleLabel; window.renderPeople=renderPeople; window.peopleGo=peopleGo; window.openPeople=openPeople; window._renderRegisterInto=_renderRegisterInto; window._renderApprovalsInto=_renderApprovalsInto; window._renderAccessInto=_renderAccessInto; window._advancesRefresh=_advancesRefresh; window._accessRefresh=_accessRefresh; window._saveCloudLink=_saveCloudLink; window._docFolderUrl=_docFolderUrl; window._rememberFolder=_rememberFolder; window._docDestLine=_docDestLine; window._cloudSaveBlock=_cloudSaveBlock; window.onTypeChange=onTypeChange; window._onRefTypeChange=_onRefTypeChange; window._onFilingOnlyChange=_onFilingOnlyChange; window._composeRefName=_composeRefName; window._parseRefName=_parseRefName; window._regCode=_regCode; window.casePrefixFor=casePrefixFor; window.reasonsForForum=reasonsForForum; window._resolveReminder=_resolveReminder; window.addReminder=addReminder; window.doAddReminder=doAddReminder; window.delReminder=delReminder; window.renderReminders=renderReminders; window.addTaskOrReminder=addTaskOrReminder; window._chMatterChange=_chMatterChange; window._numberTables=_numberTables; window.printTodayList=printTodayList; window.openCauseList=openCauseList; window._loadCourtUpdates=_loadCourtUpdates; window.printCauseList=printCauseList; window._clRenderRefList=_clRenderRefList; window.monthlyBackup=monthlyBackup; window.autoSnapshotIfDue=autoSnapshotIfDue; window.listSnapshots=listSnapshots; window.downloadSnapshot=downloadSnapshot; window._backupReminderHTML=_backupReminderHTML; window._adTimingMode=_adTimingMode; window.ownerAddDate=ownerAddDate; window._ownerAddDateGo=_ownerAddDateGo; }catch(e){}
 
 /* ============================================================
@@ -19010,6 +19188,7 @@ const SUB_PAGES={
     archive:{fn:renderArchive,id:"archive",label:"Archive"},
     pastcases:{fn:renderPastCases,id:"pastcases",label:"Past cases register"},
     register:{fn:renderCaseRegister,id:"register",label:"Case register"},
+    files:{fn:renderFilesPage,id:"files",label:"Files"},
     unassigned:{fn:renderUnassigned,id:"unassigned",label:"Unassigned"},
     ledger:{fn:renderReceiptLedger,id:"ledger",label:"Receipts register"},
     invoiceledger:{fn:renderInvoiceLedger,id:"invoiceledger",label:"Invoices register"},
@@ -21122,6 +21301,11 @@ const FB = {
     const s=await getDoc(doc(db,b,"files",String(serial)));
     return s.exists()? s.data() : null;
   },
+  async getAllFolderIndex(){
+    const b=this._base(); if(!b) return [];
+    const snap=await getDocs(collection(db,b,"files")); const out=[];
+    snap.forEach(d=>out.push(d.data())); return out;
+  },
   async getSettings(){
     const b=this._base(); if(!b) return null;
     const s=await getDoc(doc(db,b,"meta","settings"));
@@ -21365,7 +21549,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-0700";
+  window.APP_VERSION = "2026.10.06-0800";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
