@@ -18948,7 +18948,9 @@ function _regMatchModal(){
   if(!todo.length){ toast("Every AD Chamber file is linked to a matter."); return; }
   const rows=todo.map(r=>{
     const c=_regCandidates(r);
-    const strong=c.length&&c[0].score>=10?c[0]:(c.length&&c[0].score>=4?c[0]:null);
+    // Pre-select only on an exact case/diary-number match — similar names alone (e.g. two
+    // different "Shikshan Prasarak Mandal" cases) are offered but never chosen for you.
+    const strong=c.length&&c[0].score>=10?c[0]:null;
     const opts=[`<option value="__new__" ${!strong?"selected":""}>Create as a new matter</option>`]
       .concat(c.map(x=>`<option value="${x.m.id}" ${strong&&strong.m.id===x.m.id?"selected":""}>Link: ${esc(x.m.code||"")} — ${esc((x.m.parties||x.m.client||"").slice(0,48))} (${esc(x.why)})</option>`))
       .concat([`<option value="__skip__">Skip for now</option>`]).join("");
@@ -21569,7 +21571,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-1000";
+  window.APP_VERSION = "2026.10.06-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
