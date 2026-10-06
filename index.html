@@ -18459,7 +18459,15 @@ async function _paperOpen(k){
   const win=window.open("about:blank","_blank");
   try{
     if(win) win.document.write('<p style="font-family:sans-serif;padding:24px;color:#555">Opening '+esc(it.name)+'…</p>');
-    const blob=await _gk("/api/content",{path:it.path, format:_isWord(it.name)?"pdf":""},{blob:true});
+    if(_isWord(it.name)){
+      // Word: read-only view in Word for the web (no sign-in). OneDrive personal won't
+      // convert Word→PDF for third-party apps, so a PDF preview isn't possible here.
+      const d=await _gk("/api/file",{path:it.path, action:"viewlink", days:1});
+      if(!d.link) throw new Error("No link returned.");
+      if(win) win.location=d.link; else window.open(d.link,"_blank");
+      return;
+    }
+    const blob=await _gk("/api/content",{path:it.path, format:""},{blob:true});
     _blobOpenIn(win, blob, blob._name||it.name);
   }catch(e){ if(win) try{ win.close(); }catch(_){} toast(e.message,true); }
 }
@@ -21327,7 +21335,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-0500";
+  window.APP_VERSION = "2026.10.06-0600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
