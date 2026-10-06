@@ -1948,6 +1948,7 @@
   <section class="panel" id="panel-matters"></section>
   <section class="panel" id="panel-matterdetail"></section>
   <section class="panel" id="panel-pastcases"></section>
+  <section class="panel" id="panel-register"></section>
   <section class="panel" id="panel-appts"></section>
   <section class="panel" id="panel-unassigned"></section>
   <section class="panel" id="panel-exadv"></section>
@@ -2317,6 +2318,7 @@
         _syncing=true;
         DB[name]=records; records.forEach(r=>delete r._updated);
         saveLocalOnly();
+        if(DB.deviceRole!=="staff" && name==="matters"){ try{ _assignPendingSerials(); }catch(e){} }
         if(DB.deviceRole==="staff"){
           if(window._staffRefresh) try{ _staffRefresh(); }catch(e){}
         }else{
@@ -3082,7 +3084,7 @@ function migrate(data){
   // settings: keep all existing values, add any newly-introduced defaults
   data.settings = Object.assign({}, base.settings, data.settings||{});
   // core arrays: ensure present
-  for(const k of ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices"]) if(!Array.isArray(data[k])) data[k]=[];
+  for(const k of ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","register"]) if(!Array.isArray(data[k])) data[k]=[];
   data.counters = Object.assign({}, base.counters, data.counters||{});
   // back-fill voucher counter from existing vouchers if missing
   if(!data.counters.voucher){
@@ -8529,6 +8531,12 @@ function _buildCauseWatchlist(){
     if(m.caseNo){ const cn=String(m.caseNo).trim(); if(cn){ caseNos.push(cn);
       const dg=cn.match(/\d+\s*\/\s*\d{4}/); if(dg) caseNos.push(dg[0].replace(/\s+/g,"")); } }
     if(m.diaryNo){ const dn=String(m.diaryNo).trim(); if(dn) diaryNos.push(dn); }
+    (m.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn, ..._petitionForms(pn)); });
+  });
+  // The chamber case register (both chambers): every petition / diary number on file is watched.
+  (DB.register||[]).forEach(r=>{
+    if(r.status==="removed") return;
+    (r.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn, ..._petitionForms(pn)); });
   });
   const uniq=a=>[...new Set(a.filter(Boolean))];
   return {
@@ -8708,9 +8716,17 @@ function _listingMatch(info){
   const cands=[_n(info&&info.number), _n(info&&info.caseNo), _n(info&&info.diaryNo)].filter(t=>t&&t.length>=5);
   if(!cands.length) return null;
   const overlaps=(a,b)=>a&&b&&a.length>=5&&b.length>=5&&(a.indexOf(b)>=0||b.indexOf(a)>=0);
-  return (DB.matters||[]).find(m=>{ if(isVoided(m)) return false;
+  const hit=(DB.matters||[]).find(m=>{ if(isVoided(m)) return false;
     const cn=_n(m.caseNo), dn=_n(m.diaryNo);
-    return cands.some(t=>overlaps(cn,t)||overlaps(dn,t)); })||null;
+    if(cands.some(t=>overlaps(cn,t)||overlaps(dn,t))) return true;
+    return (m.petitionNos||[]).some(pn=>_petitionDigits(pn).some(d=>cands.some(t=>overlaps(d,t)))); });
+  if(hit) return hit;
+  // Owner only: a case in the register with no matter (SD Chamber briefs) — matched by number.
+  if(!isStaffView()){
+    const r=(DB.register||[]).find(r=>r.status!=="removed" && !r.matterId && (r.petitionNos||[]).some(pn=>_petitionDigits(pn).some(d=>cands.some(t=>overlaps(d,t)))));
+    if(r) return {id:null, _reg:true, regId:r.id, code:(r.chamber==="SD"?"SD ":"")+"No. "+r.serial, parties:r.title, client:r.title, serial:r.serial, chamber:r.chamber};
+  }
+  return null;
 }
 // One-tap: add the listing date to the matched matter (pre-filled), or create a new matter.
 function _listingAct(idx){
@@ -8773,10 +8789,12 @@ function _loadCourtUpdates(){
             rows.forEach(m=>{
               const info=_parseListing(m.title);
               const matched=_listingMatch(info);
-              const idx=window.__clListings.push({info,date:day.date,court:m.court,item:m.item,coram:m.coram,matchedId:matched?matched.id:null})-1;
+              const idx=window.__clListings.push({info,date:day.date,court:m.court,item:m.item,coram:m.coram,matchedId:(matched&&!matched._reg)?matched.id:null})-1;
               const actStyle="white-space:nowrap;border:1px solid var(--seal);background:var(--seal-soft);color:var(--seal);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer";
-              const act = matched
-                ? `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Add this hearing date to ${esc(matched.code)}">+ ${esc(matched.code)}</button>`
+              const act = (matched&&matched._reg)
+                ? `<button style="${actStyle}" onclick="_regOpen('${matched.regId}')" title="${esc(matched.parties||"")}">${esc(matched.code)}</button>`
+                : matched
+                ? `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Add this hearing date to ${esc(matched.code)}">+ ${esc(_mNo(matched))}</button>`
                 : `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Create a matter from this listing">+ Matter</button>`;
               html+=`<tr class="cu-row">
                 <td class="cu-item">${esc(m.item)}${m.supp?`<span class="cu-ms s">S</span>`:`<span class="cu-ms m">M</span>`}</td>
@@ -12768,6 +12786,8 @@ function matterFormHTML(m, mode){
           <input class="in mono" id="mfCase" value="${esc(kind==="ia"?(m.iaNo||""):(m.caseNo||""))}" placeholder="${kind==="ia"?"12345/2026":"SLP(C) 678/2026"}" oninput="_dupCheck('case', this.value, '${esc(m.id||"")}')">
           <div id="dupCase" class="dup-warn"></div></div>
       </div>
+      ${kind==="ia"?"":`<div style="margin-top:10px"><label class="fld">Other case / diary numbers <span style="color:var(--muted);font-weight:400">(one per line — all are watched in the cause list)</span></label>
+        <textarea class="in mono" id="mfPetNos" rows="2" placeholder="Diary No. 12345/2026&#10;SLP (C) No. 678/2026">${esc((m.petitionNos||[]).join("\n"))}</textarea></div>`}
       <div style="margin-top:10px"><label class="fld">Notes</label>
         <textarea class="in" id="mfNotes" placeholder="Retainer terms, fee agreed, etc.">${esc(m.notes||"")}</textarea></div>
       ${concluded?`<div class="grid g2" style="margin-top:10px">
@@ -12997,7 +13017,8 @@ function saveMatter(id){
     iaNo: kind==="ia" ? document.getElementById("mfCase").value.trim() : "",
     parentId: kind==="ia" ? iaParentId : "",
     notes: document.getElementById("mfNotes").value.trim(),
-    status: document.getElementById("mfStatus").value
+    status: document.getElementById("mfStatus").value,
+    petitionNos: _parsePetNos((document.getElementById("mfPetNos")||{}).value)
   };
   // Outcome fields are shown for concluded cases — persist them when present.
   if(document.getElementById("pcResult")) data.result = document.getElementById("pcResult").value;
@@ -13032,6 +13053,7 @@ function saveMatter(id){
     window._conflictAck=false;
     const code = kind==="query"? nextQueryCode() : (kind==="caveat"? nextCaveatCode() : (kind==="ia"? nextIACode() : nextMatterCode()));
     const _newMatter=Object.assign({id:uid(), code, kind, opened:todayISO()}, data);
+    _stampSerial(_newMatter);   // chamber file number (cases & caveats): owner device assigns, staff leaves pending
     DB.matters.push(_newMatter);
     logActivity("matter", `New ${_kindWord.toLowerCase()} ${code}${data.parties?" — "+data.parties:(data.client?" — "+data.client:"")}`, {refId:_newMatter.id});
     save(); renderAll(); closeModal(); toast(_kindWord+" saved.");
@@ -13691,7 +13713,7 @@ function renderMatterDetail(){
   }
 
   document.getElementById("panel-matterdetail").innerHTML = `
-    <div class="subnav"><button class="subnav-back" onclick="${back}">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">${esc(m.code||"Matter")}</span></div>
+    <div class="subnav"><button class="subnav-back" onclick="${back}">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">${esc(_mNoLabel(m)||"Matter")}</span></div>
     <div class="card">
       <div class="card-head">
         <div style="min-width:0;flex:1"><h2>${esc(m.client||"—")}</h2>${(m.parties&&m.parties!==m.client)?`<div class="hint">${esc(m.parties)}</div>`:""}</div>
@@ -13708,6 +13730,7 @@ function renderMatterDetail(){
               :`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b style="color:var(--disposed)">No parent case linked — edit to select one</b></div>`);
         })()}
         ${(m.kind!=="ia"&&m.caseNo)?`<div class="row"><span class="k" style="min-width:96px">Case No.</span><b>${esc(m.caseNo)}</b></div>`:""}
+        ${_mRegisterRows(m)}
         ${m.court?`<div class="row"><span class="k" style="min-width:96px">Court</span><b>${esc(m.court)}</b></div>`:""}
         ${m.matterType?`<div class="row"><span class="k" style="min-width:96px">Type</span><b>${esc(m.matterType)}</b></div>`:""}
         ${m.appearFor?`<div class="row"><span class="k" style="min-width:96px">We appear for</span><b>${esc(m.appearFor)}</b></div>`:""}
@@ -15678,7 +15701,7 @@ function renderMatters(){
     const statusTag = cancelled
       ? `<span class="tag">Cancelled</span>`
       : `<span class="tag ${st}">${esc(m.status||"Active")}</span>`;
-    const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(m.code)}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code)}</a>`;
+    const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(_mNo(m))}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_mNo(m))}</a>${(m.serial&&m.code&&!/^C-/.test(m.code))?`<div class="hint">${esc(m.code)}</div>`:(m.serialPending?`<div class="hint">No. pending</div>`:"")}`;
     const title = m.parties || m.client || "\u2014";
     const nextCell = m.nextDate ? fmtDate(m.nextDate) : "\u2014";
     // An I.A. carries no Diary/Case number of its own — show its own I.A. number, and
@@ -15701,7 +15724,7 @@ function renderMatters(){
     <div class="card">
       <div class="card-head">
         <div><h2>Matters</h2><div class="hint">Tap a code to open the full case.</div></div>
-        <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn seal sm" onclick="addMatter()">+ New matter</button></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${isStaffView()?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn seal sm" onclick="addMatter()">+ New matter</button></div>
       </div>
       ${DB.matters.length? `<div class="tbl-wrap"><table class="sr-num">
         <thead><tr><th>Code</th><th>Cause title</th><th>Case No.</th><th>Next date</th><th>Status</th><th></th></tr></thead>
@@ -16623,6 +16646,7 @@ function renderSettings(){
     {id:"banking", label:"Bank accounts & UPI", desc:"Accounts and UPI IDs for invoices"},
     {id:"instr", label:"Instructions — send-back contacts", desc:"Phone, email & address for signing instructions"},
     {id:"numbering", label:"Numbering & book-keeping", desc:"Receipt series, FY, 44ADA/books"},
+    {id:"register", label:"Case register (files)", desc:"Chamber file numbers, both chambers, import"},
     {id:"rcm", label:"RCM note", desc:"Footer note on receipts"},
     {id:"security", label:"Account & security", desc:"Your login and cloud sync"}
   ];
@@ -16651,6 +16675,7 @@ function openSetSection(which){
   else if(which==="numbering") html=setSecNumbering(s);
   else if(which==="rcm") html=setSecRcm(s);
   else if(which==="security") html=setSecSecurity(s);
+  else if(which==="register") html=setSecRegister(s);
   const sec=document.getElementById("setSection");
   sec.innerHTML=back+html+`<div class="btn-row" style="margin-top:6px"><button class="btn seal" onclick="saveSettings()">Save settings</button></div>`;
   document.getElementById("setMenu").style.display="none";
@@ -18052,6 +18077,7 @@ function bootAfterCloud(){
   // Finding 12 — backfill the canonical client registry (stamps clientId on
   // matters & notices, building stable identities). Best-effort, one-time-ish.
   try{ _backfillClientRegistry(); _backfillRefRegistry(); _upgradeVakInvoices(); save(); }catch(e){}
+  try{ if(DB.deviceRole!=="staff") _assignPendingSerials(); }catch(e){}
   // One-time catch-up: pushBrandingToAllStaff() only ever ran on a settings SAVE, and its
   // payload never included the AoR code / enrolment number until now — so any chamber
   // whose owner hasn't re-saved Settings since has staff devices missing it permanently
@@ -18128,6 +18154,309 @@ try{ window.DB = DB; window.go = go; window.addMatter = addMatter; window.saveMa
   window.issueReceipt = issueReceipt; window.addExpense = addExpense; window.saveExpense = saveExpense;
   window.grossReceiptsFY = grossReceiptsFY; window.presumptive = presumptive; window.netActual = netActual;
   window.numToWords = numToWords; window.exportData = exportData; window.save = save;
+
+/* ===========================================================
+   CASE REGISTER — the chamber's single file-number series
+   -----------------------------------------------------------
+   Mirrors the owner's Master Cases Folder (OneDrive): one serial across
+   BOTH chambers (SD = the senior's briefs, AD = own matters), frozen —
+   never renumbered. A removed/merged case keeps its number, marked.
+   DB.register is OWNER-ONLY (accounts/{uid}/register): SD Chamber cases
+   never reach staff devices. AD cases are linked to a matter (m.serial,
+   m.petitionNos, m.folder travel on the shared matter so staff see them).
+   =========================================================== */
+function _mNo(m){ return m&&m.serial ? String(m.serial) : (m&&m.code||""); }
+function _mNoLabel(m){ if(!m) return ""; if(!m.serial) return m.code||""; return "No. "+m.serial+((m.code&&!/^C-/.test(m.code))?" · "+m.code:""); }
+function _parsePetNos(v){ return [...new Set(String(v||"").split(/\n|;|,(?=\s*(?:SLP|Diary|Civil|Crim|W\.?P|T\.?P|C\.?A|Caveat|Contempt|Review))/i).map(x=>x.trim()).filter(Boolean))]; }
+// "SLP (C) No. 215-216/2023" -> ["215/2023","216/2023"]; "Diary No. 37510/2026" -> ["37510/2026"]
+function _petitionForms(label){
+  const m=/(\d[\d\s\-–,&]*\d|\d)\s*(?:\/|of)\s*((?:19|20)\d\d)/i.exec(String(label||"")); if(!m) return [];
+  const yr=m[2]; const out=[];
+  String(m[1]).split(/[,&]/).forEach(part=>{
+    const r=/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/.exec(part);
+    if(r){ let a=+r[1], b=+r[2]; if(String(r[2]).length<String(r[1]).length) b=+(String(r[1]).slice(0,String(r[1]).length-String(r[2]).length)+r[2]);
+      if(b>=a && b-a<=50){ for(let n=a;n<=b;n++) out.push(n+"/"+yr); } else { out.push(a+"/"+yr); out.push(b+"/"+yr); } }
+    else { const n=part.replace(/\D/g,""); if(n) out.push(n+"/"+yr); }
+  });
+  return [...new Set(out)];
+}
+function _petitionDigits(label){ return _petitionForms(label).map(f=>f.replace(/\D/g,"")).filter(d=>d.length>=5); }
+function nextSerial(){
+  let mx=+((DB.settings&&DB.settings.serialFloor)||0);
+  (DB.register||[]).forEach(r=>{ if(+r.serial>mx) mx=+r.serial; });
+  (DB.matters||[]).forEach(m=>{ if(+m.serial>mx) mx=+m.serial; });
+  return mx+1;
+}
+function _regEntryFromMatter(m){
+  return { id:uid(), serial:m.serial, title:m.parties||m.client||"", chamber:m.chamber||"AD", date:m.opened||todayISO(),
+           folder:m.folder||"", batch:null, batchListNo:null, petitionNos:[m.caseNo,m.diaryNo,...(m.petitionNos||[])].filter(Boolean),
+           petitionGuess:false, matterId:m.id, status:"active", createdBy:"app" };
+}
+// Called when a matter is created. Owner device: assign the next file number and open a
+// register entry. Staff device: cannot see the full register (SD cases), so leave it
+// pending — the owner's device assigns it on its next sync (_assignPendingSerials).
+function _stampSerial(m){
+  if(!m || (m.kind!=="case" && m.kind!=="caveat")) return;
+  if(isStaffView()){ m.serialPending=true; return; }
+  m.serial=nextSerial(); m.chamber=m.chamber||"AD"; delete m.serialPending;
+  if(!Array.isArray(DB.register)) DB.register=[];
+  DB.register.push(_regEntryFromMatter(m));
+}
+function _assignPendingSerials(){
+  if(isStaffView()) return false;
+  let n=0;
+  (DB.matters||[]).forEach(m=>{
+    if(m.serialPending && !m.serial && (m.kind==="case"||m.kind==="caveat") && !isVoided(m)){ _stampSerial(m); n++; }
+  });
+  if(n){ save(); toast(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."); }
+  return n>0;
+}
+function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
+function _regForMatter(m){ return m ? ((DB.register||[]).find(r=>r.matterId===m.id)||null) : null; }
+function _mRegisterRows(m){
+  if(!m || m.kind==="ia") return "";
+  const k=`<span class="k" style="min-width:96px">`;
+  let h="";
+  if(m.serial) h+=`<div class="row">${k}File No.</span><b>${esc(String(m.serial))}${m.chamber?` <span class="tag" style="background:${m.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(m.chamber)} Chamber</span>`:""}</b></div>`;
+  else if(m.serialPending) h+=`<div class="row">${k}File No.</span><b style="color:var(--muted)">pending — assigned when the owner's device next syncs</b></div>`;
+  if((m.petitionNos||[]).length) h+=`<div class="row">${k}Other Nos.</span><b class="mono" style="font-weight:500">${m.petitionNos.map(esc).join("<br>")}</b></div>`;
+  if(m.folder) h+=`<div class="row">${k}Folder</span><b style="font-weight:500;word-break:break-word">${esc(m.folder)}</b></div>`;
+  return h;
+}
+// Listings for a register entry with no matter (SD Chamber) — by its petition numbers.
+function _registerListings(r){
+  const cu=window.__cuCache; if(!cu||!r) return [];
+  const digs=[]; (r.petitionNos||[]).forEach(pn=>digs.push(..._petitionDigits(pn)));
+  if(!digs.length) return [];
+  const _n=s=>String(s||"").replace(/[^0-9]/g,"");
+  const out=[];
+  (cu.days||[]).forEach(day=>(day.matches||[]).forEach(mt=>{
+    const info=_parseListing(mt.title); const t=_n(info.number)||_n(info.caseNo)||_n(info.diaryNo); if(t.length<5) return;
+    if(digs.some(d=>d.indexOf(t)>=0||t.indexOf(d)>=0)) out.push({date:day.date,court:mt.court,item:mt.item,coram:mt.coram,family:mt.family});
+  }));
+  out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  return out;
+}
+function openCaseRegister(){ if(isStaffView()){ toast("The case register is available to the Head of Chamber.", true); return; } openSub("register"); }
+var _regFilter="all", _regQuery="";
+function _regSetFilter(f){ _regFilter=f; renderCaseRegister(); }
+function _regSetQuery(v){ _regQuery=String(v||""); clearTimeout(window.__regQT); window.__regQT=setTimeout(renderCaseRegister,160); }
+function renderCaseRegister(){
+  const panel=document.getElementById("panel-register"); if(!panel) return;
+  if(isStaffView()){ panel.innerHTML=`<div class="empty">Available to the Head of Chamber only.</div>`; return; }
+  const reg=(DB.register||[]).slice().sort((a,b)=>(+b.serial)-(+a.serial));
+  const q=_regQuery.trim().toLowerCase(); const qd=q.replace(/\D/g,"");
+  const today=todayISO();
+  const rows=reg.filter(r=>{
+    if(_regFilter==="AD"&&r.chamber!=="AD") return false;
+    if(_regFilter==="SD"&&r.chamber!=="SD") return false;
+    if(_regFilter==="nonum"&&(r.petitionNos||[]).length) return false;
+    if(_regFilter==="listed"){ const L=r.matterId?_matterListings(matterById(r.matterId)||{}):_registerListings(r); if(!L.some(x=>x.date>=today)) return false; }
+    if(!q) return true;
+    if(String(r.serial)===q||String(r.serial).padStart(3,"0")===q) return true;
+    if(String(r.title||"").toLowerCase().indexOf(q)>=0) return true;
+    if(qd.length>=3 && (r.petitionNos||[]).some(pn=>pn.replace(/\D/g,"").indexOf(qd)>=0)) return true;
+    return false;
+  });
+  const fbtn=(id,lbl)=>`<button class="btn ${_regFilter===id?"seal":"ghost"} sm" onclick="_regSetFilter('${id}')">${lbl}</button>`;
+  const nAD=reg.filter(r=>r.chamber==="AD").length, nSD=reg.filter(r=>r.chamber==="SD").length, nNo=reg.filter(r=>!(r.petitionNos||[]).length&&r.status!=="removed").length;
+  const trs=rows.map(r=>{
+    const m=r.matterId?matterById(r.matterId):null;
+    const L=m?_matterListings(m):_registerListings(r);
+    const nxt=L.find(x=>x.date>=today);
+    const listed=nxt?`<span class="tag active" title="${esc(fmtDate(nxt.date))}">Listed ${esc(fmtDate(nxt.date).slice(0,6))}${nxt.court&&nxt.court!=="—"?" · Ct "+esc(nxt.court):""}${nxt.item?" · Item "+esc(nxt.item):""}</span>`:"";
+    const st=r.status==="removed"?`<span class="tag">Removed</span>`:(r.status==="merged"?`<span class="tag">Merged → ${esc(String(r.mergedInto||""))}</span>`:"");
+    const nums=(r.petitionNos||[]);
+    const numCell=nums.length?`<span class="mono">${esc(nums[0])}</span>${nums.length>1?`<span class="hint"> +${nums.length-1}</span>`:""}${r.petitionGuess&&!r.petEdited?` <span class="hint" title="Read from the papers — tap to confirm or correct">?</span>`:""}`:`<span class="hint" style="color:var(--seal)">no number</span>`;
+    const open=m?`openMatterDetail('${m.id}')`:`_regOpen('${r.id}')`;
+    const ch=`<span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)}</span>`;
+    return `<tr style="${r.status&&r.status!=="active"?"opacity:.6":""}">
+      <td class="mono"><a href="#" onclick="${open};return false" style="color:var(--seal);font-weight:700;text-decoration:none">${esc(String(r.serial).padStart(3,"0"))}</a></td>
+      <td><b>${esc(r.title||"—")}</b>${r.batch?`<div class="hint">${esc(r.batch)}</div>`:""}${m?`<div class="hint">${esc(m.code||"")}${m.client&&m.client!==r.title?" · "+esc(m.client):""}</div>`:""}</td>
+      <td>${ch}</td>
+      <td>${numCell}</td>
+      <td>${listed}${st}</td>
+      <td style="white-space:nowrap"><button class="row-act" onclick="_regOpen('${r.id}')">${m?"File":"Open"}</button></td></tr>`;
+  }).join("");
+  panel.innerHTML=`
+    <div class="card">
+      <div class="card-head">
+        <div><h2>Case register</h2><div class="hint">${reg.length} files · AD ${nAD} · SD ${nSD}${nNo?` · <span style="color:var(--seal)">${nNo} without a petition number</span>`:""}. Next file number: <b>${nextSerial()}</b></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="openSetSection('register');showGroup&&showGroup('settings')">Import</button><button class="btn seal sm" onclick="addMatter()">+ New matter</button></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
+        ${fbtn("all","All")}${fbtn("AD","AD Chamber")}${fbtn("SD","SD Chamber")}${fbtn("listed","Listed")}${fbtn("nonum","No number")}
+        <input class="in" style="flex:1;min-width:160px;max-width:320px;margin-left:auto" placeholder="Search number, name or SLP/Diary" value="${esc(_regQuery)}" oninput="_regSetQuery(this.value)">
+      </div>
+      ${reg.length?`<div class="tbl-wrap"><table class="sr-num"><thead><tr><th>No.</th><th>Case</th><th>Chamber</th><th>Petition / Diary No.</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="6" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>`
+      :`<div class="empty">The register is empty. Use <b>Import</b> (Settings → Case register) to load the Master Cases Folder register.</div>`}
+    </div>`;
+}
+function _regOpen(id){
+  const r=_regById(id); if(!r) return;
+  const m=r.matterId?matterById(r.matterId):null;
+  const L=m?_matterListings(m):_registerListings(r);
+  const today=todayISO();
+  const lrows=L.length?`<div class="lrows" style="margin-top:6px">${L.slice(-6).map(x=>`<div class="lrow"><div class="l"><div class="t">${fmtDate(x.date)}${x.date>=today?` <span class="tag active">upcoming</span>`:""}</div><div class="s">${x.court&&x.court!=="—"?"Court "+esc(x.court):"—"}${x.item?" · Item "+esc(x.item):""}${x.coram?" · "+esc(_plainBench?_plainBench(x.coram):x.coram):""}</div></div></div>`).join("")}</div>`:`<div class="hint">Not found in the fetched Supreme Court cause lists.</div>`;
+  const adOpts=(DB.matters||[]).filter(x=>!isVoided(x)&&(x.kind==="case"||x.kind==="caveat")&&(!x.serial||x.id===r.matterId)).sort((a,b)=>String(b.opened||"").localeCompare(String(a.opened||""))).map(x=>`<option value="${x.id}" ${x.id===r.matterId?"selected":""}>${esc(x.code||"")} — ${esc(x.parties||x.client||"")}</option>`).join("");
+  openModal(`File No. ${String(r.serial).padStart(3,"0")}`, `
+    <div style="font-size:15px;font-weight:700">${esc(r.title||"")}</div>
+    <div class="hint" style="margin:2px 0 10px"><span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)} Chamber</span> · came in ${esc(fmtDate(r.date))}${r.batch?" · "+esc(r.batch):""}</div>
+    ${r.folder?`<div class="row" style="font-size:12px;color:var(--muted);word-break:break-word;margin-bottom:8px">📁 ${esc(r.folder)}</div>`:""}
+    <label class="fld">Petition / Diary numbers <span style="color:var(--muted);font-weight:400">(one per line; the cause list is searched for each)</span></label>
+    <textarea class="in mono" id="rgNums" rows="3">${esc((r.petitionNos||[]).join("\n"))}</textarea>
+    ${r.petitionGuess&&!r.petEdited?`<div class="hint" style="margin-top:4px">These were read from the papers in the folder. Saving confirms them.</div>`:""}
+    <div class="grid g2" style="margin-top:10px">
+      <div><label class="fld">Status</label><select class="in" id="rgStatus" onchange="document.getElementById('rgMergedWrap').style.display=this.value==='merged'?'block':'none'"><option value="active" ${!r.status||r.status==="active"?"selected":""}>Active</option><option value="removed" ${r.status==="removed"?"selected":""}>Removed (number kept)</option><option value="merged" ${r.status==="merged"?"selected":""}>Merged into another file</option></select></div>
+      <div id="rgMergedWrap" style="display:${r.status==="merged"?"block":"none"}"><label class="fld">Merged into file No.</label><input class="in mono" id="rgMerged" value="${esc(String(r.mergedInto||""))}" placeholder="e.g. 212"></div>
+    </div>
+    ${r.chamber==="AD"?`<div style="margin-top:10px"><label class="fld">Linked matter in the app</label><select class="in" id="rgMatter"><option value="">— none —</option>${adOpts}</select></div>`:""}
+    <div class="eyebrow" style="margin-top:12px">Supreme Court listings</div>${lrows}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button>${m?`<button class="btn ghost" onclick="closeModal();openMatterDetail('${m.id}')">Open matter</button>`:""}<button class="btn seal" onclick="_regSave('${r.id}')">Save</button></div>`);
+}
+function _regSave(id){
+  const r=_regById(id); if(!r) return;
+  const nums=_parsePetNos((document.getElementById("rgNums")||{}).value);
+  const changed=JSON.stringify(nums)!==JSON.stringify(r.petitionNos||[]);
+  r.petitionNos=nums; r.petEdited=true;
+  r.status=(document.getElementById("rgStatus")||{}).value||"active";
+  r.mergedInto=r.status==="merged"?((document.getElementById("rgMerged")||{}).value||"").trim():"";
+  const sel=document.getElementById("rgMatter");
+  if(sel){
+    const newId=sel.value||"";
+    if(newId!==(r.matterId||"")){
+      if(r.matterId){ const old=matterById(r.matterId); if(old){ delete old.serial; delete old.chamber; delete old.folder; } }
+      r.matterId=newId||null;
+      if(newId){ const m=matterById(newId); if(m) _regLinkMatter(r,m); }
+    }
+  }
+  if(r.matterId){ const m=matterById(r.matterId); if(m){ m.petitionNos=nums.filter(n=>n!==m.caseNo&&n!==m.diaryNo); } }
+  save(); closeModal(); toast("File saved."+(changed?" Copy the watch-list again so the cause-list check picks up the new numbers.":""));
+  if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
+  if(typeof _refreshMatterDetail==="function") _refreshMatterDetail();
+}
+function _regLinkMatter(r,m){
+  m.serial=r.serial; m.chamber=r.chamber; m.folder=r.folder||m.folder||""; delete m.serialPending;
+  const nums=(r.petitionNos||[]);
+  if(!m.caseNo && !m.diaryNo && nums.length){ if(/diary/i.test(nums[0])) m.diaryNo=nums[0].replace(/^.*?(\d[\d\s\-–]*\/\s*\d{4}).*$/,"$1").replace(/\s/g,""); else m.caseNo=nums[0]; }
+  m.petitionNos=nums.filter(n=>n!==m.caseNo&&n!==m.diaryNo);
+  r.matterId=m.id;
+}
+/* ---- Settings section + import ---- */
+function setSecRegister(s){
+  const reg=DB.register||[]; const nAD=reg.filter(r=>r.chamber==="AD").length, nSD=reg.filter(r=>r.chamber==="SD").length;
+  const unlinked=reg.filter(r=>r.chamber==="AD"&&!r.matterId&&r.status!=="removed").length;
+  return `<div class="card">
+    <h2>Case register</h2>
+    <div class="hint" style="margin-bottom:10px">One file number for every case of both chambers, matching the <b>Master Cases Folder</b>. Numbers are fixed once given — a removed or merged case keeps its number. SD Chamber files are visible only to you; staff see AD Chamber matters only.</div>
+    <div class="tpl-dl">
+      <div class="row"><span class="k" style="min-width:140px">Files in register</span><b>${reg.length} (AD ${nAD} · SD ${nSD})</b></div>
+      <div class="row"><span class="k" style="min-width:140px">Next file number</span><b>${nextSerial()}</b></div>
+      <div class="row"><span class="k" style="min-width:140px">Last import</span><b>${s.registerImportedAt?esc(fmtDate(s.registerImportedAt.slice(0,10)))+" · "+esc(String(s.registerImportFrom||"")):"never"}</b></div>
+      ${unlinked?`<div class="row"><span class="k" style="min-width:140px">AD files not yet linked</span><b style="color:var(--seal)">${unlinked} <button class="row-act" onclick="_regMatchModal()">Match now</button></b></div>`:""}
+    </div>
+    <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
+      <label class="btn ghost sm" style="cursor:pointer">Load register file (.json)<input type="file" accept="application/json,.json" style="display:none" onchange="_regImportPick(this)"></label>
+      <button class="btn ghost sm" onclick="openCaseRegister()">Open the register</button>
+      <button class="btn ghost sm" onclick="copyCauseWatchlist()">Copy watch-list</button>
+    </div>
+    <div class="hint" style="margin-top:10px">The register file is <b>register-import.json</b>, produced from the Master Cases Folder. Loading it again is safe: existing files keep their links, numbers you have corrected, and status.</div>
+  </div>`;
+}
+function _regImportPick(input){
+  const f=input.files&&input.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ _regImport(JSON.parse(rd.result), f.name); }catch(e){ toast("That file could not be read as a register file.", true); } };
+  rd.readAsText(f); input.value="";
+}
+function _regImport(json, fname){
+  if(isStaffView()){ toast("Only the Head of Chamber can import the register.", true); return; }
+  const cases=json&&Array.isArray(json.cases)?json.cases:null;
+  if(!cases||!cases.every(c=>c&&+c.serial>0&&c.title&&(c.chamber==="SD"||c.chamber==="AD"))) throw new Error("bad");
+  if(!Array.isArray(DB.register)) DB.register=[];
+  const bySerial={}; DB.register.forEach(r=>{ bySerial[+r.serial]=r; });
+  let added=0, updated=0, mx=0;
+  cases.forEach(c=>{
+    const serial=+c.serial; if(serial>mx) mx=serial;
+    const nums=Array.isArray(c.petitionNos)?c.petitionNos.map(x=>String(x).trim()).filter(Boolean):[];
+    const ex=bySerial[serial];
+    if(ex){
+      ex.title=c.title; ex.chamber=c.chamber; ex.date=c.date||ex.date; ex.folder=c.folder||ex.folder; ex.batch=c.batch||null; ex.batchListNo=c.batchListNo||null;
+      if(!ex.petEdited){ ex.petitionNos=nums; ex.petitionGuess=!!c.petitionGuess; }
+      updated++;
+    }else{
+      DB.register.push({ id:uid(), serial, title:c.title, chamber:c.chamber, date:c.date||"", folder:c.folder||"", batch:c.batch||null, batchListNo:c.batchListNo||null,
+        petitionNos:nums, petitionGuess:!!c.petitionGuess, matterId:null, status:"active", createdBy:"import" });
+      added++;
+    }
+  });
+  DB.settings.serialFloor=Math.max(+(DB.settings.serialFloor||0), mx);
+  DB.settings.registerImportedAt=new Date().toISOString(); DB.settings.registerImportFrom=String(json.source||fname||"file");
+  // Matters that already carry a serial (from an earlier link) stay linked.
+  DB.register.forEach(r=>{ if(!r.matterId){ const m=(DB.matters||[]).find(x=>+x.serial===+r.serial); if(m) r.matterId=m.id; } });
+  save();
+  toast(`Register loaded: ${added} added, ${updated} updated. Next file number ${nextSerial()}.`);
+  _regMatchModal();
+}
+// Propose links between AD Chamber files and the matters already in the app.
+function _regCandidates(r){
+  const _n=s=>String(s||"").replace(/[^0-9]/g,"");
+  const digs=[]; (r.petitionNos||[]).forEach(pn=>digs.push(..._petitionDigits(pn)));
+  const tok=s=>String(s||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!/^(the|and|ors|anr|state|union|india|govt|government|limited|ltd|pvt|private|company|co|others|another|through|its|of|v|vs|versus|case|matter|caveat|slp|appeal|petition)$/.test(w));
+  const rt=new Set(tok(r.title));
+  const out=[];
+  (DB.matters||[]).forEach(m=>{
+    if(isVoided(m)||(m.kind!=="case"&&m.kind!=="caveat")||m.serial) return;
+    let score=0, why="";
+    const mn=[_n(m.caseNo),_n(m.diaryNo),...(m.petitionNos||[]).flatMap(_petitionDigits)].filter(d=>d.length>=5);
+    if(digs.some(d=>mn.some(x=>x.indexOf(d)>=0||d.indexOf(x)>=0))){ score+=10; why="same case/diary number"; }
+    const mt=new Set([...tok(m.parties),...tok(m.client)]);
+    let hit=0; rt.forEach(w=>{ if(mt.has(w)) hit++; });
+    if(hit>=2 || (hit>=1 && rt.size<=2)){ score+=hit*2; why=why||(hit+" name word"+(hit>1?"s":"")+" in common"); }
+    if(score) out.push({m,score,why});
+  });
+  return out.sort((a,b)=>b.score-a.score).slice(0,4);
+}
+function _regMatchModal(){
+  const todo=(DB.register||[]).filter(r=>r.chamber==="AD"&&!r.matterId&&r.status!=="removed").sort((a,b)=>(+a.serial)-(+b.serial));
+  if(!todo.length){ toast("Every AD Chamber file is linked to a matter."); return; }
+  const rows=todo.map(r=>{
+    const c=_regCandidates(r);
+    const strong=c.length&&c[0].score>=10?c[0]:(c.length&&c[0].score>=4?c[0]:null);
+    const opts=[`<option value="__new__" ${!strong?"selected":""}>Create as a new matter</option>`]
+      .concat(c.map(x=>`<option value="${x.m.id}" ${strong&&strong.m.id===x.m.id?"selected":""}>Link: ${esc(x.m.code||"")} — ${esc((x.m.parties||x.m.client||"").slice(0,48))} (${esc(x.why)})</option>`))
+      .concat([`<option value="__skip__">Skip for now</option>`]).join("");
+    return `<tr><td class="mono" style="vertical-align:top">${esc(String(r.serial).padStart(3,"0"))}</td><td style="vertical-align:top"><b>${esc(r.title)}</b>${(r.petitionNos||[])[0]?`<div class="hint mono">${esc(r.petitionNos[0])}</div>`:""}</td><td><select class="in" data-reg="${r.id}" style="min-width:220px">${opts}</select></td></tr>`;
+  }).join("");
+  openModal(`Link ${todo.length} AD Chamber file${todo.length>1?"s":""} to matters`, `
+    <div class="hint" style="margin-bottom:10px">For each file: link it to a matter already in the app, or create a new matter for it. Strong matches (same case number) are pre-selected. You can change any link later from the register.</div>
+    <div class="tbl-wrap" style="max-height:60vh;overflow:auto"><table><thead><tr><th>No.</th><th>Case</th><th>Action</th></tr></thead><tbody id="rgMatchRows">${rows}</tbody></table></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Later</button><button class="btn seal" onclick="_regApplyMatches()">Apply</button></div>`);
+}
+function _regApplyMatches(){
+  const sels=[...document.querySelectorAll("#rgMatchRows select[data-reg]")];
+  let linked=0, created=0;
+  sels.forEach(sel=>{
+    const r=_regById(sel.getAttribute("data-reg")); if(!r) return;
+    const v=sel.value;
+    if(v==="__skip__") return;
+    if(v==="__new__"){
+      const nums=r.petitionNos||[]; const isCav=/caveat/i.test(r.title);
+      const m={ id:uid(), code:"C-"+String(r.serial).padStart(3,"0"), kind:isCav?"caveat":"case", opened:r.date||todayISO(), client:r.title, parties:r.title,
+        court:"Supreme Court of India", status:"Active", notes:"", fromRegister:true, contact:"", email:"", refName:"", refContact:"", address:"" };
+      if(isCav){ m.caveatFiledOn=r.date||todayISO(); const d=new Date(m.caveatFiledOn+"T00:00:00"); d.setDate(d.getDate()+90); m.caveatValidUntil=d.toISOString().slice(0,10); }
+      _regLinkMatter(r,m); DB.matters.push(m); created++;
+    }else{
+      const m=matterById(v); if(!m) return;
+      _regLinkMatter(r,m); linked++;
+    }
+  });
+  save(); closeModal();
+  toast(`${linked} linked, ${created} created.`);
+  try{ renderAll(); }catch(e){}
+  if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
+}
+try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; }catch(e){}
   window.renderAll = renderAll; window.todayISO = todayISO; window.onForumChange = onForumChange; window.typesForForum = typesForForum; window.FORUMS = FORUMS; window.onExpenseHeadChange = onExpenseHeadChange; window.onProofPicked = onProofPicked; window.viewProof = viewProof; window.removeProof = removeProof; window.addExpense = addExpense; window.saveExpense = saveExpense; window.EXPENSE_HEADS = EXPENSE_HEADS; window.attachLater = attachLater; window.saveLateProof = saveLateProof; window.peekNextVoucherNo = peekNextVoucherNo; window.peekNextNoticeNo = peekNextNoticeNo; window.openNoticeRegister = openNoticeRegister; window.openNoticeAssistant = openNoticeAssistant; window._naPick = _naPick; window._naCompose = _naCompose; window._draftNoticeBody = _draftNoticeBody; window._noticeBodyLayout = _noticeBodyLayout; window._renderNoticeRegister = _renderNoticeRegister; window._reprintNotice = _reprintNotice; window._delNotice = _delNotice; window._editNotice = _editNotice; window._afterHearing=_afterHearing; window._ahSave=_ahSave; window._ahToggleNext=_ahToggleNext; window._limCalc=_limCalc; window._limCompute=_limCompute; window._limRemind=_limRemind; window._matterFeeStrip=_matterFeeStrip; window._upcomingItems=_upcomingItems; window.openClients=openClients; window.renderClients=renderClients; window.openClientDetail=openClientDetail; window._buildClients=_buildClients; window.openRefAdvocates=openRefAdvocates; window.renderRefAdvocates=renderRefAdvocates; window.openRefAdvDetail=openRefAdvDetail; window._buildRefAdvs=_buildRefAdvs; window._resolveRefAdvId=_resolveRefAdvId; window._backfillRefRegistry=_backfillRefRegistry; window._regCode=_regCode; window.openSuccessStats=openSuccessStats; window.renderSuccessStats=renderSuccessStats; window._matterSuccess=_matterSuccess; window.PARTY_ROLES=PARTY_ROLES; window.RESULT_OPTIONS=RESULT_OPTIONS; window._needsAttentionHTML=_needsAttentionHTML; window._reviewMatter=_reviewMatter; window._reviewDate=_reviewDate; window._checkConflict=_checkConflict; window._showConflictWarning=_showConflictWarning; window._partyTokens=_partyTokens; window.saveMatter=saveMatter; window._resolveClientId=_resolveClientId; window._backfillClientRegistry=_backfillClientRegistry; window._mergeClients=_mergeClients; window._clientGroupKey=_clientGroupKey; window._showNoticeConflict=_showNoticeConflict; window._fillSnapList=_fillSnapList; window.restoreSnapshot=restoreSnapshot; window._dataIntegrityIssues=_dataIntegrityIssues; window.requestNotifyPermission=requestNotifyPermission; window._fireDueNotifications=_fireDueNotifications; window._notifyEnabled=_notifyEnabled; window.nextNoticeNo = nextNoticeNo; window.openLegalNotice = openLegalNotice; window.printLegalNotice = printLegalNotice; window._lnGo = _lnGo; window.nextVoucherNo = nextVoucherNo; window.idbGet = idbGet; window.idbPut = idbPut; window.exportData = exportData; window.importData = importData; window.nextReceiptNo = nextReceiptNo; window.peekNextReceiptNo = peekNextReceiptNo; window.onMDocsPicked=onMDocsPicked; window.addMDoc=addMDoc; window.saveMDoc=saveMDoc; window.viewDoc=viewDoc; window.assignDoc=assignDoc; window.saveAssign=saveAssign; window.delMDoc=delMDoc; window.renderDocIn=renderDocIn; window.renderDocFiled=renderDocFiled; window.renderDocFolders=renderDocFolders; window.setDocSearch=setDocSearch; window.toggleDocFolder=toggleDocFolder; window.docRowHTML=docRowHTML; window.convertToCase=convertToCase; window.doConvertToCase=doConvertToCase; window.setMatterKind=setMatterKind; window.nextQueryCode=nextQueryCode; window.peekNextQueryCode=peekNextQueryCode; window.onMdMatterChange=onMdMatterChange; window.onAdMatterChange=onAdMatterChange; window.matterFolderTitle=matterFolderTitle; window.addBankRow=addBankRow; window.removeBankRow=removeBankRow; window.bankListHTML=bankListHTML; window.collectBanksFromDOM=collectBanksFromDOM; window.defaultBank=defaultBank; window.bankById=bankById; window.banksList=banksList; window.addUpiRow=addUpiRow; window.removeUpiRow=removeUpiRow; window.upiListHTML=upiListHTML; window.collectUpisFromDOM=collectUpisFromDOM; window.defaultUpi=defaultUpi; window.upiById=upiById; window.upisList=upisList; window.openSetSection=openSetSection; window.setSectionBack=setSectionBack; window.thisMonthReceipts=thisMonthReceipts; window.cloudLogout=cloudLogout; window.doCloudLogout=doCloudLogout; window._startIdleTimer=_startIdleTimer; window._stopIdleTimer=_stopIdleTimer; window._resetIdleTimer=_resetIdleTimer; window.idleTimeoutMin=idleTimeoutMin; window.toggleDesktopView=toggleDesktopView; window.applyViewPref=applyViewPref; window.isDesktopView=isDesktopView; window.logActivity=logActivity; window.openActivity=openActivity; window.renderActivity=renderActivity; window.unreadActivityCount=unreadActivityCount; window._refreshActivityBadge=_refreshActivityBadge; window._markActivitySeen=_markActivitySeen; window.renderAccess=renderAccess; window.addAccessEmail=addAccessEmail; window.removeAccessEmail=removeAccessEmail; window.doRemoveAccessEmail=doRemoveAccessEmail; window.setAccessListActive=setAccessListActive; window.setAccessLocked=setAccessLocked; window.loadAccess=loadAccess; window.saveAccess=saveAccess; window.wipeAll=wipeAll; window.doWipe=doWipe; window.showCounter=showCounter; window._wipeCheck=_wipeCheck; window._saveLoginBranding=_saveLoginBranding; window.delInvoice=delInvoice; window.doDelInvoice=doDelInvoice; window.voidInvoice=voidInvoice; window.doVoidInvoice=doVoidInvoice; window.doDeleteMatter=doDeleteMatter; window.deleteMatterPrompt=deleteMatterPrompt; window.doDeleteMatterFrom=doDeleteMatterFrom; window.cancelMatter=cancelMatter; window.doCancelMatter=doCancelMatter; window.delReceipt=delReceipt; window.doDelReceipt=doDelReceipt; window.voidReceiptPrompt=voidReceiptPrompt; window.doVoidReceipt=doVoidReceipt; window.editReceipt=editReceipt; window.doEditReceipt=doEditReceipt; window._edRcPreview=_edRcPreview; window.softDelete=softDelete; window.voidRecord=voidRecord; window.isVoided=isVoided; window.openBilling=openBilling; window.renderInvoiceLedger=renderInvoiceLedger; window.renderBooksOverview=renderBooksOverview; window.renderIncomeBreakdown=renderIncomeBreakdown; window.setIncomePeriod=setIncomePeriod; window.billedFY=billedFY; window.outstandingFY=outstandingFY; window.monthlyFeesFY=monthlyFeesFY; window.taxComparison=taxComparison; window.openRetainer=openRetainer; window._rtPreview=_rtPreview; window._retainerReceipt=_retainerReceipt; window._retainerInvoice=_retainerInvoice; window._rcMatterChange=_rcMatterChange; window._rcSetKind=_rcSetKind; window._ivMatterChange=_ivMatterChange; window._ivSetKind=_ivSetKind; window.invoiceTotal=invoiceTotal; window.fyInvoices=fyInvoices; window.renderAdvances=renderAdvances; window.doAcceptAdvance=doAcceptAdvance; window.doRejectAdvance=doRejectAdvance; window.doRejectAdvance2=doRejectAdvance2; window.ownerGiveAdvance=ownerGiveAdvance; window.doOwnerGiveAdvance=doOwnerGiveAdvance; window.ownerRecordReturn=ownerRecordReturn; window.doOwnerRecordReturn=doOwnerRecordReturn; window.acceptAdvance=acceptAdvance; window.rejectAdvance=rejectAdvance; window.addAdvanceEntry=addAdvanceEntry; window.allPending=allPending; window.staffBalance=staffBalance; window.pendingBalanceImpact=pendingBalanceImpact; window.staffGo=staffGo; window.renderStaffHome=renderStaffHome; window.renderStaffRecord=renderStaffRecord; window.renderStaffUpload=renderStaffUpload; window.staffSubmitExpense=staffSubmitExpense; window.staffRecordReturn=staffRecordReturn; window.staffSubmitReturn=staffSubmitReturn; window.staffSubmitDoc=staffSubmitDoc; window.approveStaff=approveStaff; window.blockStaff=blockStaff; window.pushStaffBalance=pushStaffBalance; window.pushBrandingToAllStaff=pushBrandingToAllStaff; window._applyStaffBranding=_applyStaffBranding; window.staffRecTab=staffRecTab; window.staffSubmitAdvance=staffSubmitAdvance; window.renderStaffBilling=renderStaffBilling; window.staffMyBillTab=staffMyBillTab; window.staffEditBillProfile=staffEditBillProfile; window.staffSaveBillProfile=staffSaveBillProfile; window.staffMakeReceipt=staffMakeReceipt; window.staffPrintMyReceipt=staffPrintMyReceipt; window.staffMakeInvoice=staffMakeInvoice; window.staffPrintMyInvoice=staffPrintMyInvoice; window._staffRegister=_staffRegister; window._staffDocSave=_staffDocSave; window._myBillFoot=_myBillFoot; window._chamberDocSettings=_chamberDocSettings; window.openMatterDetail=openMatterDetail; window.renderMatterDetail=renderMatterDetail; window.isStaffView=isStaffView; window._matterListingsCard=_matterListingsCard; window._mlAddDate=_mlAddDate; window.addFiling=addFiling; window.doAddFiling=doAddFiling; window.delFiling=delFiling; window.addDocToMatter=addDocToMatter; window.doAddDocToMatter=doAddDocToMatter; window.delMatterDoc=delMatterDoc; window.addCaseExpense=addCaseExpense; window.doAddCaseExpense=doAddCaseExpense; window.delCaseExpense=delCaseExpense; window.renderStaffDocs=renderStaffDocs; window.renderStaffExpenses=renderStaffExpenses; window.staffAddDocGeneral=staffAddDocGeneral; window.doStaffAddDocGeneral=doStaffAddDocGeneral; window.staffAddExpenseGeneral=staffAddExpenseGeneral; window.doStaffAddExpenseGeneral=doStaffAddExpenseGeneral; window._geOpenFolder=_geOpenFolder; window._geFolderHint=_geFolderHint; window.staffRecordAdvance=staffRecordAdvance; window.doStaffRecordAdvance=doStaffRecordAdvance; window.rejectExpense=rejectExpense; window.doRejectExpense=doRejectExpense; window.rejectAdvanceEntry=rejectAdvanceEntry; window.doRejectAdvanceEntry=doRejectAdvanceEntry; window.deleteAdvanceEntry=deleteAdvanceEntry; window._canEditEntry=_canEditEntry; window.editAdvanceEntry=editAdvanceEntry; window.doEditAdvanceEntry=doEditAdvanceEntry; window.editCaseExpense=editCaseExpense; window.doEditCaseExpense=doEditCaseExpense; window.isRejected=isRejected; window._canDeleteOwn=_canDeleteOwn; window.removeStaff=removeStaff; window.doRemoveStaff=doRemoveStaff; window.addDate=addDate; window.doAddDate=doAddDate; window._adReasonChange=_adReasonChange; window.delDate=delDate; window.editDate=editDate; window.scHoliday=scHoliday; window.scIsPartial=scIsPartial; window.scDayKind=scDayKind; window.scDayLabel=scDayLabel; window.scOverlayOn=scOverlayOn; window._adDateCheck=_adDateCheck; window.markConcluded=markConcluded; window.doMarkConcluded=doMarkConcluded; window.reopenCase=reopenCase; window.addPastCase=addPastCase; window.doAddPastCase=doAddPastCase; window.doSavePastCase=doSavePastCase; window.renderPastCases=renderPastCases; window.openPastCases=openPastCases; window.peekNextPastCode=peekNextPastCode; window.peekNextMatterCode=peekNextMatterCode; window._maxSeq=_maxSeq; window.findDuplicateNumbers=findDuplicateNumbers; window.duplicateWarningHTML=duplicateWarningHTML; window.printVoucher=printVoucher; window.needsVoucher=needsVoucher; window.voucherThreshold=voucherThreshold; window._expenseFolderUrl=_expenseFolderUrl; window.openLedger=openLedger; window.renderLedger=renderLedger; window.renderReceiptLedger=renderReceiptLedger; window.openTodos=openTodos; window.addTodo=addTodo; window.doAddTodo=doAddTodo; window.editTodo=editTodo; window.doEditTodo=doEditTodo; window.resolveTodo=resolveTodo; window.doResolveTodo=doResolveTodo; window.reopenTodo=reopenTodo; window.deleteTodo=deleteTodo; window.renderTodos=renderTodos; window.TODO_PRIORITIES=TODO_PRIORITIES; window.BCI_TYPES=BCI_TYPES; window.staffEditMyName=staffEditMyName; window.pickMatterForDate=pickMatterForDate; window.todayWidgetHTML=todayWidgetHTML; window._todayItems=_todayItems; window.staffSaveMyName=staffSaveMyName; window.openAppointments=openAppointments; window.addAppointment=addAppointment; window._apKindChange=_apKindChange; window.doAddAppointment=doAddAppointment; window.editAppointment=editAppointment; window.doEditAppointment=doEditAppointment; window.delAppointment=delAppointment; window.renderAppointments=renderAppointments; window.openCalendar=openCalendar; window.renderCalendar=renderCalendar; window._calShift=_calShift; window._calGoToday=_calGoToday; window._calDayView=_calDayView; window._calSelect=_calSelect; window.calAddOnDate=calAddOnDate; window.calAddHearing=calAddHearing; window._chReasonChange=_chReasonChange; window.doCalAddHearing=doCalAddHearing; window.openDriveFolderHelp=openDriveFolderHelp; window._chamberFolderUrl=_chamberFolderUrl; window._caseFolderName=_caseFolderName; window._caseFolderBanner=_caseFolderBanner; window.setupCaseFolder=setupCaseFolder; window.saveCaseFolder=saveCaseFolder; window.openUnassigned=openUnassigned; window.renderUnassigned=renderUnassigned; window.setupUnassignedFolder=setupUnassignedFolder; window.saveUnassignedFolder=saveUnassignedFolder; window._reassignPicker=_reassignPicker; window.doReassign=doReassign; window._isUnassigned=_isUnassigned; window.matterCodeFor=matterCodeFor; window.addMatter=window.addMatter||addMatter; window.acceptedFor=acceptedFor; window.pendingFor=pendingFor; window.idbDel=idbDel; window.exportMatterToFolder=exportMatterToFolder; window.exportAllToFolder=exportAllToFolder; window.fsSupported=fsSupported; window.buildZip=buildZip; window.matterFolderName=matterFolderName; window.buildIndexText=buildIndexText; window.fileNameFor=fileNameFor; window.renderInvoice=renderInvoice; window.onInvStyleChange=onInvStyleChange; window.addInvLine=addInvLine; window.rmInvLine=rmInvLine; window.updInvLine=updInvLine; window.addInvExpense=addInvExpense; window.rmInvExp=rmInvExp; window.updInvExp=updInvExp; window.saveAndPrintInvoice=saveAndPrintInvoice; window.reprintInvoice=reprintInvoice; window.delInvoice=delInvoice; window.printInvoice=printInvoice; window.peekNextInvoiceNo=peekNextInvoiceNo; window.nextInvoiceNo=nextInvoiceNo; window.onDueModeChange=onDueModeChange; window.defaultAppName=defaultAppName; window.openSetPw=openSetPw; window.doSetPw=doSetPw; window.openChangePw=openChangePw; window.doChangePw=doChangePw; window.lockNow=lockNow; window.showLockScreen=showLockScreen; window.showRecovery=showRecovery; window.tryUnlock=tryUnlock; window.tryRecovery=tryRecovery; window.copyText=copyText; window.encEnabled=encEnabled; window.encSetup=encSetup; window.encUnlock=encUnlock; window.loadDecrypted=loadDecrypted; window.showRecoveryCode=showRecoveryCode; window.renderArchive=renderArchive; window.toggleArchMonth=toggleArchMonth; window.exportArchiveCSV=exportArchiveCSV; window.exportReceiptsCSV=exportReceiptsCSV; window.exportInvoicesCSV=exportInvoicesCSV; window.exportExpensesCSV=exportExpensesCSV; window.micButton=micButton; window._micToggle=_micToggle; window._verifyQRBlock=_verifyQRBlock; window.updFee=updFee; window.setTdsMode=setTdsMode; window.setTdsRate=setTdsRate; window.focusCustomRate=focusCustomRate; window.computeFee=computeFee; window.tdsFY=tdsFY; window.newRegimeTax=newRegimeTax; window.chamberLogoSVG=chamberLogoSVG; window.showGroup=showGroup; window.subGo=subGo; window.setActiveTab=setActiveTab; window._labelizeTables=_labelizeTables; window._startTableLabeler=_startTableLabeler; window._activityGoTo=_activityGoTo; window._activityHasTarget=_activityHasTarget; window.clearActivity=clearActivity; window.doClearActivity=doClearActivity; window.openSearch=openSearch; window._gsRun=_gsRun; window._gsGo=_gsGo; window._gsSearch=_gsSearch; window._docPrintChooser=_docPrintChooser; window.onSigPicked=onSigPicked; window._applyStripToggle=_applyStripToggle; window.removeSignature=removeSignature; window.printReceipt=printReceipt; window.shareDoc=shareDoc; window._knownClients=_knownClients; window._lookupClient=_lookupClient; window._attachClientAutofill=_attachClientAutofill; window._knownRefAdvs=_knownRefAdvs; window._lookupRefAdv=_lookupRefAdv; window._attachRefAdvAutofill=_attachRefAdvAutofill; window.reprint=reprint; window.renderSalary=renderSalary; window.openAddPerson=openAddPerson; window.doAddPerson=doAddPerson; window.openEditPerson=openEditPerson; window.doEditPerson=doEditPerson; window.doRemovePerson=doRemovePerson; window.openSalaryAdvance=openSalaryAdvance; window.doGiveSalaryAdvance=doGiveSalaryAdvance; window.openSalarySlip=openSalarySlip; window.quickPaySalary=quickPaySalary; window.doQuickPay=doQuickPay; window._qpWarn=_qpWarn; window.doGenerateSlip=doGenerateSlip; window.printSalarySlip=printSalarySlip; window.reprintSalarySlip=reprintSalarySlip; window._slToggleAdv=_slToggleAdv; window._slToggleLeave=_slToggleLeave; window._slLeaveMode=_slLeaveMode; window._slUpdateLeaveCalc=_slUpdateLeaveCalc; window.openPersonDetail=openPersonDetail; window.renderPersonDetail=renderPersonDetail; window.delSalaryAdv=delSalaryAdv; window.openRecordRepayment=openRecordRepayment; window.doRecordRepayment=doRecordRepayment; window.roleLabel=roleLabel; window.renderPeople=renderPeople; window.peopleGo=peopleGo; window.openPeople=openPeople; window._renderRegisterInto=_renderRegisterInto; window._renderApprovalsInto=_renderApprovalsInto; window._renderAccessInto=_renderAccessInto; window._advancesRefresh=_advancesRefresh; window._accessRefresh=_accessRefresh; window._saveCloudLink=_saveCloudLink; window._docFolderUrl=_docFolderUrl; window._rememberFolder=_rememberFolder; window._docDestLine=_docDestLine; window._cloudSaveBlock=_cloudSaveBlock; window.onTypeChange=onTypeChange; window._onRefTypeChange=_onRefTypeChange; window._onFilingOnlyChange=_onFilingOnlyChange; window._composeRefName=_composeRefName; window._parseRefName=_parseRefName; window._regCode=_regCode; window.casePrefixFor=casePrefixFor; window.reasonsForForum=reasonsForForum; window._resolveReminder=_resolveReminder; window.addReminder=addReminder; window.doAddReminder=doAddReminder; window.delReminder=delReminder; window.renderReminders=renderReminders; window.addTaskOrReminder=addTaskOrReminder; window._chMatterChange=_chMatterChange; window._numberTables=_numberTables; window.printTodayList=printTodayList; window.openCauseList=openCauseList; window._loadCourtUpdates=_loadCourtUpdates; window.printCauseList=printCauseList; window._clRenderRefList=_clRenderRefList; window.monthlyBackup=monthlyBackup; window.autoSnapshotIfDue=autoSnapshotIfDue; window.listSnapshots=listSnapshots; window.downloadSnapshot=downloadSnapshot; window._backupReminderHTML=_backupReminderHTML; window._adTimingMode=_adTimingMode; window.ownerAddDate=ownerAddDate; window._ownerAddDateGo=_ownerAddDateGo; }catch(e){}
 
 /* ============================================================
@@ -18352,6 +18681,7 @@ const SUB_PAGES={
     matters:{fn:renderMatters,id:"matters",label:"Matters"},
     archive:{fn:renderArchive,id:"archive",label:"Archive"},
     pastcases:{fn:renderPastCases,id:"pastcases",label:"Past cases register"},
+    register:{fn:renderCaseRegister,id:"register",label:"Case register"},
     unassigned:{fn:renderUnassigned,id:"unassigned",label:"Unassigned"},
     ledger:{fn:renderReceiptLedger,id:"ledger",label:"Receipts register"},
     invoiceledger:{fn:renderInvoiceLedger,id:"invoiceledger",label:"Invoices register"},
@@ -20516,7 +20846,7 @@ const FB = {
   // reached the cloud, so a logout (manual or the idle auto sign-out) wiped localStorage and
   // destroyed them permanently while everything else restored from the cloud. They are
   // owner-private, so they route to accounts/{uid}/… and need NO Firestore rules change.
-  COLLECTIONS: ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","advances","staff","trash","filings","appointments","todos","activity","staffRoster","salaryAdvances","salarySlips","refStatements","notices","reminders","vakalatnamas"],
+  COLLECTIONS: ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","advances","staff","trash","filings","appointments","todos","activity","staffRoster","salaryAdvances","salarySlips","refStatements","notices","reminders","vakalatnamas","register"],
   // SHARED collections live in a common chamber space both owner & staff use.
   // OWNER-ONLY collections (receipts, invoices, salary*) live in the owner's private account.
   // "vakalatnamas" is SHARED so staff can prepare one and it lands in the chamber's
@@ -20524,7 +20854,7 @@ const FB = {
   // device could never write there). REQUIRES 'vakalatnamas' in isSharedCollection()
   // in the Firestore rules — until those are published, writes are permission-denied.
   SHARED: ["matters","expenses","cash","docsIn","docsFiled","advances","staff","trash","filings","appointments","todos","activity","vakalatnamas"],
-  OWNER_ONLY: ["receipts","invoices","staffRoster","salaryAdvances","salarySlips"],
+  OWNER_ONLY: ["receipts","invoices","staffRoster","salaryAdvances","salarySlips","register"],  // register = the chamber case register (both chambers; SD Chamber is owner-only)
   CHAMBER_BASE: "chamber/main",
   role: "owner",   // set by bridge: 'owner' or 'staff'
   activeCollections(){ return this.role==="staff" ? this.SHARED.slice() : this.COLLECTIONS.slice(); },
@@ -20700,7 +21030,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.01-0100";
+  window.APP_VERSION = "2026.10.06-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
