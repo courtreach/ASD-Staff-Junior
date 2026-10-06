@@ -18541,7 +18541,7 @@ async function _paperOpen(k){
   const it=window.__papers[k]; if(!it) return;
   const win=window.open("about:blank","_blank");
   try{
-    if(win) win.document.write('<p style="font-family:sans-serif;padding:24px;color:#555">Opening '+esc(it.name)+'…</p>');
+    if(win) win.document.write('<p style="font-family:-apple-system,sans-serif;padding:24px;color:#555">Opening '+esc(it.name)+(it.size>15e6?' ('+_fmtSize(it.size)+' — large files take a little while)':'')+'…</p>');
     if(_isWord(it.name)){
       // Word: read-only view in Word for the web (no sign-in). OneDrive personal won't
       // convert Word→PDF for third-party apps, so a PDF preview isn't possible here.
@@ -18552,7 +18552,11 @@ async function _paperOpen(k){
     }
     const blob=await _gk("/api/content",{path:it.path, format:""},{blob:true});
     _blobOpenIn(win, blob, blob._name||it.name);
-  }catch(e){ if(win) try{ win.close(); }catch(_){} toast(e.message,true); }
+  }catch(e){
+    // Keep the tab and say why — closing it silently looked like nothing happened.
+    if(win&&!win.closed){ try{ win.document.body.innerHTML='<div style="font-family:-apple-system,sans-serif;max-width:560px;margin:60px auto;padding:0 18px;color:#2a2420"><h2 style="color:#6b1f1f;margin:0 0 10px">Could not open this paper</h2><p style="font-size:16px;line-height:1.6;margin:0 0 8px"><b>'+esc(it.name)+'</b></p><p style="font-size:15px;line-height:1.6">'+esc(e.message)+'</p><p style="font-size:13px;color:#777">You can close this tab.</p></div>'; }catch(_){ try{ win.close(); }catch(__){} } }
+    toast(e.message,true);
+  }
 }
 function _paperEdit(k){
   const it=window.__papers[k]; if(!it) return;
@@ -21565,7 +21569,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-0900";
+  window.APP_VERSION = "2026.10.06-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
