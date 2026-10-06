@@ -162,12 +162,39 @@ def norm_num(s):
 
 
 # ---- exact case / diary number matching -------------------------------------------
-# A watch-list number matches a cause-list line only when the SAME number and year
-# appear there as a whole (not as part of a longer number), and a diary number only
-# matches a diary number. Earlier a plain substring test let "38/2026" match
-# "738/2026" and SLP numbers match diary numbers with the same digits.
-_NUM_SLASH = re.compile(r"(?<!\d)(\d{1,7})(?:\s*[-\u2013]\s*(\d{1,7}))?\s*/\s*((?:19|20)\d{2})(?!\d)")
-_NUM_DASH = re.compile(r"(?<!\d)(\d{1,7})\s*[-\u2013]\s*((?:19|20)\d{2})(?!\d)")
+# A watch-list number matches a cause-list line only when the SAME number and year appear
+# there as a whole (not inside a longer number) AND the case type agrees — SLP, C.A.,
+# Crl.A., W.P., T.P., M.A., contempt, review, diary — including Civil vs Criminal. A bare
+# "12345/2026" (no type) matches any type except diary. A plain digit-substring test used
+# to let "38/2026" match "738/2026" and an SLP match a T.P. with the same digits.
+_NUM_SLASH = re.compile(r"(?<!\d)(\d{1,7})(?:\s*[-–]\s*(\d{1,7}))?\s*/\s*((?:19|20)\d{2})(?!\d)")
+_NUM_DASH = re.compile(r"(?<!\d)(\d{1,7})\s*[-–]\s*((?:19|20)\d{2})(?!\d)")
+_TYPES = [   # checked against the text just before the number, nearest match wins
+    ("diary", r"diary"),
+    ("slp", r"s\s*\.?\s*l\s*\.?\s*p|special\s+leave"),
+    ("crla", r"cr(?:l|i|iminal)?\s*\.?\s*a(?:ppeal)?\b(?!\s*\.?\s*p)"),
+    ("ca", r"\bc\s*\.?\s*a\b(?!\s*\.?\s*p)|civil\s+appeal"),
+    ("wp", r"w\s*\.?\s*p\b|writ"),
+    ("tp", r"t\s*\.?\s*p\b|transfer\s+pet"),
+    ("tc", r"t\s*\.?\s*c\b|transferred\s+case"),
+    ("cont", r"cont|conmt|contempt"),
+    ("rp", r"r\s*\.?\s*p\b|review"),
+    ("ma", r"\bm\s*\.?\s*a\b|misc"),
+]
+
+
+def _type_of(window):
+    w = window[-34:]
+    best, pos = "?", -1
+    for name, rx in _TYPES:
+        for m in re.finditer(rx, w):
+            if m.start() > pos:
+                best, pos = name, m.start()
+    if best in ("slp", "wp", "tp", "tc", "cont", "rp", "ma"):
+        tail = w[pos:]
+        side = "crl" if re.search(r"\(\s*cr|\bcrl|\bcri|criminal", tail) else "c"
+        return best + ":" + side
+    return best
 
 
 def _expand(a, b):
@@ -182,24 +209,39 @@ def _expand(a, b):
 
 
 def number_keys(text, default_kind=None):
-    """Set of ('diary'|'case', number, year) found in text. The kind comes from the
-    word 'diary' just before the number, else default_kind, else 'case'."""
+    """Set of (type, number, year). type is 'diary', e.g. 'slp:c', 'slp:crl', 'ca', 'crla',
+    'tp:c', … or '?' when no type is written (a bare number)."""
     t = (text or "").lower()
     keys = set()
     spans = []
     for m in _NUM_SLASH.finditer(t):
         spans.append((m.start(), m.end()))
-        before = t[max(0, m.start() - 22):m.start()]
-        kind = "diary" if "diary" in before else (default_kind or "case")
+        typ = _type_of(t[max(0, m.start() - 40):m.start()])
+        if typ == "?" and default_kind == "diary":
+            typ = "diary"
         for n in _expand(m.group(1), m.group(2)):
-            keys.add((kind, n, int(m.group(3))))
+            keys.add((typ, n, int(m.group(3))))
     for m in _NUM_DASH.finditer(t):
         if any(a <= m.start() < b for a, b in spans):
             continue
-        before = t[max(0, m.start() - 22):m.start()]
-        if "diary" in before or default_kind == "diary":   # "Diary No. 37510-2026"
+        typ = _type_of(t[max(0, m.start() - 40):m.start()])
+        if typ == "diary" or default_kind == "diary":   # "Diary No. 37510-2026"
             keys.add(("diary", int(m.group(1)), int(m.group(2))))
     return keys
+
+
+def keys_match(line_keys, watch_keys):
+    """Same number + year; types must agree, except that an untyped number ('?') matches any
+    non-diary type."""
+    if not line_keys or not watch_keys:
+        return False
+    for (lt, n, y) in line_keys:
+        for (wt, wn, wy) in watch_keys:
+            if n != wn or y != wy:
+                continue
+            if lt == wt or (lt == "?" and wt != "diary") or (wt == "?" and lt != "diary"):
+                return True
+    return False
 
 
 def name_tokens(name):
@@ -390,7 +432,7 @@ def scan_text(lines, wl, list_label, list_kind, for_date, family=""):
                 hits.append("advocate")
                 break
         # case / diary numbers: exact number + year (+ diary vs case), never a partial match
-        if num_keys and (number_keys(line) & num_keys):
+        if num_keys and keys_match(number_keys(line), num_keys):
             hits.append("number")
         # AOR code: exact digit token, but only when the line mentions AOR
         if "aor" in ln:
