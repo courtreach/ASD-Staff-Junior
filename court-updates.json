@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-06T17:03:41.232996Z",
+  "generated_at": "2026-10-06T17:17:08.448692Z",
   "window": [
     "2026-10-06",
     "2026-10-07",
@@ -24,8 +24,60 @@
       "has_supplementary": true,
       "has_advance": true,
       "has_main": true,
-      "match_count": 0,
-      "matches": []
+      "match_count": 3,
+      "matches": [
+        {
+          "for_date": "2026-10-06",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "8",
+          "item": "18",
+          "coram": "HON'BLE MR. JUSTICE SANJAY KUMAR; HON'BLE MR. JUSTICE SANJEEV SACHDEVA",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "18 SLP(C) No. 9386/2023 SRI MANNADHESWARAR SRI PANCHAIMMAN TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS."
+        },
+        {
+          "for_date": "2026-10-06",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "8",
+          "item": "18.1",
+          "coram": "HON'BLE MR. JUSTICE SANJAY KUMAR; HON'BLE MR. JUSTICE SANJEEV SACHDEVA",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "SRI MANNADHESWARAR SRI PANCHAIMMAN Diary No. 25800-2025 TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS. IN SLP(C) No. - 9386/2023,"
+        },
+        {
+          "for_date": "2026-10-06",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "9",
+          "item": "302",
+          "coram": "HON'BLE MR. JUSTICE AHSANUDDIN AMANULLAH; HON'BLE MR. JUSTICE MANMOHAN",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "302 SLP(Crl) No. 6622/2025 THE STATE OF KARNATAKA Versus SHALLY AND ANR."
+        }
+      ]
     },
     "2026-10-07": {
       "lists_found": [
@@ -41,8 +93,43 @@
       "has_supplementary": true,
       "has_advance": true,
       "has_main": true,
-      "match_count": 0,
-      "matches": []
+      "match_count": 2,
+      "matches": [
+        {
+          "for_date": "2026-10-07",
+          "list": "Regular / Final - Main",
+          "kind": "main",
+          "family": "FJ",
+          "is_supplementary": false,
+          "court": "1",
+          "item": "104",
+          "coram": "HON'BLE THE CHIEF JUSTICE; HON'BLE MR. JUSTICE JOYMALYA BAGCHI; HON'BLE MRS. JUSTICE V. MOHANA",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "104 C.A. No. 301-302/2026 META PLATFORMS, INC Versus COMPETITION COMMISSION OF INDIA AND ORS."
+        },
+        {
+          "for_date": "2026-10-07",
+          "list": "Regular / Final - Main",
+          "kind": "main",
+          "family": "FJ",
+          "is_supplementary": false,
+          "court": "13",
+          "item": "101",
+          "coram": "HON'BLE MR. JUSTICE K.V. VISWANATHAN; HON'BLE MR. JUSTICE ARUN PALLI",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "C.C.E. AND S.T. PANCHKULA GOOD AND SERVICE C.A. No. 9574/2019 TAX Versus HSF FOOD PROTECH PVT. LTD."
+        }
+      ]
     },
     "2026-10-08": {
       "lists_found": [
@@ -54,8 +141,43 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 0,
-      "matches": []
+      "match_count": 2,
+      "matches": [
+        {
+          "for_date": "2026-10-08",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "9",
+          "item": "304",
+          "coram": "HON'BLE MR. JUSTICE AHSANUDDIN AMANULLAH; HON'BLE MR. JUSTICE MANMOHAN",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "304 SLP(Crl) No. 6622/2025 THE STATE OF KARNATAKA Versus SHALLY AND ANR."
+        },
+        {
+          "for_date": "2026-10-08",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "11",
+          "item": "23",
+          "coram": "HON'BLE MR. JUSTICE ARAVIND KUMAR; HON'BLE MR. JUSTICE VIPUL M. PANCHOLI",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "23 T.P.(C) No. 1171/2026 SUKRITI JHA Versus AVINASH KUMAR JHA DAILY CAUSE LIST FOR DATED : 08-10-2026 COURT NO. : 11"
+        }
+      ]
     },
     "2026-10-09": {
       "lists_found": [
@@ -64,8 +186,43 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 0,
-      "matches": []
+      "match_count": 2,
+      "matches": [
+        {
+          "for_date": "2026-10-09",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "46",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "46 SLP(C) No. 3263/2023 TARSEM SHARMA AND ORS. Versus THE STATE OF HARYANA AND ORS."
+        },
+        {
+          "for_date": "2026-10-09",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "464",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "464 W.P.(C) No. 683/2026 GEETA JAIN AGGARWAL Versus UNION OF INDIA AND ORS."
+        }
+      ]
     },
     "2026-10-12": {
       "lists_found": [
@@ -74,8 +231,25 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 1,
+      "match_count": 2,
       "matches": [
+        {
+          "for_date": "2026-10-12",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "148",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "148 SLP(C) No. 6622/2025 PARVEZ ALI AND ORS. Versus MILIYA DEVI AND ORS."
+        },
         {
           "for_date": "2026-10-12",
           "list": "Miscellaneous - Advance",
@@ -102,8 +276,76 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 2,
+      "match_count": 6,
       "matches": [
+        {
+          "for_date": "2026-10-13",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "189",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "189 MA 2711-2713/2025 in UNION OF INDIA AND ORS. Versus KESANG DORJEE AND ORS."
+        },
+        {
+          "for_date": "2026-10-13",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "1 CONMT.PET.(C) No. Versus MOHAMMAD YOUNUS AND ORS. IN SLP(C) No. - 23379/2023,"
+        },
+        {
+          "for_date": "2026-10-13",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "269",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "269 SLP(C) No. 24919/2026 M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED Versus THE STATE OF MAHARASHTRA AND ORS."
+        },
+        {
+          "for_date": "2026-10-13",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "803",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "803 SLP(C) No. SACHIN JAGDISHBHAI CHAUHAN AND ORS. Versus CHIEF OFFICER TALAJA NAGARPALIKA"
+        },
         {
           "for_date": "2026-10-13",
           "list": "Miscellaneous - Advance",
@@ -116,9 +358,10 @@
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
-            "advocate"
+            "advocate",
+            "number"
           ],
-          "confidence": "medium",
+          "confidence": "high",
           "text": "899 SLP(C) No. 27751/2025 SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS. Versus SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS."
         },
         {
@@ -133,9 +376,10 @@
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
-            "advocate"
+            "advocate",
+            "number"
           ],
-          "confidence": "medium",
+          "confidence": "high",
           "text": "1251 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
         }
       ]
@@ -147,8 +391,60 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 0,
-      "matches": []
+      "match_count": 3,
+      "matches": [
+        {
+          "for_date": "2026-10-14",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "98",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "98 SLP(C) No. 9388/2022 COMMITTEE OF MANAGEMENT ANJUMAN INTEZAMIA MASAJID VARANASI Versus RAKHI SINGH AND ORS."
+        },
+        {
+          "for_date": "2026-10-14",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "154",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "154 SLP(Crl) No. BIPINCHAND KANAIYALAL JOSHI @ LALA DOCTOR Versus THE STATE OF GUJARAT AND ANR."
+        },
+        {
+          "for_date": "2026-10-14",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "155",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "MANOJ NARAIN AGARWAL SLP(C) No. 3125/2026 Versus STATE OF UTTARAKHAND AND ORS."
+        }
+      ]
     },
     "2026-10-15": {
       "lists_found": [
@@ -157,7 +453,7 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 1,
+      "match_count": 2,
       "matches": [
         {
           "for_date": "2026-10-15",
@@ -171,14 +467,32 @@
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
-            "advocate"
+            "advocate",
+            "number"
           ],
-          "confidence": "medium",
+          "confidence": "high",
           "text": "64 SLP(Crl) No. 8841/2026 FAVAS RAHIMT Versus STATE OF KERALA"
+        },
+        {
+          "for_date": "2026-10-15",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "116",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "116 T.P.(C) No. 1726/2026 MAMATA A GAJRIA Versus AMIT RAJU GAJRIA"
         }
       ]
     }
   },
-  "match_count": 4,
+  "match_count": 22,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
