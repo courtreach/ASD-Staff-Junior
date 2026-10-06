@@ -1,84 +1,16 @@
 {
-  "generated_at": "2026-10-06T17:25:10.682715Z",
+  "generated_at": "2026-10-06T20:33:48.467894Z",
   "window": [
-    "2026-10-06",
     "2026-10-07",
     "2026-10-08",
     "2026-10-09",
     "2026-10-12",
     "2026-10-13",
     "2026-10-14",
-    "2026-10-15"
+    "2026-10-15",
+    "2026-10-16"
   ],
   "by_date": {
-    "2026-10-06": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Regular / Final - Main",
-        "Regular / Final - Supplementary",
-        "Registrar - Main",
-        "Curative & Review (circulation)",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 3,
-      "matches": [
-        {
-          "for_date": "2026-10-06",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "8",
-          "item": "18",
-          "coram": "HON'BLE MR. JUSTICE SANJAY KUMAR; HON'BLE MR. JUSTICE SANJEEV SACHDEVA",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "18 SLP(C) No. 9386/2023 SRI MANNADHESWARAR SRI PANCHAIMMAN TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS."
-        },
-        {
-          "for_date": "2026-10-06",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "8",
-          "item": "18.1",
-          "coram": "HON'BLE MR. JUSTICE SANJAY KUMAR; HON'BLE MR. JUSTICE SANJEEV SACHDEVA",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "SRI MANNADHESWARAR SRI PANCHAIMMAN Diary No. 25800-2025 TEMPLE Versus HINDU RELIGIOUS AND CHARITABLE ENDOWMENT DEPARTMENT (ADMINISTRATION) AND ORS. IN SLP(C) No. - 9386/2023,"
-        },
-        {
-          "for_date": "2026-10-06",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "9",
-          "item": "302",
-          "coram": "HON'BLE MR. JUSTICE AHSANUDDIN AMANULLAH; HON'BLE MR. JUSTICE MANMOHAN",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "302 SLP(Crl) No. 6622/2025 THE STATE OF KARNATAKA Versus SHALLY AND ANR."
-        }
-      ]
-    },
     "2026-10-07": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -371,8 +303,124 @@
           "text": "64 SLP(Crl) No. 8841/2026 FAVAS RAHIMT Versus STATE OF KERALA"
         }
       ]
+    },
+    "2026-10-16": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 6,
+      "matches": [
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "180",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "number"
+          ],
+          "confidence": "high",
+          "text": "180 SLP(Crl) No. 5500/2026 MINIKETAN SARTHI Versus STATE OF CHHATTISGARH"
+        },
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "274",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "274 CONMT.PET.(C) No. AMEEN AHMAD Versus DEEPALI RASTOGI AND ORS. IN C.A. No. - 14259/2025,"
+        },
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "363",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "PANDU HEMBROM SLP(Crl) No. 629/2026 Versus THE STATE OF JHARKHAND"
+        },
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "504",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "number"
+          ],
+          "confidence": "high",
+          "text": "504 Diary No. 67086-2025 SADASHIV Versus THE STATE OF KARNATAKA"
+        },
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "629",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "text": "629 SLP(C) No. 70/2019 K M DASTUR REINSURANCE BROKERS PVT LTD Versus RITU TAIMNI"
+        },
+        {
+          "for_date": "2026-10-16",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "958",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "number"
+          ],
+          "confidence": "high",
+          "text": "958 SLP(Crl) No. 19901/2025 TULESHWAR SINGH GOND AND ANR. Versus STATE OF CHHATTISGARH"
+        }
+      ]
     }
   },
-  "match_count": 15,
+  "match_count": 18,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
