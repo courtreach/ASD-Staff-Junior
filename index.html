@@ -8531,12 +8531,13 @@ function _buildCauseWatchlist(){
     if(m.caseNo){ const cn=String(m.caseNo).trim(); if(cn){ caseNos.push(cn);
       const dg=cn.match(/\d+\s*\/\s*\d{4}/); if(dg) caseNos.push(dg[0].replace(/\s+/g,"")); } }
     if(m.diaryNo){ const dn=String(m.diaryNo).trim(); if(dn) diaryNos.push(dn); }
-    (m.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn, ..._petitionForms(pn)); });
+    (m.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn); });
   });
-  // The chamber case register (both chambers): every petition / diary number on file is watched.
+  // The chamber case register (both chambers): only CONFIRMED numbers are watched — numbers merely
+  // read from the papers can belong to other cases cited in them.
   (DB.register||[]).forEach(r=>{
-    if(r.status==="removed") return;
-    (r.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn, ..._petitionForms(pn)); });
+    if(r.status==="removed"||r.status==="merged"||!_regConfirmed(r)) return;
+    (r.petitionNos||[]).forEach(pn=>{ (/diary/i.test(pn)?diaryNos:caseNos).push(pn); });
   });
   const uniq=a=>[...new Set(a.filter(Boolean))];
   return {
@@ -8711,19 +8712,14 @@ function _parseListing(rawText){
 }
 // Does this listing's number match a matter already in the app?
 function _listingMatch(info){
-  const _n=x=>String(x||"").replace(/[^0-9]/g,"");
-  // try the listing's number, and its own case/diary numbers, as candidates
-  const cands=[_n(info&&info.number), _n(info&&info.caseNo), _n(info&&info.diaryNo)].filter(t=>t&&t.length>=5);
+  // Exact: same number and year, diary only with diary (see _numKeys).
+  const cands=_listingKeys(info);
   if(!cands.length) return null;
-  const overlaps=(a,b)=>a&&b&&a.length>=5&&b.length>=5&&(a.indexOf(b)>=0||b.indexOf(a)>=0);
-  const hit=(DB.matters||[]).find(m=>{ if(isVoided(m)) return false;
-    const cn=_n(m.caseNo), dn=_n(m.diaryNo);
-    if(cands.some(t=>overlaps(cn,t)||overlaps(dn,t))) return true;
-    return (m.petitionNos||[]).some(pn=>_petitionDigits(pn).some(d=>cands.some(t=>overlaps(d,t)))); });
+  const hit=(DB.matters||[]).find(m=>{ if(isVoided(m)) return false; const k=_matterKeys(m); return cands.some(x=>k.has(x)); });
   if(hit) return hit;
-  // Owner only: a case in the register with no matter (SD Chamber briefs) — matched by number.
+  // Owner only: a case in the register with no matter (SD Chamber briefs) — matched by its CONFIRMED number.
   if(!isStaffView()){
-    const r=(DB.register||[]).find(r=>r.status!=="removed" && !r.matterId && (r.petitionNos||[]).some(pn=>_petitionDigits(pn).some(d=>cands.some(t=>overlaps(d,t)))));
+    const r=(DB.register||[]).find(r=>r.status!=="removed" && !r.matterId && (()=>{ const k=_regKeys(r); return cands.some(x=>k.has(x)); })());
     if(r) return {id:null, _reg:true, regId:r.id, code:(r.chamber==="SD"?"SD ":"")+"No. "+r.serial, parties:r.title, client:r.title, serial:r.serial, chamber:r.chamber};
   }
   return null;
@@ -13454,16 +13450,12 @@ function _addIAFor(parentId){
 }
 function _matterListings(m){
   const cu=window.__cuCache; if(!cu||!m) return [];
-  const _n=s=>String(s||"").replace(/[^0-9]/g,"");
-  const cn=_n(m.caseNo), dn=_n(m.diaryNo);
-  if(cn.length<5 && dn.length<5) return [];
+  const mk=_matterKeys(m); if(!mk.size) return [];
   const out=[];
   (cu.days||[]).forEach(day=>{
     (day.matches||[]).forEach(mt=>{
       const info=_parseListing(mt.title);
-      const t=_n(info.number)||_n(info.caseNo)||_n(info.diaryNo);
-      if(t.length<5) return;
-      if((cn.length>=5 && cn.indexOf(t)>=0) || (dn.length>=5 && dn.indexOf(t)>=0)){
+      if(_listingKeys(info).some(x=>mk.has(x))){
         out.push({date:day.date, hasMain:day.hasMain, court:mt.court, item:mt.item,
                   coram:mt.coram, family:mt.family, info:info, badge:_forumBadge(mt)});
       }
@@ -18084,7 +18076,7 @@ function bootAfterCloud(){
   // Finding 12 — backfill the canonical client registry (stamps clientId on
   // matters & notices, building stable identities). Best-effort, one-time-ish.
   try{ _backfillClientRegistry(); _backfillRefRegistry(); _upgradeVakInvoices(); save(); }catch(e){}
-  try{ if(DB.deviceRole!=="staff") _assignPendingSerials(); }catch(e){}
+  try{ if(DB.deviceRole!=="staff"){ _assignPendingSerials(); _regHealLinks(); } }catch(e){}
   // One-time catch-up: pushBrandingToAllStaff() only ever ran on a settings SAVE, and its
   // payload never included the AoR code / enrolment number until now — so any chamber
   // whose owner hasn't re-saved Settings since has staff devices missing it permanently
@@ -18188,6 +18180,33 @@ function _petitionForms(label){
   return [...new Set(out)];
 }
 function _petitionDigits(label){ return _petitionForms(label).map(f=>f.replace(/\D/g,"")).filter(d=>d.length>=5); }
+// Exact number keys "d|37510|2026" / "c|215|2023" — same number AND year, and diary only
+// ever matches diary. Mirrors number_keys() in fetch_causelist.py. (A digit-substring test
+// used to let "38/2026" match "738/2026" — hundreds of false cause-list matches.)
+function _numKeys(text, defKind){
+  const t=String(text||"").toLowerCase(); const out=new Set(); const spans=[];
+  const exp=(a,b)=>{ a=+a; if(!b) return [a]; if(b.length<String(a).length) b=String(a).slice(0,String(a).length-b.length)+b; b=+b; if(b>=a&&b<=a+60){ const r=[]; for(let n=a;n<=b;n++) r.push(n); return r; } return [a,b]; };
+  const re1=/(\d{1,7})(?:\s*[-–]\s*(\d{1,7}))?\s*\/\s*((?:19|20)\d{2})(?!\d)/g; let m;
+  while((m=re1.exec(t))){ if(m.index>0&&/\d/.test(t[m.index-1])) continue; spans.push([m.index,m.index+m[0].length]);
+    const k=/diary/.test(t.slice(Math.max(0,m.index-22),m.index))?"d":(defKind==="diary"?"d":"c"); exp(m[1],m[2]).forEach(n=>out.add(k+"|"+n+"|"+m[3])); }
+  const re2=/(\d{1,7})\s*[-–]\s*((?:19|20)\d{2})(?!\d)/g;
+  while((m=re2.exec(t))){ if(m.index>0&&/\d/.test(t[m.index-1])) continue; if(spans.some(([a,b])=>m.index>=a&&m.index<b)) continue;
+    if(/diary/.test(t.slice(Math.max(0,m.index-22),m.index))||defKind==="diary") out.add("d|"+(+m[1])+"|"+m[2]); }
+  return [...out];
+}
+function _labelKind(pn){ return /diary/i.test(pn)?"diary":"case"; }
+function _matterKeys(m){
+  const k=new Set([..._numKeys(m.caseNo,"case"), ..._numKeys(m.diaryNo,"diary")]);
+  (m.petitionNos||[]).forEach(pn=>_numKeys(pn,_labelKind(pn)).forEach(x=>k.add(x)));
+  return k;
+}
+function _regConfirmed(r){ return !!(r&&(r.petEdited||r.petConfirmed||r.createdBy==="app")); }
+function _regKeys(r){ const k=new Set(); if(!_regConfirmed(r)) return k; (r.petitionNos||[]).forEach(pn=>_numKeys(pn,_labelKind(pn)).forEach(x=>k.add(x))); return k; }
+function _listingKeys(info){
+  const i=info||{};
+  const txt=(i.diaryNo?"Diary No. "+i.diaryNo:"")+" "+(i.caseNo||"")+" "+((!i.diaryNo&&!i.caseNo)?(i.number||""):"");
+  return _numKeys(txt);
+}
 function nextSerial(){
   let mx=+((DB.settings&&DB.settings.serialFloor)||0);
   (DB.register||[]).forEach(r=>{ if(+r.serial>mx) mx=+r.serial; });
@@ -18218,6 +18237,15 @@ function _assignPendingSerials(){
   if(n){ save(); toast(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."); }
   return n>0;
 }
+// A register entry can lose its matter link if a cloud snapshot races a local edit; the matter
+// keeps its file number, so re-link from that (owner device, at start-up).
+function _regHealLinks(){
+  if(isStaffView()) return 0;
+  let n=0;
+  (DB.register||[]).forEach(r=>{ if(r.matterId) return; const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+r.serial); if(m){ r.matterId=m.id; n++; } });
+  if(n) save();
+  return n;
+}
 function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
 function _regForMatter(m){ return m ? ((DB.register||[]).find(r=>r.matterId===m.id)||null) : null; }
 function _mRegisterRows(m){
@@ -18233,13 +18261,11 @@ function _mRegisterRows(m){
 // Listings for a register entry with no matter (SD Chamber) — by its petition numbers.
 function _registerListings(r){
   const cu=window.__cuCache; if(!cu||!r) return [];
-  const digs=[]; (r.petitionNos||[]).forEach(pn=>digs.push(..._petitionDigits(pn)));
-  if(!digs.length) return [];
-  const _n=s=>String(s||"").replace(/[^0-9]/g,"");
+  const rk=_regKeys(r); if(!rk.size) return [];
   const out=[];
   (cu.days||[]).forEach(day=>(day.matches||[]).forEach(mt=>{
-    const info=_parseListing(mt.title); const t=_n(info.number)||_n(info.caseNo)||_n(info.diaryNo); if(t.length<5) return;
-    if(digs.some(d=>d.indexOf(t)>=0||t.indexOf(d)>=0)) out.push({date:day.date,court:mt.court,item:mt.item,coram:mt.coram,family:mt.family});
+    const info=_parseListing(mt.title);
+    if(_listingKeys(info).some(x=>rk.has(x))) out.push({date:day.date,court:mt.court,item:mt.item,coram:mt.coram,family:mt.family});
   }));
   out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   return out;
@@ -18252,12 +18278,14 @@ function renderCaseRegister(){
   const panel=document.getElementById("panel-register"); if(!panel) return;
   if(isStaffView()){ panel.innerHTML=`<div class="empty">Available to the Head of Chamber only.</div>`; return; }
   const reg=(DB.register||[]).slice().sort((a,b)=>(+b.serial)-(+a.serial));
+  const nConfirm=reg.filter(r=>r.chamber==="SD"&&String(r.date||"")>="2025-01-01"&&!_regConfirmed(r)&&r.status!=="removed").length;
   const q=_regQuery.trim().toLowerCase(); const qd=q.replace(/\D/g,"");
   const today=todayISO();
   const rows=reg.filter(r=>{
     if(_regFilter==="AD"&&r.chamber!=="AD") return false;
     if(_regFilter==="SD"&&r.chamber!=="SD") return false;
-    if(_regFilter==="nonum"&&(r.petitionNos||[]).length) return false;
+    if(_regFilter==="nonum"&&_regConfirmed(r)&&(r.petitionNos||[]).length) return false;
+    if(_regFilter==="confirm"&&!(r.chamber==="SD"&&String(r.date||"")>="2025-01-01"&&!_regConfirmed(r)&&r.status!=="removed")) return false;
     if(_regFilter==="listed"){ const L=r.matterId?_matterListings(matterById(r.matterId)||{}):_registerListings(r); if(!L.some(x=>x.date>=today)) return false; }
     if(!q) return true;
     if(String(r.serial)===q||String(r.serial).padStart(3,"0")===q) return true;
@@ -18266,7 +18294,7 @@ function renderCaseRegister(){
     return false;
   });
   const fbtn=(id,lbl)=>`<button class="btn ${_regFilter===id?"seal":"ghost"} sm" onclick="_regSetFilter('${id}')">${lbl}</button>`;
-  const nAD=reg.filter(r=>r.chamber==="AD").length, nSD=reg.filter(r=>r.chamber==="SD").length, nNo=reg.filter(r=>!(r.petitionNos||[]).length&&r.status!=="removed").length;
+  const nAD=reg.filter(r=>r.chamber==="AD").length, nSD=reg.filter(r=>r.chamber==="SD").length, nNo=reg.filter(r=>!(_regConfirmed(r)&&(r.petitionNos||[]).length)&&r.status!=="removed").length;
   const trs=rows.map(r=>{
     const m=r.matterId?matterById(r.matterId):null;
     const L=m?_matterListings(m):_registerListings(r);
@@ -18274,7 +18302,9 @@ function renderCaseRegister(){
     const listed=nxt?`<span class="tag active" title="${esc(fmtDate(nxt.date))}">Listed ${esc(fmtDate(nxt.date).slice(0,6))}${nxt.court&&nxt.court!=="—"?" · Ct "+esc(nxt.court):""}${nxt.item?" · Item "+esc(nxt.item):""}</span>`:"";
     const st=(!r.folder&&r.status!=="removed"&&r.status!=="merged"?`<span class="tag" title="The helper on your Mac creates the folder on its next run">Folder pending</span> `:"")+(r.status==="removed"?`<span class="tag">Removed</span>`:(r.status==="merged"?`<span class="tag">Merged → ${esc(String(r.mergedInto||""))}</span>`:""));
     const nums=(r.petitionNos||[]);
-    const numCell=nums.length?`<span class="mono">${esc(nums[0])}</span>${nums.length>1?`<span class="hint"> +${nums.length-1}</span>`:""}${r.petitionGuess&&!r.petEdited?` <span class="hint" title="Read from the papers — tap to confirm or correct">?</span>`:""}`:`<span class="hint" style="color:var(--seal)">no number</span>`;
+    const conf=_regConfirmed(r), sug=(r.petitionSuggest||[]).length;
+    const numCell=(nums.length&&conf)?`<span class="mono">${esc(nums[0])}</span>${nums.length>1?`<span class="hint"> +${nums.length-1}</span>`:""}`
+      :`<span class="hint" style="color:var(--seal)">not confirmed</span>${sug?`<div class="hint">${sug} suggestion${sug>1?"s":""} — tap Open</div>`:""}`;
     const open=m?`openMatterDetail('${m.id}')`:`_regOpen('${r.id}')`;
     const ch=`<span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)}</span>`;
     return `<tr style="${r.status&&r.status!=="active"?"opacity:.6":""}">
@@ -18288,11 +18318,11 @@ function renderCaseRegister(){
   panel.innerHTML=`
     <div class="card">
       <div class="card-head">
-        <div><h2>Case register</h2><div class="hint">${reg.length} files · AD ${nAD} · SD ${nSD}${nNo?` · <span style="color:var(--seal)">${nNo} without a petition number</span>`:""}. Next file number: <b>${nextSerial()}</b></div></div>
+        <div><h2>Case register</h2><div class="hint">${reg.length} files · AD ${nAD} · SD ${nSD}${nNo?` · <span style="color:var(--seal)">${nNo} without a confirmed number (not tracked in the cause list)</span>`:""}. Next file number: <b>${nextSerial()}</b></div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="openSetSection('register');showGroup&&showGroup('settings')">Import</button><button class="btn ghost sm" onclick="_regNewSD()">+ New SD file</button><button class="btn seal sm" onclick="addMatter()">+ New AD matter</button></div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
-        ${fbtn("all","All")}${fbtn("AD","AD Chamber")}${fbtn("SD","SD Chamber")}${fbtn("listed","Listed")}${fbtn("nonum","No number")}
+        ${fbtn("all","All")}${fbtn("AD","AD Chamber")}${fbtn("SD","SD Chamber")}${fbtn("listed","Listed")}${fbtn("nonum","Not confirmed")}${nConfirm?fbtn("confirm",`To confirm — recent SD (${nConfirm})`):""}
         <input class="in" style="flex:1;min-width:160px;max-width:320px;margin-left:auto" placeholder="Search number, name or SLP/Diary" value="${esc(_regQuery)}" oninput="_regSetQuery(this.value)">
       </div>
       ${reg.length?`<div class="tbl-wrap"><table class="sr-num"><thead><tr><th>No.</th><th>Case</th><th>Chamber</th><th>Petition / Diary No.</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="6" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>`
@@ -18313,7 +18343,8 @@ function _regOpen(id){
     ${r.folder?`<div class="row" style="font-size:12px;color:var(--muted);word-break:break-word;margin-bottom:8px">📁 ${esc(r.folder)}</div>`:""}
     <label class="fld">Petition / Diary numbers <span style="color:var(--muted);font-weight:400">(one per line; the cause list is searched for each)</span></label>
     <textarea class="in mono" id="rgNums" rows="3">${esc((r.petitionNos||[]).join("\n"))}</textarea>
-    ${r.petitionGuess&&!r.petEdited?`<div class="hint" style="margin-top:4px">These were read from the papers in the folder. Saving confirms them.</div>`:""}
+    ${!_regConfirmed(r)?`<div class="hint" style="margin-top:4px;color:var(--seal)">Not confirmed — not tracked in the cause list until you save a number here.</div>`:""}
+    ${(!_regConfirmed(r)&&(r.petitionSuggest||[]).length)?`<div class="hint" style="margin-top:6px">Found in the papers (may include numbers of <i>other</i> cases cited) — tap to add:</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${r.petitionSuggest.map(pn=>`<button class="row-act mono" onclick="(function(t){t.value=(t.value.trim()?t.value.trim()+'\\n':'')+'${esc(pn).replace(/'/g,"")}';})(document.getElementById('rgNums'))">+ ${esc(pn)}</button>`).join("")}</div>`:""}
     <div class="grid g2" style="margin-top:10px">
       <div><label class="fld">Status</label><select class="in" id="rgStatus" onchange="document.getElementById('rgMergedWrap').style.display=this.value==='merged'?'block':'none'"><option value="active" ${!r.status||r.status==="active"?"selected":""}>Active</option><option value="removed" ${r.status==="removed"?"selected":""}>Removed (number kept)</option><option value="merged" ${r.status==="merged"?"selected":""}>Merged into another file</option></select></div>
       <div id="rgMergedWrap" style="display:${r.status==="merged"?"block":"none"}"><label class="fld">Merged into file No.</label><input class="in mono" id="rgMerged" value="${esc(String(r.mergedInto||""))}" placeholder="e.g. 212"></div>
@@ -18629,6 +18660,7 @@ function _regSave(id){
     }
   }
   if(r.matterId){ const m=matterById(r.matterId); if(m){ m.petitionNos=nums.filter(n=>n!==m.caseNo&&n!==m.diaryNo); } }
+  if(nums.length) r.petConfirmed=true;
   save(); closeModal(); toast("File saved."+(changed?" Copy the watch-list again so the cause-list check picks up the new numbers.":""));
   if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
   if(typeof _refreshMatterDetail==="function") _refreshMatterDetail();
@@ -18680,11 +18712,11 @@ function _regImport(json, fname){
     const ex=bySerial[serial];
     if(ex){
       ex.title=c.title; ex.chamber=c.chamber; ex.date=c.date||ex.date; ex.folder=c.folder||ex.folder; ex.batch=c.batch||null; ex.batchListNo=c.batchListNo||null;
-      if(!ex.petEdited){ ex.petitionNos=nums; ex.petitionGuess=!!c.petitionGuess; }
+      if(!ex.petEdited){ ex.petitionNos=nums; ex.petitionGuess=!!c.petitionGuess; ex.petConfirmed=!!c.petConfirmed; ex.petitionSuggest=Array.isArray(c.petitionSuggest)?c.petitionSuggest:[]; }
       updated++;
     }else{
       DB.register.push({ id:uid(), serial, title:c.title, chamber:c.chamber, date:c.date||"", folder:c.folder||"", batch:c.batch||null, batchListNo:c.batchListNo||null,
-        petitionNos:nums, petitionGuess:!!c.petitionGuess, matterId:null, status:"active", createdBy:"import" });
+        petitionNos:nums, petitionGuess:!!c.petitionGuess, petConfirmed:!!c.petConfirmed, petitionSuggest:Array.isArray(c.petitionSuggest)?c.petitionSuggest:[], matterId:null, status:"active", createdBy:"import" });
       added++;
     }
   });
@@ -18698,16 +18730,14 @@ function _regImport(json, fname){
 }
 // Propose links between AD Chamber files and the matters already in the app.
 function _regCandidates(r){
-  const _n=s=>String(s||"").replace(/[^0-9]/g,"");
-  const digs=[]; (r.petitionNos||[]).forEach(pn=>digs.push(..._petitionDigits(pn)));
+  const rk=new Set(); (r.petitionNos||[]).concat(r.petitionSuggest||[]).forEach(pn=>_numKeys(pn,_labelKind(pn)).forEach(x=>rk.add(x)));
   const tok=s=>String(s||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!/^(the|and|ors|anr|state|union|india|govt|government|limited|ltd|pvt|private|company|co|others|another|through|its|of|v|vs|versus|case|matter|caveat|slp|appeal|petition)$/.test(w));
   const rt=new Set(tok(r.title));
   const out=[];
   (DB.matters||[]).forEach(m=>{
     if(isVoided(m)||(m.kind!=="case"&&m.kind!=="caveat")||m.serial) return;
     let score=0, why="";
-    const mn=[_n(m.caseNo),_n(m.diaryNo),...(m.petitionNos||[]).flatMap(_petitionDigits)].filter(d=>d.length>=5);
-    if(digs.some(d=>mn.some(x=>x.indexOf(d)>=0||d.indexOf(x)>=0))){ score+=10; why="same case/diary number"; }
+    if([..._matterKeys(m)].some(x=>rk.has(x))){ score+=10; why="same case/diary number"; }
     const mt=new Set([...tok(m.parties),...tok(m.client)]);
     let hit=0; rt.forEach(w=>{ if(mt.has(w)) hit++; });
     if(hit>=2 || (hit>=1 && rt.size<=2)){ score+=hit*2; why=why||(hit+" name word"+(hit>1?"s":"")+" in common"); }
@@ -18754,7 +18784,7 @@ function _regApplyMatches(){
   try{ renderAll(); }catch(e){}
   if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
 }
-try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
+try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window._regHealLinks=_regHealLinks; window._numKeys=_numKeys; window._matterKeys=_matterKeys; window._regConfirmed=_regConfirmed; window._regKeys=_regKeys; window._listingKeys=_listingKeys; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
   window.renderAll = renderAll; window.todayISO = todayISO; window.onForumChange = onForumChange; window.typesForForum = typesForForum; window.FORUMS = FORUMS; window.onExpenseHeadChange = onExpenseHeadChange; window.onProofPicked = onProofPicked; window.viewProof = viewProof; window.removeProof = removeProof; window.addExpense = addExpense; window.saveExpense = saveExpense; window.EXPENSE_HEADS = EXPENSE_HEADS; window.attachLater = attachLater; window.saveLateProof = saveLateProof; window.peekNextVoucherNo = peekNextVoucherNo; window.peekNextNoticeNo = peekNextNoticeNo; window.openNoticeRegister = openNoticeRegister; window.openNoticeAssistant = openNoticeAssistant; window._naPick = _naPick; window._naCompose = _naCompose; window._draftNoticeBody = _draftNoticeBody; window._noticeBodyLayout = _noticeBodyLayout; window._renderNoticeRegister = _renderNoticeRegister; window._reprintNotice = _reprintNotice; window._delNotice = _delNotice; window._editNotice = _editNotice; window._afterHearing=_afterHearing; window._ahSave=_ahSave; window._ahToggleNext=_ahToggleNext; window._limCalc=_limCalc; window._limCompute=_limCompute; window._limRemind=_limRemind; window._matterFeeStrip=_matterFeeStrip; window._upcomingItems=_upcomingItems; window.openClients=openClients; window.renderClients=renderClients; window.openClientDetail=openClientDetail; window._buildClients=_buildClients; window.openRefAdvocates=openRefAdvocates; window.renderRefAdvocates=renderRefAdvocates; window.openRefAdvDetail=openRefAdvDetail; window._buildRefAdvs=_buildRefAdvs; window._resolveRefAdvId=_resolveRefAdvId; window._backfillRefRegistry=_backfillRefRegistry; window._regCode=_regCode; window.openSuccessStats=openSuccessStats; window.renderSuccessStats=renderSuccessStats; window._matterSuccess=_matterSuccess; window.PARTY_ROLES=PARTY_ROLES; window.RESULT_OPTIONS=RESULT_OPTIONS; window._needsAttentionHTML=_needsAttentionHTML; window._reviewMatter=_reviewMatter; window._reviewDate=_reviewDate; window._checkConflict=_checkConflict; window._showConflictWarning=_showConflictWarning; window._partyTokens=_partyTokens; window.saveMatter=saveMatter; window._resolveClientId=_resolveClientId; window._backfillClientRegistry=_backfillClientRegistry; window._mergeClients=_mergeClients; window._clientGroupKey=_clientGroupKey; window._showNoticeConflict=_showNoticeConflict; window._fillSnapList=_fillSnapList; window.restoreSnapshot=restoreSnapshot; window._dataIntegrityIssues=_dataIntegrityIssues; window.requestNotifyPermission=requestNotifyPermission; window._fireDueNotifications=_fireDueNotifications; window._notifyEnabled=_notifyEnabled; window.nextNoticeNo = nextNoticeNo; window.openLegalNotice = openLegalNotice; window.printLegalNotice = printLegalNotice; window._lnGo = _lnGo; window.nextVoucherNo = nextVoucherNo; window.idbGet = idbGet; window.idbPut = idbPut; window.exportData = exportData; window.importData = importData; window.nextReceiptNo = nextReceiptNo; window.peekNextReceiptNo = peekNextReceiptNo; window.onMDocsPicked=onMDocsPicked; window.addMDoc=addMDoc; window.saveMDoc=saveMDoc; window.viewDoc=viewDoc; window.assignDoc=assignDoc; window.saveAssign=saveAssign; window.delMDoc=delMDoc; window.renderDocIn=renderDocIn; window.renderDocFiled=renderDocFiled; window.renderDocFolders=renderDocFolders; window.setDocSearch=setDocSearch; window.toggleDocFolder=toggleDocFolder; window.docRowHTML=docRowHTML; window.convertToCase=convertToCase; window.doConvertToCase=doConvertToCase; window.setMatterKind=setMatterKind; window.nextQueryCode=nextQueryCode; window.peekNextQueryCode=peekNextQueryCode; window.onMdMatterChange=onMdMatterChange; window.onAdMatterChange=onAdMatterChange; window.matterFolderTitle=matterFolderTitle; window.addBankRow=addBankRow; window.removeBankRow=removeBankRow; window.bankListHTML=bankListHTML; window.collectBanksFromDOM=collectBanksFromDOM; window.defaultBank=defaultBank; window.bankById=bankById; window.banksList=banksList; window.addUpiRow=addUpiRow; window.removeUpiRow=removeUpiRow; window.upiListHTML=upiListHTML; window.collectUpisFromDOM=collectUpisFromDOM; window.defaultUpi=defaultUpi; window.upiById=upiById; window.upisList=upisList; window.openSetSection=openSetSection; window.setSectionBack=setSectionBack; window.thisMonthReceipts=thisMonthReceipts; window.cloudLogout=cloudLogout; window.doCloudLogout=doCloudLogout; window._startIdleTimer=_startIdleTimer; window._stopIdleTimer=_stopIdleTimer; window._resetIdleTimer=_resetIdleTimer; window.idleTimeoutMin=idleTimeoutMin; window.toggleDesktopView=toggleDesktopView; window.applyViewPref=applyViewPref; window.isDesktopView=isDesktopView; window.logActivity=logActivity; window.openActivity=openActivity; window.renderActivity=renderActivity; window.unreadActivityCount=unreadActivityCount; window._refreshActivityBadge=_refreshActivityBadge; window._markActivitySeen=_markActivitySeen; window.renderAccess=renderAccess; window.addAccessEmail=addAccessEmail; window.removeAccessEmail=removeAccessEmail; window.doRemoveAccessEmail=doRemoveAccessEmail; window.setAccessListActive=setAccessListActive; window.setAccessLocked=setAccessLocked; window.loadAccess=loadAccess; window.saveAccess=saveAccess; window.wipeAll=wipeAll; window.doWipe=doWipe; window.showCounter=showCounter; window._wipeCheck=_wipeCheck; window._saveLoginBranding=_saveLoginBranding; window.delInvoice=delInvoice; window.doDelInvoice=doDelInvoice; window.voidInvoice=voidInvoice; window.doVoidInvoice=doVoidInvoice; window.doDeleteMatter=doDeleteMatter; window.deleteMatterPrompt=deleteMatterPrompt; window.doDeleteMatterFrom=doDeleteMatterFrom; window.cancelMatter=cancelMatter; window.doCancelMatter=doCancelMatter; window.delReceipt=delReceipt; window.doDelReceipt=doDelReceipt; window.voidReceiptPrompt=voidReceiptPrompt; window.doVoidReceipt=doVoidReceipt; window.editReceipt=editReceipt; window.doEditReceipt=doEditReceipt; window._edRcPreview=_edRcPreview; window.softDelete=softDelete; window.voidRecord=voidRecord; window.isVoided=isVoided; window.openBilling=openBilling; window.renderInvoiceLedger=renderInvoiceLedger; window.renderBooksOverview=renderBooksOverview; window.renderIncomeBreakdown=renderIncomeBreakdown; window.setIncomePeriod=setIncomePeriod; window.billedFY=billedFY; window.outstandingFY=outstandingFY; window.monthlyFeesFY=monthlyFeesFY; window.taxComparison=taxComparison; window.openRetainer=openRetainer; window._rtPreview=_rtPreview; window._retainerReceipt=_retainerReceipt; window._retainerInvoice=_retainerInvoice; window._rcMatterChange=_rcMatterChange; window._rcSetKind=_rcSetKind; window._ivMatterChange=_ivMatterChange; window._ivSetKind=_ivSetKind; window.invoiceTotal=invoiceTotal; window.fyInvoices=fyInvoices; window.renderAdvances=renderAdvances; window.doAcceptAdvance=doAcceptAdvance; window.doRejectAdvance=doRejectAdvance; window.doRejectAdvance2=doRejectAdvance2; window.ownerGiveAdvance=ownerGiveAdvance; window.doOwnerGiveAdvance=doOwnerGiveAdvance; window.ownerRecordReturn=ownerRecordReturn; window.doOwnerRecordReturn=doOwnerRecordReturn; window.acceptAdvance=acceptAdvance; window.rejectAdvance=rejectAdvance; window.addAdvanceEntry=addAdvanceEntry; window.allPending=allPending; window.staffBalance=staffBalance; window.pendingBalanceImpact=pendingBalanceImpact; window.staffGo=staffGo; window.renderStaffHome=renderStaffHome; window.renderStaffRecord=renderStaffRecord; window.renderStaffUpload=renderStaffUpload; window.staffSubmitExpense=staffSubmitExpense; window.staffRecordReturn=staffRecordReturn; window.staffSubmitReturn=staffSubmitReturn; window.staffSubmitDoc=staffSubmitDoc; window.approveStaff=approveStaff; window.blockStaff=blockStaff; window.pushStaffBalance=pushStaffBalance; window.pushBrandingToAllStaff=pushBrandingToAllStaff; window._applyStaffBranding=_applyStaffBranding; window.staffRecTab=staffRecTab; window.staffSubmitAdvance=staffSubmitAdvance; window.renderStaffBilling=renderStaffBilling; window.staffMyBillTab=staffMyBillTab; window.staffEditBillProfile=staffEditBillProfile; window.staffSaveBillProfile=staffSaveBillProfile; window.staffMakeReceipt=staffMakeReceipt; window.staffPrintMyReceipt=staffPrintMyReceipt; window.staffMakeInvoice=staffMakeInvoice; window.staffPrintMyInvoice=staffPrintMyInvoice; window._staffRegister=_staffRegister; window._staffDocSave=_staffDocSave; window._myBillFoot=_myBillFoot; window._chamberDocSettings=_chamberDocSettings; window.openMatterDetail=openMatterDetail; window.renderMatterDetail=renderMatterDetail; window.isStaffView=isStaffView; window._matterListingsCard=_matterListingsCard; window._mlAddDate=_mlAddDate; window.addFiling=addFiling; window.doAddFiling=doAddFiling; window.delFiling=delFiling; window.addDocToMatter=addDocToMatter; window.doAddDocToMatter=doAddDocToMatter; window.delMatterDoc=delMatterDoc; window.addCaseExpense=addCaseExpense; window.doAddCaseExpense=doAddCaseExpense; window.delCaseExpense=delCaseExpense; window.renderStaffDocs=renderStaffDocs; window.renderStaffExpenses=renderStaffExpenses; window.staffAddDocGeneral=staffAddDocGeneral; window.doStaffAddDocGeneral=doStaffAddDocGeneral; window.staffAddExpenseGeneral=staffAddExpenseGeneral; window.doStaffAddExpenseGeneral=doStaffAddExpenseGeneral; window._geOpenFolder=_geOpenFolder; window._geFolderHint=_geFolderHint; window.staffRecordAdvance=staffRecordAdvance; window.doStaffRecordAdvance=doStaffRecordAdvance; window.rejectExpense=rejectExpense; window.doRejectExpense=doRejectExpense; window.rejectAdvanceEntry=rejectAdvanceEntry; window.doRejectAdvanceEntry=doRejectAdvanceEntry; window.deleteAdvanceEntry=deleteAdvanceEntry; window._canEditEntry=_canEditEntry; window.editAdvanceEntry=editAdvanceEntry; window.doEditAdvanceEntry=doEditAdvanceEntry; window.editCaseExpense=editCaseExpense; window.doEditCaseExpense=doEditCaseExpense; window.isRejected=isRejected; window._canDeleteOwn=_canDeleteOwn; window.removeStaff=removeStaff; window.doRemoveStaff=doRemoveStaff; window.addDate=addDate; window.doAddDate=doAddDate; window._adReasonChange=_adReasonChange; window.delDate=delDate; window.editDate=editDate; window.scHoliday=scHoliday; window.scIsPartial=scIsPartial; window.scDayKind=scDayKind; window.scDayLabel=scDayLabel; window.scOverlayOn=scOverlayOn; window._adDateCheck=_adDateCheck; window.markConcluded=markConcluded; window.doMarkConcluded=doMarkConcluded; window.reopenCase=reopenCase; window.addPastCase=addPastCase; window.doAddPastCase=doAddPastCase; window.doSavePastCase=doSavePastCase; window.renderPastCases=renderPastCases; window.openPastCases=openPastCases; window.peekNextPastCode=peekNextPastCode; window.peekNextMatterCode=peekNextMatterCode; window._maxSeq=_maxSeq; window.findDuplicateNumbers=findDuplicateNumbers; window.duplicateWarningHTML=duplicateWarningHTML; window.printVoucher=printVoucher; window.needsVoucher=needsVoucher; window.voucherThreshold=voucherThreshold; window._expenseFolderUrl=_expenseFolderUrl; window.openLedger=openLedger; window.renderLedger=renderLedger; window.renderReceiptLedger=renderReceiptLedger; window.openTodos=openTodos; window.addTodo=addTodo; window.doAddTodo=doAddTodo; window.editTodo=editTodo; window.doEditTodo=doEditTodo; window.resolveTodo=resolveTodo; window.doResolveTodo=doResolveTodo; window.reopenTodo=reopenTodo; window.deleteTodo=deleteTodo; window.renderTodos=renderTodos; window.TODO_PRIORITIES=TODO_PRIORITIES; window.BCI_TYPES=BCI_TYPES; window.staffEditMyName=staffEditMyName; window.pickMatterForDate=pickMatterForDate; window.todayWidgetHTML=todayWidgetHTML; window._todayItems=_todayItems; window.staffSaveMyName=staffSaveMyName; window.openAppointments=openAppointments; window.addAppointment=addAppointment; window._apKindChange=_apKindChange; window.doAddAppointment=doAddAppointment; window.editAppointment=editAppointment; window.doEditAppointment=doEditAppointment; window.delAppointment=delAppointment; window.renderAppointments=renderAppointments; window.openCalendar=openCalendar; window.renderCalendar=renderCalendar; window._calShift=_calShift; window._calGoToday=_calGoToday; window._calDayView=_calDayView; window._calSelect=_calSelect; window.calAddOnDate=calAddOnDate; window.calAddHearing=calAddHearing; window._chReasonChange=_chReasonChange; window.doCalAddHearing=doCalAddHearing; window.openDriveFolderHelp=openDriveFolderHelp; window._chamberFolderUrl=_chamberFolderUrl; window._caseFolderName=_caseFolderName; window._caseFolderBanner=_caseFolderBanner; window.setupCaseFolder=setupCaseFolder; window.saveCaseFolder=saveCaseFolder; window.openUnassigned=openUnassigned; window.renderUnassigned=renderUnassigned; window.setupUnassignedFolder=setupUnassignedFolder; window.saveUnassignedFolder=saveUnassignedFolder; window._reassignPicker=_reassignPicker; window.doReassign=doReassign; window._isUnassigned=_isUnassigned; window.matterCodeFor=matterCodeFor; window.addMatter=window.addMatter||addMatter; window.acceptedFor=acceptedFor; window.pendingFor=pendingFor; window.idbDel=idbDel; window.exportMatterToFolder=exportMatterToFolder; window.exportAllToFolder=exportAllToFolder; window.fsSupported=fsSupported; window.buildZip=buildZip; window.matterFolderName=matterFolderName; window.buildIndexText=buildIndexText; window.fileNameFor=fileNameFor; window.renderInvoice=renderInvoice; window.onInvStyleChange=onInvStyleChange; window.addInvLine=addInvLine; window.rmInvLine=rmInvLine; window.updInvLine=updInvLine; window.addInvExpense=addInvExpense; window.rmInvExp=rmInvExp; window.updInvExp=updInvExp; window.saveAndPrintInvoice=saveAndPrintInvoice; window.reprintInvoice=reprintInvoice; window.delInvoice=delInvoice; window.printInvoice=printInvoice; window.peekNextInvoiceNo=peekNextInvoiceNo; window.nextInvoiceNo=nextInvoiceNo; window.onDueModeChange=onDueModeChange; window.defaultAppName=defaultAppName; window.openSetPw=openSetPw; window.doSetPw=doSetPw; window.openChangePw=openChangePw; window.doChangePw=doChangePw; window.lockNow=lockNow; window.showLockScreen=showLockScreen; window.showRecovery=showRecovery; window.tryUnlock=tryUnlock; window.tryRecovery=tryRecovery; window.copyText=copyText; window.encEnabled=encEnabled; window.encSetup=encSetup; window.encUnlock=encUnlock; window.loadDecrypted=loadDecrypted; window.showRecoveryCode=showRecoveryCode; window.renderArchive=renderArchive; window.toggleArchMonth=toggleArchMonth; window.exportArchiveCSV=exportArchiveCSV; window.exportReceiptsCSV=exportReceiptsCSV; window.exportInvoicesCSV=exportInvoicesCSV; window.exportExpensesCSV=exportExpensesCSV; window.micButton=micButton; window._micToggle=_micToggle; window._verifyQRBlock=_verifyQRBlock; window.updFee=updFee; window.setTdsMode=setTdsMode; window.setTdsRate=setTdsRate; window.focusCustomRate=focusCustomRate; window.computeFee=computeFee; window.tdsFY=tdsFY; window.newRegimeTax=newRegimeTax; window.chamberLogoSVG=chamberLogoSVG; window.showGroup=showGroup; window.subGo=subGo; window.setActiveTab=setActiveTab; window._labelizeTables=_labelizeTables; window._startTableLabeler=_startTableLabeler; window._activityGoTo=_activityGoTo; window._activityHasTarget=_activityHasTarget; window.clearActivity=clearActivity; window.doClearActivity=doClearActivity; window.openSearch=openSearch; window._gsRun=_gsRun; window._gsGo=_gsGo; window._gsSearch=_gsSearch; window._docPrintChooser=_docPrintChooser; window.onSigPicked=onSigPicked; window._applyStripToggle=_applyStripToggle; window.removeSignature=removeSignature; window.printReceipt=printReceipt; window.shareDoc=shareDoc; window._knownClients=_knownClients; window._lookupClient=_lookupClient; window._attachClientAutofill=_attachClientAutofill; window._knownRefAdvs=_knownRefAdvs; window._lookupRefAdv=_lookupRefAdv; window._attachRefAdvAutofill=_attachRefAdvAutofill; window.reprint=reprint; window.renderSalary=renderSalary; window.openAddPerson=openAddPerson; window.doAddPerson=doAddPerson; window.openEditPerson=openEditPerson; window.doEditPerson=doEditPerson; window.doRemovePerson=doRemovePerson; window.openSalaryAdvance=openSalaryAdvance; window.doGiveSalaryAdvance=doGiveSalaryAdvance; window.openSalarySlip=openSalarySlip; window.quickPaySalary=quickPaySalary; window.doQuickPay=doQuickPay; window._qpWarn=_qpWarn; window.doGenerateSlip=doGenerateSlip; window.printSalarySlip=printSalarySlip; window.reprintSalarySlip=reprintSalarySlip; window._slToggleAdv=_slToggleAdv; window._slToggleLeave=_slToggleLeave; window._slLeaveMode=_slLeaveMode; window._slUpdateLeaveCalc=_slUpdateLeaveCalc; window.openPersonDetail=openPersonDetail; window.renderPersonDetail=renderPersonDetail; window.delSalaryAdv=delSalaryAdv; window.openRecordRepayment=openRecordRepayment; window.doRecordRepayment=doRecordRepayment; window.roleLabel=roleLabel; window.renderPeople=renderPeople; window.peopleGo=peopleGo; window.openPeople=openPeople; window._renderRegisterInto=_renderRegisterInto; window._renderApprovalsInto=_renderApprovalsInto; window._renderAccessInto=_renderAccessInto; window._advancesRefresh=_advancesRefresh; window._accessRefresh=_accessRefresh; window._saveCloudLink=_saveCloudLink; window._docFolderUrl=_docFolderUrl; window._rememberFolder=_rememberFolder; window._docDestLine=_docDestLine; window._cloudSaveBlock=_cloudSaveBlock; window.onTypeChange=onTypeChange; window._onRefTypeChange=_onRefTypeChange; window._onFilingOnlyChange=_onFilingOnlyChange; window._composeRefName=_composeRefName; window._parseRefName=_parseRefName; window._regCode=_regCode; window.casePrefixFor=casePrefixFor; window.reasonsForForum=reasonsForForum; window._resolveReminder=_resolveReminder; window.addReminder=addReminder; window.doAddReminder=doAddReminder; window.delReminder=delReminder; window.renderReminders=renderReminders; window.addTaskOrReminder=addTaskOrReminder; window._chMatterChange=_chMatterChange; window._numberTables=_numberTables; window.printTodayList=printTodayList; window.openCauseList=openCauseList; window._loadCourtUpdates=_loadCourtUpdates; window.printCauseList=printCauseList; window._clRenderRefList=_clRenderRefList; window.monthlyBackup=monthlyBackup; window.autoSnapshotIfDue=autoSnapshotIfDue; window.listSnapshots=listSnapshots; window.downloadSnapshot=downloadSnapshot; window._backupReminderHTML=_backupReminderHTML; window._adTimingMode=_adTimingMode; window.ownerAddDate=ownerAddDate; window._ownerAddDateGo=_ownerAddDateGo; }catch(e){}
 
 /* ============================================================
@@ -21335,7 +21365,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-0600";
+  window.APP_VERSION = "2026.10.06-0700";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
