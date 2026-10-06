@@ -15695,13 +15695,15 @@ function doEditAdvanceEntry(id){
 }
 
 function renderMatters(){
-  const rows = DB.matters.filter(m=>m.status!=="Concluded").sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true})).map(m=>{
+  // Only matters opened in the app (M- / Q- / CAV- / IA- numbers). Cases that came in from the
+  // Master Cases Folder (fromRegister, code C-NNN) are reached through the Case register instead.
+  const rows = DB.matters.filter(m=>m.status!=="Concluded" && !m.fromRegister).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true})).map(m=>{
     const cancelled = isVoided(m);
     const st = cancelled?"":(m.status==="Closed"?"closed":(m.status==="Active"?"active":""));
     const statusTag = cancelled
       ? `<span class="tag">Cancelled</span>`
       : `<span class="tag ${st}">${esc(m.status||"Active")}</span>`;
-    const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(_mNo(m))}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_mNo(m))}</a>${(m.serial&&m.code&&!/^C-/.test(m.code))?`<div class="hint">${esc(m.code)}</div>`:(m.serialPending?`<div class="hint">No. pending</div>`:"")}`;
+    const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(m.code)}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code)}</a>${m.serial?`<div class="hint">File ${esc(String(m.serial))}</div>`:""}`;
     const title = m.parties || m.client || "\u2014";
     const nextCell = m.nextDate ? fmtDate(m.nextDate) : "\u2014";
     // An I.A. carries no Diary/Case number of its own — show its own I.A. number, and
@@ -15723,7 +15725,7 @@ function renderMatters(){
   document.getElementById("panel-matters").innerHTML = `
     <div class="card">
       <div class="card-head">
-        <div><h2>Matters</h2><div class="hint">Tap a code to open the full case.</div></div>
+        <div><h2>Matters</h2><div class="hint">Matters opened in the app. ${isStaffView()?"":"Every case by file number is in the <a href=\"#\" onclick=\"openCaseRegister();return false\" style=\"color:var(--seal)\">Case register</a>."}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">${isStaffView()?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn seal sm" onclick="addMatter()">+ New matter</button></div>
       </div>
       ${DB.matters.length? `<div class="tbl-wrap"><table class="sr-num">
@@ -18166,7 +18168,7 @@ try{ window.DB = DB; window.go = go; window.addMatter = addMatter; window.saveMa
    m.petitionNos, m.folder travel on the shared matter so staff see them).
    =========================================================== */
 function _mNo(m){ return m&&m.serial ? String(m.serial) : (m&&m.code||""); }
-function _mNoLabel(m){ if(!m) return ""; if(!m.serial) return m.code||""; return "No. "+m.serial+((m.code&&!/^C-/.test(m.code))?" · "+m.code:""); }
+function _mNoLabel(m){ if(!m) return ""; if(!m.serial) return m.code||""; return (m.code&&!/^C-/.test(m.code)) ? m.code+" · File "+m.serial : "File No. "+m.serial; }
 function _parsePetNos(v){ return [...new Set(String(v||"").split(/\n|;|,(?=\s*(?:SLP|Diary|Civil|Crim|W\.?P|T\.?P|C\.?A|Caveat|Contempt|Review))/i).map(x=>x.trim()).filter(Boolean))]; }
 // "SLP (C) No. 215-216/2023" -> ["215/2023","216/2023"]; "Diary No. 37510/2026" -> ["37510/2026"]
 function _petitionForms(label){
@@ -18272,7 +18274,7 @@ function renderCaseRegister(){
     const ch=`<span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)}</span>`;
     return `<tr style="${r.status&&r.status!=="active"?"opacity:.6":""}">
       <td class="mono"><a href="#" onclick="${open};return false" style="color:var(--seal);font-weight:700;text-decoration:none">${esc(String(r.serial).padStart(3,"0"))}</a></td>
-      <td><b>${esc(r.title||"—")}</b>${r.batch?`<div class="hint">${esc(r.batch)}</div>`:""}${m?`<div class="hint">${esc(m.code||"")}${m.client&&m.client!==r.title?" · "+esc(m.client):""}</div>`:""}</td>
+      <td><b>${esc(r.title||"—")}</b>${r.batch?`<div class="hint">${esc(r.batch)}</div>`:""}${m?`<div class="hint">${/^C-/.test(m.code||"")?"":esc(m.code||"")}${m.client&&m.client!==r.title?" · "+esc(m.client):""}</div>`:""}</td>
       <td>${ch}</td>
       <td>${numCell}</td>
       <td>${listed}${st}</td>
@@ -21030,7 +21032,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-0100";
+  window.APP_VERSION = "2026.10.06-0200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
