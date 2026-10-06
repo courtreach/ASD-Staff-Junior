@@ -161,6 +161,47 @@ def norm_num(s):
     return re.sub(r"[^a-z0-9]", "", (s or "").lower())
 
 
+# ---- exact case / diary number matching -------------------------------------------
+# A watch-list number matches a cause-list line only when the SAME number and year
+# appear there as a whole (not as part of a longer number), and a diary number only
+# matches a diary number. Earlier a plain substring test let "38/2026" match
+# "738/2026" and SLP numbers match diary numbers with the same digits.
+_NUM_SLASH = re.compile(r"(?<!\d)(\d{1,7})(?:\s*[-\u2013]\s*(\d{1,7}))?\s*/\s*((?:19|20)\d{2})(?!\d)")
+_NUM_DASH = re.compile(r"(?<!\d)(\d{1,7})\s*[-\u2013]\s*((?:19|20)\d{2})(?!\d)")
+
+
+def _expand(a, b):
+    """'30611','30612' -> [30611, 30612]; '24210','211' -> 24210..24211; caps silly ranges."""
+    a = int(a)
+    if not b:
+        return [a]
+    if len(b) < len(str(a)):
+        b = str(a)[:len(str(a)) - len(b)] + b
+    b = int(b)
+    return list(range(a, b + 1)) if a <= b <= a + 60 else [a, b]
+
+
+def number_keys(text, default_kind=None):
+    """Set of ('diary'|'case', number, year) found in text. The kind comes from the
+    word 'diary' just before the number, else default_kind, else 'case'."""
+    t = (text or "").lower()
+    keys = set()
+    spans = []
+    for m in _NUM_SLASH.finditer(t):
+        spans.append((m.start(), m.end()))
+        before = t[max(0, m.start() - 22):m.start()]
+        kind = "diary" if "diary" in before else (default_kind or "case")
+        for n in _expand(m.group(1), m.group(2)):
+            keys.add((kind, n, int(m.group(3))))
+    for m in _NUM_DASH.finditer(t):
+        if any(a <= m.start() < b for a, b in spans):
+            continue
+        before = t[max(0, m.start() - 22):m.start()]
+        if "diary" in before or default_kind == "diary":   # "Diary No. 37510-2026"
+            keys.add(("diary", int(m.group(1)), int(m.group(2))))
+    return keys
+
+
 def name_tokens(name):
     # significant tokens of a name: drop initials/honorifics, keep words >= 3 chars
     drop = {"adv", "advocate", "mr", "mrs", "ms", "dr", "aor", "the"}
@@ -228,7 +269,11 @@ def scan_text(lines, wl, list_label, list_kind, for_date, family=""):
 
     name_token_sets = [set(name_tokens(x)) for x in wl["advocate_names"] if name_tokens(x)]
     party_token_sets = [set(name_tokens(x)) for x in wl["parties"] if name_tokens(x)]
-    num_terms = [norm_num(x) for x in (wl["case_numbers"] + wl["diary_numbers"]) if norm_num(x)]
+    num_keys = set()
+    for x in wl["case_numbers"]:
+        num_keys |= number_keys(x, "case")
+    for x in wl["diary_numbers"]:
+        num_keys |= number_keys(x, "diary")
     aor_codes = [norm_num(x) for x in wl["aor_codes"] if norm_num(x)]
 
     grouped, order = {}, []
@@ -344,11 +389,9 @@ def scan_text(lines, wl, list_label, list_kind, for_date, family=""):
             if toks and toks.issubset(line_tokens):
                 hits.append("advocate")
                 break
-        # case / diary numbers: normalized-digit substring, reasonably long
-        for t in num_terms:
-            if t and len(t) >= 5 and t in lnum:
-                hits.append("number")
-                break
+        # case / diary numbers: exact number + year (+ diary vs case), never a partial match
+        if num_keys and (number_keys(line) & num_keys):
+            hits.append("number")
         # AOR code: exact digit token, but only when the line mentions AOR
         if "aor" in ln:
             for c in aor_codes:
