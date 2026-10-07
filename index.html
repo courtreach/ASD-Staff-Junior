@@ -18562,17 +18562,19 @@ window.__papers=window.__papers||[];
 // address and the file comes straight from Microsoft. Fallback: through the gatekeeper.
 // Temporary copies of opened papers (browser storage, not Downloads) so reopening is instant.
 // Keyed by path + size + date, so a changed paper is fetched afresh. About 500 MB, oldest cleared first.
-const _PC_NAME="asdc-papers-v1", _PC_MAX=500*1048576, _PC_IDX="asdc_paper_cache_idx";
-function _pcKey(it){ return "https://papers.asdc.invalid/"+encodeURIComponent(it.path)+"?s="+(+it.size||0)+"&m="+encodeURIComponent(it.mtime||""); }
+const _PC_NAME="asdc-papers-v2", _PC_MAX=500*1048576, _PC_IDX="asdc_paper_cache_idx2";
+// v1 copies were labelled by the Mac's version, so one could be an older online version: discard them.
+try{ if(window.caches) caches.delete("asdc-papers-v1"); localStorage.removeItem("asdc_paper_cache_idx"); }catch(e){}
+function _pcKey(it,ver){ return "https://papers.asdc.invalid/"+encodeURIComponent(it.path)+"?v="+encodeURIComponent(ver||""); }
 function _pcIdx(){ try{ return JSON.parse(localStorage.getItem(_PC_IDX)||"[]"); }catch(e){ return []; } }
 function _pcSaveIdx(x){ try{ localStorage.setItem(_PC_IDX,JSON.stringify(x)); }catch(e){} }
-async function _pcGet(it){
-  try{ if(!window.caches) return null; const c=await caches.open(_PC_NAME); const r=await c.match(_pcKey(it)); if(!r) return null;
+async function _pcGet(it,ver){
+  try{ if(!window.caches||!ver) return null; const c=await caches.open(_PC_NAME); const r=await c.match(_pcKey(it,ver)); if(!r) return null;
     const b=await r.blob(); b._name=decodeURIComponent(r.headers.get("X-File-Name")||"")||it.name;
-    const idx=_pcIdx(); const e=idx.find(x=>x.k===_pcKey(it)); if(e){ e.t=Date.now(); _pcSaveIdx(idx); } return b; }catch(e){ return null; }
+    const idx=_pcIdx(); const e=idx.find(x=>x.k===_pcKey(it,ver)); if(e){ e.t=Date.now(); _pcSaveIdx(idx); } return b; }catch(e){ return null; }
 }
-async function _pcPut(it, blob){
-  try{ if(!window.caches||!blob||blob.size>_PC_MAX/2) return; const c=await caches.open(_PC_NAME); const k=_pcKey(it);
+async function _pcPut(it, blob, ver){
+  try{ if(!window.caches||!ver||!blob||blob.size>_PC_MAX/2) return; const c=await caches.open(_PC_NAME); const k=_pcKey(it,ver);
     await c.put(k,new Response(blob,{headers:{"Content-Type":blob.type||"application/octet-stream","X-File-Name":encodeURIComponent(blob._name||it.name)}}));
     let idx=_pcIdx().filter(x=>x.k!==k&&!x.k.startsWith("https://papers.asdc.invalid/"+encodeURIComponent(it.path)+"?")); idx.push({k,n:blob.size,t:Date.now()});
     // older copies of the same paper are dropped above; trim to the size limit, oldest first
@@ -18583,13 +18585,23 @@ async function _pcPut(it, blob){
     _pcSaveIdx(idx);
   }catch(e){}
 }
-async function _paperBlob(it, onProgress){
-  const hit=await _pcGet(it); if(hit){ onProgress&&onProgress(hit.size,hit.size); return hit; }
-  const b=await _paperBlobFetch(it,onProgress); _pcPut(it,b); return b;
+// Is OneDrive online behind the Mac? (the paper list comes from the Mac; the file comes from online)
+function _staleNote(it,d){
+  if(!d||!it||!(+it.size)||!(+d.size)||+d.size===+it.size) return "";
+  const when=d.modified?(" (online copy saved "+new Date(d.modified).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+")"):"";
+  return "This may be an OLDER version: your Mac has a different copy that OneDrive hasn't uploaded yet"+when+".";
 }
-async function _paperBlobFetch(it, onProgress){
+async function _paperBlob(it, onProgress){
   let d=null;
   try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
+  const ver=d?((d.etag||"")+"|"+(d.modified||"")+"|"+(+d.size||0)):"";
+  it._stale=_staleNote(it,d);
+  const hit=await _pcGet(it,ver); if(hit){ onProgress&&onProgress(hit.size,hit.size); return hit; }
+  const b=await _paperBlobFetch(it,onProgress,d); _pcPut(it,b,ver); return b;
+}
+async function _paperBlobFetch(it, onProgress, pre){
+  let d=pre||null;
+  if(!d){ try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; } }
   if(d&&d.url){
     const r=await fetch(d.url);
     if(!r.ok) throw new Error("Microsoft did not send the file ("+r.status+").");
@@ -18655,6 +18667,13 @@ async function _paperOpen(k){
     // PDFs & images: the WHOLE file, downloaded straight from Microsoft, shown in the browser's own viewer.
     const mb=b=>(b/1048576).toFixed(1);
     const blob=await _paperBlob(it,(got,total)=>{ try{ const el=win&&win.document.getElementById("dlp"); if(el) el.textContent=total?("Downloading "+mb(got)+" of "+mb(total)+" MB…"):("Downloading "+mb(got)+" MB…"); }catch(e){} });
+    if(it._stale && win && !win.closed){
+      // Keep the warning visible: show it above the document instead of navigating straight to it.
+      const url=URL.createObjectURL(blob);
+      win.document.body.innerHTML='<div style="font-family:-apple-system,sans-serif;background:#fff4d6;border-bottom:2px solid #c99a1a;padding:10px 14px;font-size:14px;color:#5a4300">⚠ '+esc(it._stale)+'</div><iframe src="'+url+'" style="border:0;width:100%;height:calc(100vh - 48px)"></iframe>';
+      win.document.body.style.margin="0";
+      return;
+    }
     _blobOpenIn(win, blob, blob._name||it.name);
   }catch(e){
     // Keep the tab and say why — closing it silently looked like nothing happened.
@@ -18997,11 +19016,12 @@ async function _qlShow(k){
   try{
     if(ext===".pdf"){
       const [lib,d]=await Promise.all([_qlPdfLib(), _gk("/api/dlurl",{path:it.path})]); if(stale()) return;
+      const sn=_staleNote(it,d);
       const task=lib.getDocument({url:d.url, disableAutoFetch:true, disableStream:true, rangeChunkSize:262144});
       const pdf=await task.promise; if(stale()){ try{ pdf.destroy(); }catch(e){} return; }
       _ql.doc=pdf;
       document.getElementById("qlMeta").textContent=(it.num?it.num+" · ":"")+pdf.numPages+" page"+(pdf.numPages>1?"s":"")+" · "+_fmtSize(it.size);
-      body.innerHTML=""; const W=Math.min(body.clientWidth-24, 900);
+      body.innerHTML=sn?`<div style="align-self:stretch;background:#fff4d6;border:1px solid #c99a1a;border-radius:8px;padding:8px 12px;color:#5a4300;font-size:13.5px">⚠ ${esc(sn)}</div>`:""; const W=Math.min(body.clientWidth-24, 900);
       const first=await pdf.getPage(1); const v1=first.getViewport({scale:1}); const ratio=v1.height/v1.width;
       const holders=[];
       for(let i=1;i<=pdf.numPages;i++){ const h=document.createElement("div"); h.className="ql-page"; h.style.width=W+"px"; h.style.height=Math.round(W*ratio)+"px"; h.dataset.p=i; h.innerHTML=`<span class="ql-pn">${i}</span>`; body.appendChild(h); holders.push(h); }
@@ -19020,8 +19040,8 @@ async function _qlShow(k){
       body.innerHTML=`<img class="ql-img" src="${esc(d.url)}" alt="">`;
     }else if(ext===".docx"){
       const [lib,blob]=await Promise.all([_qlDocxLib(), _paperBlob(it)]); if(stale()) return;
-      body.innerHTML=`<div class="ql-docx"></div>`;
-      await lib.renderAsync(blob, body.firstChild, null, {inWrapper:true, ignoreLastRenderedPageBreak:true, experimental:false});
+      body.innerHTML=(it._stale?`<div style="align-self:stretch;background:#fff4d6;border:1px solid #c99a1a;border-radius:8px;padding:8px 12px;color:#5a4300;font-size:13.5px">⚠ ${esc(it._stale)}</div>`:"")+`<div class="ql-docx"></div>`;
+      await lib.renderAsync(blob, body.querySelector(".ql-docx"), null, {inWrapper:true, ignoreLastRenderedPageBreak:true, experimental:false});
     }else{
       body.innerHTML=`<div class="ql-msg">No quick preview for this kind of file.<br><button class="btn seal sm" style="margin-top:12px" onclick="(function(k){_qlClose();_paperOpen(k);})(${k})">Open it</button></div>`;
     }
@@ -21824,7 +21844,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-1000";
+  window.APP_VERSION = "2026.10.07-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
