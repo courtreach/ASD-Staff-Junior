@@ -18497,6 +18497,21 @@ async function _gk(path, body, opts){
   return d;
 }
 window.__papers=window.__papers||[];
+// Fetch a COPY of a paper. Fast path: the gatekeeper hands back a short-lived, pre-signed Microsoft
+// address and the file comes straight from Microsoft. Fallback: through the gatekeeper.
+async function _paperBlob(it, onProgress){
+  let d=null;
+  try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
+  if(d&&d.url){
+    const r=await fetch(d.url);
+    if(!r.ok) throw new Error("Microsoft did not send the file ("+r.status+").");
+    const total=+(r.headers.get("Content-Length")||d.size||0); const parts=[]; let got=0;
+    if(r.body&&r.body.getReader){ const rd=r.body.getReader(); for(;;){ const {done,value}=await rd.read(); if(done) break; parts.push(value); got+=value.length; onProgress&&onProgress(got,total); } }
+    else { const b=await r.arrayBuffer(); parts.push(new Uint8Array(b)); }
+    const blob=new Blob(parts,{type:d.mime||"application/octet-stream"}); blob._name=d.name||it.name; return blob;
+  }
+  return _gk("/api/content",{path:it.path, format:""},{blob:true});
+}
 function _paperReg(o){ return window.__papers.push(o)-1; }
 function _isWord(n){ return /\.(docx|doc|rtf|odt)$/i.test(n||""); }
 function _paperBtns(k,name){
@@ -18541,13 +18556,18 @@ async function _paperOpen(k){
   const it=window.__papers[k]; if(!it) return;
   const win=window.open("about:blank","_blank");
   try{
-    if(win) win.document.write('<p style="font-family:-apple-system,sans-serif;padding:24px;color:#555">Opening '+esc(it.name)+''+'…</p>');
-    // Every paper opens in OneDrive's own viewer (read-only, no sign-in). It streams the first
-    // pages at once — pulling the whole file through the gatekeeper first made large paper
-    // books take minutes before anything showed.
-    const d=await _gk("/api/file",{path:it.path, action:"viewlink", days:1});
-    if(!d.link) throw new Error("No link returned.");
-    if(win) win.location=d.link; else window.open(d.link,"_blank");
+    if(win) win.document.write('<div style="font-family:-apple-system,sans-serif;padding:24px;color:#555"><p style="margin:0 0 6px">Opening <b>'+esc(it.name)+'</b></p><p id="dlp" style="margin:0;color:#6b1f1f">Getting the file…</p></div>');
+    if(_isWord(it.name)){
+      // Word: read-only view in Word for the web (no sign-in).
+      const d=await _gk("/api/file",{path:it.path, action:"viewlink", days:1});
+      if(!d.link) throw new Error("No link returned.");
+      if(win) win.location=d.link; else window.open(d.link,"_blank");
+      return;
+    }
+    // PDFs & images: the WHOLE file, downloaded straight from Microsoft, shown in the browser's own viewer.
+    const mb=b=>(b/1048576).toFixed(1);
+    const blob=await _paperBlob(it,(got,total)=>{ try{ const el=win&&win.document.getElementById("dlp"); if(el) el.textContent=total?("Downloading "+mb(got)+" of "+mb(total)+" MB…"):("Downloading "+mb(got)+" MB…"); }catch(e){} });
+    _blobOpenIn(win, blob, blob._name||it.name);
   }catch(e){
     // Keep the tab and say why — closing it silently looked like nothing happened.
     if(win&&!win.closed){ try{ win.document.body.innerHTML='<div style="font-family:-apple-system,sans-serif;max-width:560px;margin:60px auto;padding:0 18px;color:#2a2420"><h2 style="color:#6b1f1f;margin:0 0 10px">Could not open this paper</h2><p style="font-size:16px;line-height:1.6;margin:0 0 8px"><b>'+esc(it.name)+'</b></p><p style="font-size:15px;line-height:1.6">'+esc(e.message)+'</p><p style="font-size:13px;color:#777">You can close this tab.</p></div>'; }catch(_){ try{ win.close(); }catch(__){} } }
@@ -18608,7 +18628,7 @@ async function _shareCopy(k, format){
   const it=window.__papers[k]; if(!it) return;
   openModal("Preparing…", `<div class="hint">Fetching ${esc(it.name)}${format==="pdf"?" as PDF":""}…</div>`);
   try{
-    const blob=await _gk("/api/content",{path:it.path, format},{blob:true});
+    const blob=format==="pdf"?await _gk("/api/content",{path:it.path, format},{blob:true}):await _paperBlob(it,(g,t)=>{ const el=document.querySelector(".modal .hint"); if(el) el.textContent="Fetching "+it.name+" — "+(g/1048576).toFixed(1)+(t?" of "+(t/1048576).toFixed(1):"")+" MB…"; });
     const name=blob._name||it.name;
     const file=new File([blob], name, {type:blob.type||"application/octet-stream"});
     window.__shareFile=file;
@@ -21567,7 +21587,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.06-1200";
+  window.APP_VERSION = "2026.10.07-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
