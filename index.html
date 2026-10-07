@@ -1952,6 +1952,21 @@
   .fv-res{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;cursor:pointer}
   .fv-res:hover{border-color:var(--seal)}
   .fv-row.sel{border-color:var(--seal);box-shadow:0 0 0 2px var(--seal-soft)}
+  /* Cases register: a table on wide screens, one card per case on phones */
+  .mx-narrow{display:none}
+  .mx-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 13px;margin-bottom:9px}
+  .mx-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
+  .mx-code{color:var(--seal);font-weight:800;text-decoration:none;font-size:14px}
+  .mx-name{font-size:15.5px;font-weight:700;line-height:1.32;color:var(--ink);cursor:pointer;overflow-wrap:anywhere}
+  .mx-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .mx-num{font-size:12.5px;margin-top:5px;color:var(--ink)}
+  .mx-when{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .mx-acts{margin-top:10px;width:100%;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+  .mx-acts button{min-width:0;padding:8px 4px}
+  @media (max-width:700px){ .mx-wide{display:none} .mx-narrow{display:block} }
+  /* switch on the COLUMN's width too (the app often runs in a narrow centre column on a laptop) */
+  .mx-box{container-type:inline-size}
+  @container (max-width:640px){ .mx-wide{display:none} .mx-narrow{display:block} }
   #qlOverlay{position:fixed;inset:0;z-index:9000;background:rgba(30,24,18,.55);display:none;align-items:center;justify-content:center;padding:18px}
   #qlOverlay.on{display:flex}
   .ql-box{background:var(--paper2);border-radius:14px;width:min(960px,100%);height:min(88vh,1200px);display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(10,4,4,.45);overflow:hidden}
@@ -5189,7 +5204,7 @@ function renderDash(){
           <thead><tr><th>Forum</th><th class="num">Open</th></tr></thead>
           <tbody>${forumRows.map(([f,n])=>`<tr>
             <td>${esc(f)}</td><td class="num">${n}</td></tr>`).join("")}</tbody></table></div>`
-          : `<div class="empty">No open matters yet. Add one from <b>Matters</b>.</div>`}
+          : `<div class="empty">No open cases yet. Add one from <b>Cases</b>.</div>`}
       </div>
     </div>`;
 }
@@ -14217,6 +14232,7 @@ function openSearch(){
     <div id="gsResults" class="gs-results"></div>`);
   setTimeout(()=>{ const i=document.getElementById("gsInput"); if(i) i.focus(); },60);
   _gsRun("");
+  _gpEnsure(()=>{ const i=document.getElementById("gsInput"); if(i&&i.value.trim()) _gsRun(i.value); });
 }
 function _gsMatchesText(hay, q){ return (hay||"").toLowerCase().indexOf(q)>=0; }
 // text of the matter a record is linked to, so searching a party/code/case no.
@@ -14323,7 +14339,13 @@ function _gsSearch(q){
     const ax=(a.title||"").toLowerCase().indexOf(q), bx=(b.title||"").toLowerCase().indexOf(q);
     return ax-bx;
   });
-  return out;
+  // CASE FOLDERS first, then individual PAPERS, then everything else
+  const folders=_findFolders(q).slice(0,15).map(f=>({type:"folder", icon:"📁", title:String(f.serial).padStart(3,"0")+" · "+f.title,
+    sub:f.chamber+" Chamber · case folder"+(f.num?" · "+f.num:""), go:()=>{ closeModal(); openFiles(f.serial); }}));
+  const papers=_findPapers(q).slice(0,40).map(h=>({type:"paper", icon:"📄", title:h.lab,
+    sub:(h.i.num?h.i.num+" · ":"")+String(h.fx.serial).padStart(3,"0")+" "+h.fx.title+(h.i.mtime?" · "+fmtDate(h.i.mtime):""),
+    go:()=>{ closeModal(); openFiles(+h.fx.serial, h.i.num||h.lab); }}));
+  return folders.concat(papers, out);
 }
 var _gsHandlers=[];
 function _gsRun(q){
@@ -14337,7 +14359,10 @@ function _gsRun(q){
   const results=_gsSearch(q);
   _gsHandlers=results;
   if(!q || !q.trim()){ box.innerHTML=`<div class="hint" style="padding:10px 2px">Start typing to search — or begin with <b>receipt</b>, <b>invoice</b>, <b>task</b>, <b>matter</b> to quick-add.</div>`; return; }
+  const _grp=r=>r.type==="folder"?"Case folders":(r.type==="paper"?"Papers":"Other results");
+  const _cnt=g=>results.filter(r=>_grp(r)===g).length;
   const resHTML = results.length ? results.slice(0,60).map((r,i)=>`
+    ${(i===0||_grp(results[i-1])!==_grp(r))?`<div class="fv-group" style="margin:${i?"12px":"4px"} 2px 6px">${_grp(r)} · ${_cnt(_grp(r))}</div>`:""}
     <div class="gs-row" onclick="_gsGo(${i})">
       <span class="gs-ic">${r.icon||"•"}</span>
       <div class="gs-main"><div class="gs-title">${esc(r.title||"")}</div>
@@ -15783,44 +15808,77 @@ function doEditAdvanceEntry(id){
   toast("Updated.");
 }
 
+// CASES register (formerly "Matters") — matters opened in the app (M- / Q- / CAV- / IA- numbers).
+// Cases that came in from the Master Cases Folder (code C-NNN) are reached through the Case register.
+var _mxFilter="all", _mxQuery="";
+function _mxSetFilter(f){ _mxFilter=f; renderMatters(); }
+function _mxSetQuery(v){ _mxQuery=String(v||""); clearTimeout(window.__mxQT); window.__mxQT=setTimeout(()=>{ renderMatters(); const i=document.getElementById("mxQ"); if(i){ i.focus(); const n=i.value.length; try{ i.setSelectionRange(n,n); }catch(e){} } },160); }
 function renderMatters(){
-  // Only matters opened in the app (M- / Q- / CAV- / IA- numbers). Cases that came in from the
-  // Master Cases Folder (fromRegister, code C-NNN) are reached through the Case register instead.
-  const rows = DB.matters.filter(m=>m.status!=="Concluded" && !m.fromRegister).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true})).map(m=>{
-    const cancelled = isVoided(m);
-    const st = cancelled?"":(m.status==="Closed"?"closed":(m.status==="Active"?"active":""));
-    const statusTag = cancelled
-      ? `<span class="tag">Cancelled</span>`
-      : `<span class="tag ${st}">${esc(m.status||"Active")}</span>`;
-    const codeCell = cancelled ? `<span style="text-decoration:line-through;color:var(--muted)">${esc(m.code)}</span>` : `<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code)}</a>${m.serial?`<div class="hint">File ${esc(String(m.serial))}</div>`:""}`;
-    const title = m.parties || m.client || "\u2014";
-    const nextCell = m.nextDate ? fmtDate(m.nextDate) : "\u2014";
-    // An I.A. carries no Diary/Case number of its own — show its own I.A. number, and
-    // a "filed in <parent>" line under the title so its place in the case is obvious
-    // without opening it.
-    const iaParent = m.kind==="ia" ? matterById(m.parentId) : null;
-    const titleCell = `<b>${esc(title)}</b>${iaParent?`<div class="hint">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}`;
-    const numCell = m.kind==="ia" ? (m.iaNo?("I.A. "+esc(m.iaNo)):"I.A. — pending") : (m.caseNo ? esc(m.caseNo) : (m.diaryNo ? "Diary "+esc(m.diaryNo) : "\u2014"));
-    return `<tr>
-      <td class="mono">${codeCell}</td>
-      <td>${titleCell}</td>
-      <td>${numCell}</td>
-      <td>${nextCell}</td>
-      <td>${statusTag}</td>
-      <td style="white-space:nowrap">
-        ${_canFiles(m)?`<button class="row-act" onclick="openFiles(${+m.serial})" title="Papers in this case's folder" style="font-weight:700">Files</button>`:""}<button class="row-act" onclick="editMatter('${m.id}')">Edit</button>${isStaffView()?"":`<button class="row-act" onclick="deleteMatterPrompt('${m.id}','matters')" title="Delete this entry" style="color:var(--seal)">Delete</button>`}
-      </td></tr>`;
+  const staff=isStaffView(), today=todayISO();
+  const wk=(()=>{ const d=new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
+  const all=DB.matters.filter(m=>m.status!=="Concluded" && !m.fromRegister);
+  const nextListing=m=>{ try{ return (_matterListings(m)||[]).find(x=>x.date>=today)||null; }catch(e){ return null; } };
+  const enrich=all.map(m=>({m, L:nextListing(m)}));
+  const inWeek=x=>(x.L&&x.L.date<=wk)||(x.m.nextDate&&x.m.nextDate>=today&&x.m.nextDate<=wk);
+  const cnt={all:enrich.length, listed:enrich.filter(x=>x.L).length, week:enrich.filter(inWeek).length,
+    caveat:enrich.filter(x=>x.m.kind==="caveat").length, query:enrich.filter(x=>x.m.kind==="query").length, ia:enrich.filter(x=>x.m.kind==="ia").length};
+  const q=_mxQuery.trim().toLowerCase(), qd=q.replace(/\D/g,"");
+  const rows=enrich.filter(x=>{
+    const m=x.m;
+    if(_mxFilter==="listed"&&!x.L) return false;
+    if(_mxFilter==="week"&&!inWeek(x)) return false;
+    if(["caveat","query","ia"].includes(_mxFilter)&&m.kind!==_mxFilter) return false;
+    if(!q) return true;
+    const hay=[m.code,m.parties,m.client,m.caseNo,m.diaryNo,m.iaNo,m.refName,String(m.serial||"")].join(" ").toLowerCase();
+    if(q.split(/\s+/).every(w=>hay.indexOf(w)>=0)) return true;
+    return qd.length>=3 && [m.caseNo,m.diaryNo,m.iaNo].some(v=>String(v||"").replace(/\D/g,"").indexOf(qd)>=0);
+  }).sort((A,B)=>{
+    if(_mxFilter==="listed"||_mxFilter==="week"){ const da=(A.L&&A.L.date)||A.m.nextDate||"9", db=(B.L&&B.L.date)||B.m.nextDate||"9"; return da.localeCompare(db); }
+    return String(B.m.opened||B.m.code||"").localeCompare(String(A.m.opened||A.m.code||""),undefined,{numeric:true}) || String(B.m.code||"").localeCompare(String(A.m.code||""),undefined,{numeric:true});
+  });
+  const kindTag=m=>m.kind==="caveat"?`<span class="tag" style="background:#6b1f1f;color:#fff;border:none">Caveat</span>`:(m.kind==="query"?`<span class="tag" style="background:var(--line2)">Query</span>`:(m.kind==="ia"?`<span class="tag" style="background:var(--line2)">I.A.</span>`:""));
+  const cards=[];
+  const trs=rows.map(({m,L})=>{
+    const cancelled=isVoided(m);
+    const iaParent=m.kind==="ia"?matterById(m.parentId):null;
+    const num=m.kind==="ia"?(m.iaNo?("I.A. "+m.iaNo):"I.A. — pending"):(m.caseNo||(m.diaryNo?"Diary "+m.diaryNo:""));
+    const dia=(m.kind!=="ia"&&m.caseNo&&m.diaryNo)?`<div class="hint">Diary ${esc(m.diaryNo)}</div>`:"";
+    const listed=L?`<span class="tag active" title="${esc(fmtDate(L.date))}">Listed ${esc(fmtDate(L.date).slice(0,6))}${L.court&&L.court!=="—"?" · Ct "+esc(L.court):""}${L.item?" · Item "+esc(L.item):""}</span>`:"";
+    const next=m.nextDate&&m.nextDate>=today?`<div class="hint">Next: ${esc(fmtDate(m.nextDate))}</div>`:"";
+    const st=cancelled?`<span class="tag">Cancelled</span>`:`<span class="tag ${m.status==="Closed"?"closed":"active"}">${esc(m.status||"Active")}</span>`;
+    const files=_canFiles(m)?`<button class="row-act" style="font-weight:700" onclick="openFiles(${+m.serial})" title="Papers in this case's folder">Files</button>`:"";
+    const filesBtn=_canFiles(m)?`<button onclick="openFiles(${+m.serial})" style="font-weight:700">📁 Files</button>`:"";
+    cards.push(`<div class="mx-card" style="${cancelled?"opacity:.55":""}">
+      <div class="mx-top"><a href="#" onclick="openMatterDetail('${m.id}');return false" class="mono mx-code" style="${cancelled?"text-decoration:line-through":""}">${esc(m.code||"—")}</a>${m.serial?`<span class="fv-num">File ${esc(String(m.serial).padStart(3,"0"))}</span>`:""}${kindTag(m)}<span style="margin-left:auto">${st}</span></div>
+      <div class="mx-name" onclick="openMatterDetail('${m.id}')">${esc(m.parties||m.client||"—")}</div>
+      ${((m.client&&m.parties&&m.client!==m.parties)||m.refName)?`<div class="mx-sub">${[(m.client&&m.parties&&m.client!==m.parties)?esc(m.client):"", m.refName?"Ref. "+esc(m.refName):""].filter(Boolean).join(" · ")}</div>`:""}
+      ${iaParent?`<div class="mx-sub">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}
+      ${(num||m.diaryNo)?`<div class="mx-num mono">${esc(num||"")}${(m.kind!=="ia"&&m.caseNo&&m.diaryNo)?` · Diary ${esc(m.diaryNo)}`:""}</div>`:""}
+      ${(listed||next)?`<div class="mx-when">${listed}${next?`<span class="hint">${next.replace(/<[^>]+>/g,"")}</span>`:""}</div>`:""}
+      <div class="fv-acts mx-acts">${filesBtn}<button onclick="editMatter('${m.id}')">Edit</button>${staff?"":`<button onclick="deleteMatterPrompt('${m.id}','matters')" style="color:var(--seal)">Delete</button>`}</div>
+    </div>`);
+    return `<tr style="${cancelled?"opacity:.55":""}">
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:700;text-decoration:none;${cancelled?"text-decoration:line-through":""}">${esc(m.code||"—")}</a>${m.serial?`<div class="hint">File ${esc(String(m.serial).padStart(3,"0"))}</div>`:""}</td>
+      <td><b>${esc(m.parties||m.client||"—")}</b> ${kindTag(m)}${(m.client&&m.parties&&m.client!==m.parties)?`<div class="hint">${esc(m.client)}</div>`:""}${m.refName?`<div class="hint">Ref. ${esc(m.refName)}</div>`:""}${iaParent?`<div class="hint">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}</td>
+      <td>${num?`<span class="mono">${esc(num)}</span>`:`<span class="hint">—</span>`}${dia}</td>
+      <td>${listed||(next?"":`<span class="hint">—</span>`)}${next}${!cancelled?"":""}</td>
+      <td>${st}</td>
+      <td style="white-space:nowrap">${files}<button class="row-act" onclick="editMatter('${m.id}')">Edit</button>${staff?"":`<button class="row-act" onclick="deleteMatterPrompt('${m.id}','matters')" title="Delete this entry" style="color:var(--seal)">Delete</button>`}</td></tr>`;
   }).join("");
+  const fbtn=(id,lbl)=>(id==="all"||cnt[id])?`<button class="btn ${_mxFilter===id?"seal":"ghost"} sm" onclick="_mxSetFilter('${id}')">${lbl} <span style="opacity:.75">${cnt[id]}</span></button>`:"";
   document.getElementById("panel-matters").innerHTML = `
     <div class="card">
       <div class="card-head">
-        <div><h2>Matters</h2><div class="hint">Matters opened in the app. ${isStaffView()?"":"Every case by file number is in the <a href=\"#\" onclick=\"openCaseRegister();return false\" style=\"color:var(--seal)\">Case register</a>."}</div></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">${isStaffView()?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn seal sm" onclick="addMatter()">+ New matter</button></div>
+        <div><h2>Cases</h2><div class="hint">${cnt.all} open in the app${cnt.listed?` · <b style="color:var(--green)">${cnt.listed} listed</b>`:""}.${staff?"":` Every case of both chambers by file number: <a href="#" onclick="openCaseRegister();return false" style="color:var(--seal)">Case register</a>.`}</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${staff?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
       </div>
-      ${DB.matters.length? `<div class="tbl-wrap"><table class="sr-num">
-        <thead><tr><th>Code</th><th>Cause title</th><th>Case No.</th><th>Next date</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows}</tbody></table></div>`
-        : `<div class="empty">No matters yet. Add one to start.</div>`}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
+        ${fbtn("all","All")}${fbtn("listed","Listed")}${fbtn("week","This week")}${fbtn("caveat","Caveats")}${fbtn("query","Queries")}${fbtn("ia","I.A.s")}
+        <input class="in" id="mxQ" style="flex:1;min-width:170px;max-width:340px;margin-left:auto" placeholder="Search name, code, SLP / Diary No." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
+      </div>
+      ${all.length?`<div class="mx-box"><div class="mx-wide tbl-wrap"><table class="sr-num"><thead><tr><th>No.</th><th>Case</th><th>Case / Diary No.</th><th>Next</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="6" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>
+        <div class="mx-narrow">${cards.join("")||`<div class="empty" style="padding:14px">Nothing matches.</div>`}</div></div>`
+        :`<div class="empty">No cases yet. Add one to start.</div>`}
     </div>`;
 }
 
@@ -18227,7 +18285,7 @@ function _showShortcutHelp(){
       <div class="ks-row"><kbd>I</kbd><span>New invoice</span></div>
       <div class="ks-row"><kbd>T</kbd><span>New task</span></div>
       <div class="ks-row"><kbd>G</kbd> then <kbd>H</kbd><span>Go Home</span></div>
-      <div class="ks-row"><kbd>G</kbd> then <kbd>M</kbd><span>Go to Matters</span></div>
+      <div class="ks-row"><kbd>G</kbd> then <kbd>M</kbd><span>Go to Cases</span></div>
       <div class="ks-row"><kbd>G</kbd> then <kbd>C</kbd><span>Go to Calendar</span></div>
       <div class="ks-row"><kbd>G</kbd> then <kbd>B</kbd><span>Go to Billing</span></div>
       <div class="ks-row"><kbd>Esc</kbd><span>Close dialog</span></div>
@@ -19070,7 +19128,39 @@ document.addEventListener("keydown",e=>{
 });
 
 // ---- Find a paper in any case (owner; uses every case's paper list kept by the helper)
-var _gpQuery="", _gpAll=null, _gpLoading=false;
+var _gpQuery="", _gpAll=null, _gpLoading=false, _gpWaiters=[];
+function _gpEnsure(cb){
+  if(_gpAll){ cb&&cb(); return; } if(cb) _gpWaiters.push(cb);
+  if(_gpLoading||isStaffView()||!(window.FB&&FB.getAllFolderIndex)) return; _gpLoading=true;
+  FB.getAllFolderIndex().then(all=>{ _gpAll=all||[]; _gpLoading=false; const w=_gpWaiters.splice(0); w.forEach(f=>{ try{ f(); }catch(e){} }); }).catch(()=>{ _gpLoading=false; });
+}
+// Case FOLDERS whose name / file no. / petition no. match every word typed
+function _findFolders(q){
+  const words=String(q||"").toLowerCase().split(/\s+/).filter(Boolean); if(!words.length) return [];
+  const qd=String(q).replace(/\D/g,"");
+  const out=[];
+  if(!isStaffView()){
+    (DB.register||[]).forEach(r=>{
+      if(r.status==="removed") return;
+      const hay=[r.title,String(r.serial),String(r.serial).padStart(3,"0"),(r.petitionNos||[]).join(" "),r.chamber+" chamber",r.batch||""].join(" ").toLowerCase();
+      const numHit=qd.length>=3&&(r.petitionNos||[]).some(pn=>pn.replace(/\D/g,"").indexOf(qd)>=0);
+      if(words.every(w=>hay.indexOf(w)>=0)||numHit) out.push({serial:+r.serial,title:r.title,chamber:r.chamber,num:(r.petitionNos||[])[0]||""});
+    });
+  }else{
+    (DB.matters||[]).forEach(m=>{ if(!_canFiles(m)) return;
+      const hay=[m.parties,m.client,m.code,m.caseNo,m.diaryNo,String(m.serial)].join(" ").toLowerCase();
+      if(words.every(w=>hay.indexOf(w)>=0)) out.push({serial:+m.serial,title:m.parties||m.client,chamber:"AD",num:m.caseNo||m.diaryNo||""}); });
+  }
+  return out.sort((a,b)=>b.serial-a.serial);
+}
+// Individual PAPERS (owner) whose name / number / case match every word typed
+function _findPapers(q){
+  if(!_gpAll) return [];
+  const words=String(q||"").toLowerCase().split(/\s+/).filter(Boolean); if(!words.length) return [];
+  const hits=[];
+  _gpAll.forEach(fx=>{ (fx.items||[]).forEach(i=>{ const lab=_cleanDesc(i.desc||i.name,fx.title); const hay=(fx.title+" "+lab+" "+(i.num||"")).toLowerCase(); if(words.every(w=>hay.indexOf(w)>=0)) hits.push({fx,i,lab}); }); });
+  return hits.sort((a,b)=>String(b.i.mtime||"").localeCompare(String(a.i.mtime||"")));
+}
 function _gpSearch(v){
   _gpQuery=String(v||""); const box=document.getElementById("gpResults"); if(!box) return;
   const q=_gpQuery.trim().toLowerCase();
@@ -19081,12 +19171,13 @@ function _gpSearch(v){
     FB.getAllFolderIndex().then(all=>{ _gpAll=all||[]; _gpLoading=false; _gpSearch(_gpQuery); }).catch(e=>{ _gpLoading=false; box.innerHTML=`<div class="hint">${esc((e&&e.message)||"Could not load")}</div>`; });
     return;
   }
-  const words=q.split(/\s+/).filter(Boolean); const hits=[];
-  _gpAll.forEach(fx=>{ (fx.items||[]).forEach(i=>{ const lab=_cleanDesc(i.desc||i.name,fx.title); const hay=(fx.title+" "+lab+" "+(i.num||"")).toLowerCase(); if(words.every(w=>hay.indexOf(w)>=0)) hits.push({fx,i,lab}); }); });
-  hits.sort((a,b)=>String(b.i.mtime||"").localeCompare(String(a.i.mtime||"")));
+  const words=q.split(/\s+/).filter(Boolean);
+  const folders=_findFolders(q).slice(0,12);
+  const hits=_findPapers(q);
   const show=hits.slice(0,40);
-  box.innerHTML=hits.length?`<div class="hint" style="margin:6px 2px">${hits.length} paper${hits.length>1?"s":""} found${hits.length>40?" — showing the 40 newest":""}</div>`+show.map(h=>`<button class="fv-res" onclick="openFiles(${+h.fx.serial}, ${_fvQuote(h.i.num||h.lab)})"><div style="font-size:14px;font-weight:600">${_hl(h.lab,words[0])}</div><div class="hint"><span class="fv-num">${esc(h.i.num||"—")}</span> · ${esc(String(h.fx.serial).padStart(3,"0"))} ${esc(h.fx.title)} · ${esc(h.fx.chamber||"")}${h.i.mtime?" · "+esc(fmtDate(h.i.mtime)):""}</div></button>`).join("")
-    :`<div class="hint" style="padding:6px 2px">No paper matches “${esc(_gpQuery)}”.</div>`;
+  const fHTML=folders.length?`<div class="fv-group" style="margin-top:8px">Case folders · ${folders.length}</div>`+folders.map(f=>`<button class="fv-res" onclick="openFiles(${f.serial})"><div style="font-size:14px;font-weight:700">📁 <span class="mono" style="color:var(--seal)">${String(f.serial).padStart(3,"0")}</span> · ${_hl(f.title,words[0])}</div><div class="hint">${esc(f.chamber)} Chamber${f.num?" · "+esc(f.num):""}</div></button>`).join(""):"";
+  box.innerHTML=(folders.length||hits.length)?fHTML+(hits.length?`<div class="fv-group" style="margin-top:10px">Papers · ${hits.length}${hits.length>40?" (40 newest shown)":""}</div>`:"")+show.map(h=>`<button class="fv-res" onclick="openFiles(${+h.fx.serial}, ${_fvQuote(h.i.num||h.lab)})"><div style="font-size:14px;font-weight:600">${_hl(h.lab,words[0])}</div><div class="hint"><span class="fv-num">${esc(h.i.num||"—")}</span> · ${esc(String(h.fx.serial).padStart(3,"0"))} ${esc(h.fx.title)} · ${esc(h.fx.chamber||"")}${h.i.mtime?" · "+esc(fmtDate(h.i.mtime)):""}</div></button>`).join("")
+    :`<div class="hint" style="padding:6px 2px">No case folder or paper matches “${esc(_gpQuery)}”.</div>`;
 }
 
 function _regSave(id){
@@ -19232,7 +19323,7 @@ function _regApplyMatches(){
   try{ renderAll(); }catch(e){}
   if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
 }
-try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window._filesTile=_filesTile; window._paperDownload=_paperDownload; window._qlShow=_qlShow; window._qlClose=_qlClose; window._fvSelect=_fvSelect; window.openFiles=openFiles; window.renderFilesPage=renderFilesPage; window._filesLoad=_filesLoad; window._filesSub=_filesSub; window._filesUp=_filesUp; window._fvSetQ=_fvSetQ; window._fvSetType=_fvSetType; window._fvSetSort=_fvSetSort; window._fvRenderList=_fvRenderList; window._canFiles=_canFiles; window._gpSearch=_gpSearch; window._cleanDesc=_cleanDesc; window._regHealLinks=_regHealLinks; window._numKeys=_numKeys; window._keysMatch=_keysMatch; window._matterKeys=_matterKeys; window._regConfirmed=_regConfirmed; window._regKeys=_regKeys; window._listingKeys=_listingKeys; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
+try{ window._mNo=_mNo; window._mNoLabel=_mNoLabel; window._parsePetNos=_parsePetNos; window._petitionForms=_petitionForms; window._petitionDigits=_petitionDigits; window.nextSerial=nextSerial; window._stampSerial=_stampSerial; window._assignPendingSerials=_assignPendingSerials; window._regById=_regById; window._regForMatter=_regForMatter; window._mRegisterRows=_mRegisterRows; window._registerListings=_registerListings; window.openCaseRegister=openCaseRegister; window._regSetFilter=_regSetFilter; window._regSetQuery=_regSetQuery; window.renderCaseRegister=renderCaseRegister; window._regOpen=_regOpen; window._regSave=_regSave; window._regLinkMatter=_regLinkMatter; window.setSecRegister=setSecRegister; window._regImportPick=_regImportPick; window._regImport=_regImport; window._regCandidates=_regCandidates; window._regMatchModal=_regMatchModal; window._regApplyMatches=_regApplyMatches; window._regNewSD=_regNewSD; window._findFolders=_findFolders; window._findPapers=_findPapers; window._gpEnsure=_gpEnsure; window._mxSetFilter=_mxSetFilter; window._mxSetQuery=_mxSetQuery; window._filesTile=_filesTile; window._paperDownload=_paperDownload; window._qlShow=_qlShow; window._qlClose=_qlClose; window._fvSelect=_fvSelect; window.openFiles=openFiles; window.renderFilesPage=renderFilesPage; window._filesLoad=_filesLoad; window._filesSub=_filesSub; window._filesUp=_filesUp; window._fvSetQ=_fvSetQ; window._fvSetType=_fvSetType; window._fvSetSort=_fvSetSort; window._fvRenderList=_fvRenderList; window._canFiles=_canFiles; window._gpSearch=_gpSearch; window._cleanDesc=_cleanDesc; window._regHealLinks=_regHealLinks; window._numKeys=_numKeys; window._keysMatch=_keysMatch; window._matterKeys=_matterKeys; window._regConfirmed=_regConfirmed; window._regKeys=_regKeys; window._listingKeys=_listingKeys; window._regNewSDSave=_regNewSDSave; window._gkUrl=_gkUrl; window._gk=_gk; window._paperOpen=_paperOpen; window._paperEdit=_paperEdit; window._paperEditGo=_paperEditGo; window._askMsEmail=_askMsEmail; window._saveMsEmail=_saveMsEmail; window._paperShare=_paperShare; window._shareCopy=_shareCopy; window._shareNow=_shareNow; window._shareDownload=_shareDownload; window._shareLink=_shareLink; window._shareLiveAsk=_shareLiveAsk; window._shareLiveGo=_shareLiveGo; window._stopLiveShare=_stopLiveShare; window._gkConnect=_gkConnect; window._gkStatus=_gkStatus; window.setSecDocuments=setSecDocuments; window._paperBrowse=_paperBrowse; window._loadLivePapersInto=_loadLivePapersInto; window._liveItemsToIndex=_liveItemsToIndex; window._papersHTML=_papersHTML; window._loadPapersInto=_loadPapersInto; window._folderPapersCard=_folderPapersCard; }catch(e){}
   window.renderAll = renderAll; window.todayISO = todayISO; window.onForumChange = onForumChange; window.typesForForum = typesForForum; window.FORUMS = FORUMS; window.onExpenseHeadChange = onExpenseHeadChange; window.onProofPicked = onProofPicked; window.viewProof = viewProof; window.removeProof = removeProof; window.addExpense = addExpense; window.saveExpense = saveExpense; window.EXPENSE_HEADS = EXPENSE_HEADS; window.attachLater = attachLater; window.saveLateProof = saveLateProof; window.peekNextVoucherNo = peekNextVoucherNo; window.peekNextNoticeNo = peekNextNoticeNo; window.openNoticeRegister = openNoticeRegister; window.openNoticeAssistant = openNoticeAssistant; window._naPick = _naPick; window._naCompose = _naCompose; window._draftNoticeBody = _draftNoticeBody; window._noticeBodyLayout = _noticeBodyLayout; window._renderNoticeRegister = _renderNoticeRegister; window._reprintNotice = _reprintNotice; window._delNotice = _delNotice; window._editNotice = _editNotice; window._afterHearing=_afterHearing; window._ahSave=_ahSave; window._ahToggleNext=_ahToggleNext; window._limCalc=_limCalc; window._limCompute=_limCompute; window._limRemind=_limRemind; window._matterFeeStrip=_matterFeeStrip; window._upcomingItems=_upcomingItems; window.openClients=openClients; window.renderClients=renderClients; window.openClientDetail=openClientDetail; window._buildClients=_buildClients; window.openRefAdvocates=openRefAdvocates; window.renderRefAdvocates=renderRefAdvocates; window.openRefAdvDetail=openRefAdvDetail; window._buildRefAdvs=_buildRefAdvs; window._resolveRefAdvId=_resolveRefAdvId; window._backfillRefRegistry=_backfillRefRegistry; window._regCode=_regCode; window.openSuccessStats=openSuccessStats; window.renderSuccessStats=renderSuccessStats; window._matterSuccess=_matterSuccess; window.PARTY_ROLES=PARTY_ROLES; window.RESULT_OPTIONS=RESULT_OPTIONS; window._needsAttentionHTML=_needsAttentionHTML; window._reviewMatter=_reviewMatter; window._reviewDate=_reviewDate; window._checkConflict=_checkConflict; window._showConflictWarning=_showConflictWarning; window._partyTokens=_partyTokens; window.saveMatter=saveMatter; window._resolveClientId=_resolveClientId; window._backfillClientRegistry=_backfillClientRegistry; window._mergeClients=_mergeClients; window._clientGroupKey=_clientGroupKey; window._showNoticeConflict=_showNoticeConflict; window._fillSnapList=_fillSnapList; window.restoreSnapshot=restoreSnapshot; window._dataIntegrityIssues=_dataIntegrityIssues; window.requestNotifyPermission=requestNotifyPermission; window._fireDueNotifications=_fireDueNotifications; window._notifyEnabled=_notifyEnabled; window.nextNoticeNo = nextNoticeNo; window.openLegalNotice = openLegalNotice; window.printLegalNotice = printLegalNotice; window._lnGo = _lnGo; window.nextVoucherNo = nextVoucherNo; window.idbGet = idbGet; window.idbPut = idbPut; window.exportData = exportData; window.importData = importData; window.nextReceiptNo = nextReceiptNo; window.peekNextReceiptNo = peekNextReceiptNo; window.onMDocsPicked=onMDocsPicked; window.addMDoc=addMDoc; window.saveMDoc=saveMDoc; window.viewDoc=viewDoc; window.assignDoc=assignDoc; window.saveAssign=saveAssign; window.delMDoc=delMDoc; window.renderDocIn=renderDocIn; window.renderDocFiled=renderDocFiled; window.renderDocFolders=renderDocFolders; window.setDocSearch=setDocSearch; window.toggleDocFolder=toggleDocFolder; window.docRowHTML=docRowHTML; window.convertToCase=convertToCase; window.doConvertToCase=doConvertToCase; window.setMatterKind=setMatterKind; window.nextQueryCode=nextQueryCode; window.peekNextQueryCode=peekNextQueryCode; window.onMdMatterChange=onMdMatterChange; window.onAdMatterChange=onAdMatterChange; window.matterFolderTitle=matterFolderTitle; window.addBankRow=addBankRow; window.removeBankRow=removeBankRow; window.bankListHTML=bankListHTML; window.collectBanksFromDOM=collectBanksFromDOM; window.defaultBank=defaultBank; window.bankById=bankById; window.banksList=banksList; window.addUpiRow=addUpiRow; window.removeUpiRow=removeUpiRow; window.upiListHTML=upiListHTML; window.collectUpisFromDOM=collectUpisFromDOM; window.defaultUpi=defaultUpi; window.upiById=upiById; window.upisList=upisList; window.openSetSection=openSetSection; window.setSectionBack=setSectionBack; window.thisMonthReceipts=thisMonthReceipts; window.cloudLogout=cloudLogout; window.doCloudLogout=doCloudLogout; window._startIdleTimer=_startIdleTimer; window._stopIdleTimer=_stopIdleTimer; window._resetIdleTimer=_resetIdleTimer; window.idleTimeoutMin=idleTimeoutMin; window.toggleDesktopView=toggleDesktopView; window.applyViewPref=applyViewPref; window.isDesktopView=isDesktopView; window.logActivity=logActivity; window.openActivity=openActivity; window.renderActivity=renderActivity; window.unreadActivityCount=unreadActivityCount; window._refreshActivityBadge=_refreshActivityBadge; window._markActivitySeen=_markActivitySeen; window.renderAccess=renderAccess; window.addAccessEmail=addAccessEmail; window.removeAccessEmail=removeAccessEmail; window.doRemoveAccessEmail=doRemoveAccessEmail; window.setAccessListActive=setAccessListActive; window.setAccessLocked=setAccessLocked; window.loadAccess=loadAccess; window.saveAccess=saveAccess; window.wipeAll=wipeAll; window.doWipe=doWipe; window.showCounter=showCounter; window._wipeCheck=_wipeCheck; window._saveLoginBranding=_saveLoginBranding; window.delInvoice=delInvoice; window.doDelInvoice=doDelInvoice; window.voidInvoice=voidInvoice; window.doVoidInvoice=doVoidInvoice; window.doDeleteMatter=doDeleteMatter; window.deleteMatterPrompt=deleteMatterPrompt; window.doDeleteMatterFrom=doDeleteMatterFrom; window.cancelMatter=cancelMatter; window.doCancelMatter=doCancelMatter; window.delReceipt=delReceipt; window.doDelReceipt=doDelReceipt; window.voidReceiptPrompt=voidReceiptPrompt; window.doVoidReceipt=doVoidReceipt; window.editReceipt=editReceipt; window.doEditReceipt=doEditReceipt; window._edRcPreview=_edRcPreview; window.softDelete=softDelete; window.voidRecord=voidRecord; window.isVoided=isVoided; window.openBilling=openBilling; window.renderInvoiceLedger=renderInvoiceLedger; window.renderBooksOverview=renderBooksOverview; window.renderIncomeBreakdown=renderIncomeBreakdown; window.setIncomePeriod=setIncomePeriod; window.billedFY=billedFY; window.outstandingFY=outstandingFY; window.monthlyFeesFY=monthlyFeesFY; window.taxComparison=taxComparison; window.openRetainer=openRetainer; window._rtPreview=_rtPreview; window._retainerReceipt=_retainerReceipt; window._retainerInvoice=_retainerInvoice; window._rcMatterChange=_rcMatterChange; window._rcSetKind=_rcSetKind; window._ivMatterChange=_ivMatterChange; window._ivSetKind=_ivSetKind; window.invoiceTotal=invoiceTotal; window.fyInvoices=fyInvoices; window.renderAdvances=renderAdvances; window.doAcceptAdvance=doAcceptAdvance; window.doRejectAdvance=doRejectAdvance; window.doRejectAdvance2=doRejectAdvance2; window.ownerGiveAdvance=ownerGiveAdvance; window.doOwnerGiveAdvance=doOwnerGiveAdvance; window.ownerRecordReturn=ownerRecordReturn; window.doOwnerRecordReturn=doOwnerRecordReturn; window.acceptAdvance=acceptAdvance; window.rejectAdvance=rejectAdvance; window.addAdvanceEntry=addAdvanceEntry; window.allPending=allPending; window.staffBalance=staffBalance; window.pendingBalanceImpact=pendingBalanceImpact; window.staffGo=staffGo; window.renderStaffHome=renderStaffHome; window.renderStaffRecord=renderStaffRecord; window.renderStaffUpload=renderStaffUpload; window.staffSubmitExpense=staffSubmitExpense; window.staffRecordReturn=staffRecordReturn; window.staffSubmitReturn=staffSubmitReturn; window.staffSubmitDoc=staffSubmitDoc; window.approveStaff=approveStaff; window.blockStaff=blockStaff; window.pushStaffBalance=pushStaffBalance; window.pushBrandingToAllStaff=pushBrandingToAllStaff; window._applyStaffBranding=_applyStaffBranding; window.staffRecTab=staffRecTab; window.staffSubmitAdvance=staffSubmitAdvance; window.renderStaffBilling=renderStaffBilling; window.staffMyBillTab=staffMyBillTab; window.staffEditBillProfile=staffEditBillProfile; window.staffSaveBillProfile=staffSaveBillProfile; window.staffMakeReceipt=staffMakeReceipt; window.staffPrintMyReceipt=staffPrintMyReceipt; window.staffMakeInvoice=staffMakeInvoice; window.staffPrintMyInvoice=staffPrintMyInvoice; window._staffRegister=_staffRegister; window._staffDocSave=_staffDocSave; window._myBillFoot=_myBillFoot; window._chamberDocSettings=_chamberDocSettings; window.openMatterDetail=openMatterDetail; window.renderMatterDetail=renderMatterDetail; window.isStaffView=isStaffView; window._matterListingsCard=_matterListingsCard; window._mlAddDate=_mlAddDate; window.addFiling=addFiling; window.doAddFiling=doAddFiling; window.delFiling=delFiling; window.addDocToMatter=addDocToMatter; window.doAddDocToMatter=doAddDocToMatter; window.delMatterDoc=delMatterDoc; window.addCaseExpense=addCaseExpense; window.doAddCaseExpense=doAddCaseExpense; window.delCaseExpense=delCaseExpense; window.renderStaffDocs=renderStaffDocs; window.renderStaffExpenses=renderStaffExpenses; window.staffAddDocGeneral=staffAddDocGeneral; window.doStaffAddDocGeneral=doStaffAddDocGeneral; window.staffAddExpenseGeneral=staffAddExpenseGeneral; window.doStaffAddExpenseGeneral=doStaffAddExpenseGeneral; window._geOpenFolder=_geOpenFolder; window._geFolderHint=_geFolderHint; window.staffRecordAdvance=staffRecordAdvance; window.doStaffRecordAdvance=doStaffRecordAdvance; window.rejectExpense=rejectExpense; window.doRejectExpense=doRejectExpense; window.rejectAdvanceEntry=rejectAdvanceEntry; window.doRejectAdvanceEntry=doRejectAdvanceEntry; window.deleteAdvanceEntry=deleteAdvanceEntry; window._canEditEntry=_canEditEntry; window.editAdvanceEntry=editAdvanceEntry; window.doEditAdvanceEntry=doEditAdvanceEntry; window.editCaseExpense=editCaseExpense; window.doEditCaseExpense=doEditCaseExpense; window.isRejected=isRejected; window._canDeleteOwn=_canDeleteOwn; window.removeStaff=removeStaff; window.doRemoveStaff=doRemoveStaff; window.addDate=addDate; window.doAddDate=doAddDate; window._adReasonChange=_adReasonChange; window.delDate=delDate; window.editDate=editDate; window.scHoliday=scHoliday; window.scIsPartial=scIsPartial; window.scDayKind=scDayKind; window.scDayLabel=scDayLabel; window.scOverlayOn=scOverlayOn; window._adDateCheck=_adDateCheck; window.markConcluded=markConcluded; window.doMarkConcluded=doMarkConcluded; window.reopenCase=reopenCase; window.addPastCase=addPastCase; window.doAddPastCase=doAddPastCase; window.doSavePastCase=doSavePastCase; window.renderPastCases=renderPastCases; window.openPastCases=openPastCases; window.peekNextPastCode=peekNextPastCode; window.peekNextMatterCode=peekNextMatterCode; window._maxSeq=_maxSeq; window.findDuplicateNumbers=findDuplicateNumbers; window.duplicateWarningHTML=duplicateWarningHTML; window.printVoucher=printVoucher; window.needsVoucher=needsVoucher; window.voucherThreshold=voucherThreshold; window._expenseFolderUrl=_expenseFolderUrl; window.openLedger=openLedger; window.renderLedger=renderLedger; window.renderReceiptLedger=renderReceiptLedger; window.openTodos=openTodos; window.addTodo=addTodo; window.doAddTodo=doAddTodo; window.editTodo=editTodo; window.doEditTodo=doEditTodo; window.resolveTodo=resolveTodo; window.doResolveTodo=doResolveTodo; window.reopenTodo=reopenTodo; window.deleteTodo=deleteTodo; window.renderTodos=renderTodos; window.TODO_PRIORITIES=TODO_PRIORITIES; window.BCI_TYPES=BCI_TYPES; window.staffEditMyName=staffEditMyName; window.pickMatterForDate=pickMatterForDate; window.todayWidgetHTML=todayWidgetHTML; window._todayItems=_todayItems; window.staffSaveMyName=staffSaveMyName; window.openAppointments=openAppointments; window.addAppointment=addAppointment; window._apKindChange=_apKindChange; window.doAddAppointment=doAddAppointment; window.editAppointment=editAppointment; window.doEditAppointment=doEditAppointment; window.delAppointment=delAppointment; window.renderAppointments=renderAppointments; window.openCalendar=openCalendar; window.renderCalendar=renderCalendar; window._calShift=_calShift; window._calGoToday=_calGoToday; window._calDayView=_calDayView; window._calSelect=_calSelect; window.calAddOnDate=calAddOnDate; window.calAddHearing=calAddHearing; window._chReasonChange=_chReasonChange; window.doCalAddHearing=doCalAddHearing; window.openDriveFolderHelp=openDriveFolderHelp; window._chamberFolderUrl=_chamberFolderUrl; window._caseFolderName=_caseFolderName; window._caseFolderBanner=_caseFolderBanner; window.setupCaseFolder=setupCaseFolder; window.saveCaseFolder=saveCaseFolder; window.openUnassigned=openUnassigned; window.renderUnassigned=renderUnassigned; window.setupUnassignedFolder=setupUnassignedFolder; window.saveUnassignedFolder=saveUnassignedFolder; window._reassignPicker=_reassignPicker; window.doReassign=doReassign; window._isUnassigned=_isUnassigned; window.matterCodeFor=matterCodeFor; window.addMatter=window.addMatter||addMatter; window.acceptedFor=acceptedFor; window.pendingFor=pendingFor; window.idbDel=idbDel; window.exportMatterToFolder=exportMatterToFolder; window.exportAllToFolder=exportAllToFolder; window.fsSupported=fsSupported; window.buildZip=buildZip; window.matterFolderName=matterFolderName; window.buildIndexText=buildIndexText; window.fileNameFor=fileNameFor; window.renderInvoice=renderInvoice; window.onInvStyleChange=onInvStyleChange; window.addInvLine=addInvLine; window.rmInvLine=rmInvLine; window.updInvLine=updInvLine; window.addInvExpense=addInvExpense; window.rmInvExp=rmInvExp; window.updInvExp=updInvExp; window.saveAndPrintInvoice=saveAndPrintInvoice; window.reprintInvoice=reprintInvoice; window.delInvoice=delInvoice; window.printInvoice=printInvoice; window.peekNextInvoiceNo=peekNextInvoiceNo; window.nextInvoiceNo=nextInvoiceNo; window.onDueModeChange=onDueModeChange; window.defaultAppName=defaultAppName; window.openSetPw=openSetPw; window.doSetPw=doSetPw; window.openChangePw=openChangePw; window.doChangePw=doChangePw; window.lockNow=lockNow; window.showLockScreen=showLockScreen; window.showRecovery=showRecovery; window.tryUnlock=tryUnlock; window.tryRecovery=tryRecovery; window.copyText=copyText; window.encEnabled=encEnabled; window.encSetup=encSetup; window.encUnlock=encUnlock; window.loadDecrypted=loadDecrypted; window.showRecoveryCode=showRecoveryCode; window.renderArchive=renderArchive; window.toggleArchMonth=toggleArchMonth; window.exportArchiveCSV=exportArchiveCSV; window.exportReceiptsCSV=exportReceiptsCSV; window.exportInvoicesCSV=exportInvoicesCSV; window.exportExpensesCSV=exportExpensesCSV; window.micButton=micButton; window._micToggle=_micToggle; window._verifyQRBlock=_verifyQRBlock; window.updFee=updFee; window.setTdsMode=setTdsMode; window.setTdsRate=setTdsRate; window.focusCustomRate=focusCustomRate; window.computeFee=computeFee; window.tdsFY=tdsFY; window.newRegimeTax=newRegimeTax; window.chamberLogoSVG=chamberLogoSVG; window.showGroup=showGroup; window.subGo=subGo; window.setActiveTab=setActiveTab; window._labelizeTables=_labelizeTables; window._startTableLabeler=_startTableLabeler; window._activityGoTo=_activityGoTo; window._activityHasTarget=_activityHasTarget; window.clearActivity=clearActivity; window.doClearActivity=doClearActivity; window.openSearch=openSearch; window._gsRun=_gsRun; window._gsGo=_gsGo; window._gsSearch=_gsSearch; window._docPrintChooser=_docPrintChooser; window.onSigPicked=onSigPicked; window._applyStripToggle=_applyStripToggle; window.removeSignature=removeSignature; window.printReceipt=printReceipt; window.shareDoc=shareDoc; window._knownClients=_knownClients; window._lookupClient=_lookupClient; window._attachClientAutofill=_attachClientAutofill; window._knownRefAdvs=_knownRefAdvs; window._lookupRefAdv=_lookupRefAdv; window._attachRefAdvAutofill=_attachRefAdvAutofill; window.reprint=reprint; window.renderSalary=renderSalary; window.openAddPerson=openAddPerson; window.doAddPerson=doAddPerson; window.openEditPerson=openEditPerson; window.doEditPerson=doEditPerson; window.doRemovePerson=doRemovePerson; window.openSalaryAdvance=openSalaryAdvance; window.doGiveSalaryAdvance=doGiveSalaryAdvance; window.openSalarySlip=openSalarySlip; window.quickPaySalary=quickPaySalary; window.doQuickPay=doQuickPay; window._qpWarn=_qpWarn; window.doGenerateSlip=doGenerateSlip; window.printSalarySlip=printSalarySlip; window.reprintSalarySlip=reprintSalarySlip; window._slToggleAdv=_slToggleAdv; window._slToggleLeave=_slToggleLeave; window._slLeaveMode=_slLeaveMode; window._slUpdateLeaveCalc=_slUpdateLeaveCalc; window.openPersonDetail=openPersonDetail; window.renderPersonDetail=renderPersonDetail; window.delSalaryAdv=delSalaryAdv; window.openRecordRepayment=openRecordRepayment; window.doRecordRepayment=doRecordRepayment; window.roleLabel=roleLabel; window.renderPeople=renderPeople; window.peopleGo=peopleGo; window.openPeople=openPeople; window._renderRegisterInto=_renderRegisterInto; window._renderApprovalsInto=_renderApprovalsInto; window._renderAccessInto=_renderAccessInto; window._advancesRefresh=_advancesRefresh; window._accessRefresh=_accessRefresh; window._saveCloudLink=_saveCloudLink; window._docFolderUrl=_docFolderUrl; window._rememberFolder=_rememberFolder; window._docDestLine=_docDestLine; window._cloudSaveBlock=_cloudSaveBlock; window.onTypeChange=onTypeChange; window._onRefTypeChange=_onRefTypeChange; window._onFilingOnlyChange=_onFilingOnlyChange; window._composeRefName=_composeRefName; window._parseRefName=_parseRefName; window._regCode=_regCode; window.casePrefixFor=casePrefixFor; window.reasonsForForum=reasonsForForum; window._resolveReminder=_resolveReminder; window.addReminder=addReminder; window.doAddReminder=doAddReminder; window.delReminder=delReminder; window.renderReminders=renderReminders; window.addTaskOrReminder=addTaskOrReminder; window._chMatterChange=_chMatterChange; window._numberTables=_numberTables; window.printTodayList=printTodayList; window.openCauseList=openCauseList; window._loadCourtUpdates=_loadCourtUpdates; window.printCauseList=printCauseList; window._clRenderRefList=_clRenderRefList; window.monthlyBackup=monthlyBackup; window.autoSnapshotIfDue=autoSnapshotIfDue; window.listSnapshots=listSnapshots; window.downloadSnapshot=downloadSnapshot; window._backupReminderHTML=_backupReminderHTML; window._adTimingMode=_adTimingMode; window.ownerAddDate=ownerAddDate; window._ownerAddDateGo=_ownerAddDateGo; }catch(e){}
 
 /* ============================================================
@@ -19350,7 +19441,7 @@ const NAV_ICONS={
 };
 function navFor(){
   if(DB.deviceRole==="staff") return [["home","Home"],["s_entry","Record"],["s_upload","Upload"],["s_personal","My billing"]];
-  return [["home","Home"],["matters","Matters"],["calendar","Calendar"],["billing","Billing"],["more","More"]];
+  return [["home","Home"],["matters","Cases"],["calendar","Calendar"],["billing","Billing"],["more","More"]];
 }
 /* Distinct line icons for the home shortcut grid (24x24, currentColor). */
 const HOME_ICONS={
@@ -19454,7 +19545,7 @@ function markPanel(id){ document.querySelectorAll("#appRoot .panel").forEach(p=>
 /* open a full-screen sub-page from More, with a back button */
 const SUB_PAGES={
     invoice:{fn:renderInvoice,id:"invoice",label:"Fee invoice"},
-    matters:{fn:renderMatters,id:"matters",label:"Matters"},
+    matters:{fn:renderMatters,id:"matters",label:"Cases"},
     archive:{fn:renderArchive,id:"archive",label:"Archive"},
     pastcases:{fn:renderPastCases,id:"pastcases",label:"Past cases register"},
     register:{fn:renderCaseRegister,id:"register",label:"Case register"},
@@ -20853,7 +20944,7 @@ function renderStaffHome(){
     </div>`;
   const openGrid=`<div class="grp-h">Open</div>
     <div class="appgrid">
-      <button class="app" onclick="staffGo('matters')"><span class="ic">${HOME_ICONS.matters}</span><span class="t">Matters</span></button>
+      <button class="app" onclick="staffGo('matters')"><span class="ic">${HOME_ICONS.matters}</span><span class="t">Cases</span></button>
       <button class="app" onclick="openCalendar()"><span class="ic">${HOME_ICONS.calendar}</span><span class="t">Calendar</span></button>
       <button class="app" onclick="openAppointments()"><span class="ic">${HOME_ICONS.appointment}</span><span class="t">Appointments</span></button>
       <button class="app" onclick="openTodos()"><span class="ic">${HOME_ICONS.reminder}</span><span class="t">Tasks &amp; reminders</span></button>
@@ -21844,7 +21935,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-1100";
+  window.APP_VERSION = "2026.10.07-1200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
