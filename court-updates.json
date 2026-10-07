@@ -1,51 +1,16 @@
 {
-  "generated_at": "2026-10-07T15:39:09.215921Z",
+  "generated_at": "2026-10-07T20:51:07.479694Z",
   "window": [
-    "2026-10-07",
     "2026-10-08",
     "2026-10-09",
     "2026-10-12",
     "2026-10-13",
     "2026-10-14",
     "2026-10-15",
-    "2026-10-16"
+    "2026-10-16",
+    "2026-10-19"
   ],
   "by_date": {
-    "2026-10-07": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Regular / Final - Main",
-        "Regular / Final - Supplementary",
-        "Registrar - Main",
-        "Registrar - Supplementary",
-        "Curative & Review (circulation)",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 1,
-      "matches": [
-        {
-          "for_date": "2026-10-07",
-          "list": "Miscellaneous - Supplementary",
-          "kind": "supp",
-          "family": "MJ",
-          "is_supplementary": true,
-          "court": "12",
-          "item": "301",
-          "coram": "HON'BLE MR. JUSTICE PRASHANT KUMAR MISHRA; HON'BLE MR. JUSTICE SHREE CHANDRASHEKHAR",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "301 Diary No. 35583-2026 M/S MANSI FINANCE (CHENNAI) LTD Versus LALITHA AND ORS."
-        }
-      ]
-    },
     "2026-10-08": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -81,6 +46,7 @@
     },
     "2026-10-09": {
       "lists_found": [
+        "Miscellaneous - Main",
         "Registrar - Main",
         "Miscellaneous - Advance"
       ],
@@ -91,20 +57,20 @@
       "matches": [
         {
           "for_date": "2026-10-09",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
           "family": "MJ",
           "is_supplementary": false,
-          "court": "",
-          "item": "46",
-          "coram": "",
+          "court": "2",
+          "item": "32",
+          "coram": "HON'BLE MR. JUSTICE VIKRAM NATH; HON'BLE MR. JUSTICE SANDEEP MEHTA; HON'BLE MR. JUSTICE APARESH KUMAR SINGH",
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
             "number"
           ],
           "confidence": "high",
-          "text": "46 SLP(C) No. 3263/2023 TARSEM SHARMA AND ORS. Versus THE STATE OF HARYANA AND ORS."
+          "text": "32 SLP(Crl) No. DILIP S GHUMARE Versus HIGH COURT OF JUDICATURE AT BOMBAY AND ORS. DAILY CAUSE LIST FOR DATED : 09-10-2026 COURT NO. : 2"
         }
       ]
     },
@@ -442,6 +408,6 @@
       ]
     }
   },
-  "match_count": 19,
+  "match_count": 18,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
