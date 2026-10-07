@@ -18534,7 +18534,7 @@ async function _paperBlob(it, onProgress){
   let d=null;
   try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
   if(d&&d.url){
-    const r=await fetch(d.url);
+    const r=await fetch(d.url,{cache:"no-store"});   // held in memory only — no copy kept in the browser cache
     if(!r.ok) throw new Error("Microsoft did not send the file ("+r.status+").");
     const total=+(r.headers.get("Content-Length")||d.size||0); const parts=[]; let got=0;
     if(r.body&&r.body.getReader){ const rd=r.body.getReader(); for(;;){ const {done,value}=await rd.read(); if(done) break; parts.push(value); got+=value.length; onProgress&&onProgress(got,total); } }
@@ -18588,8 +18588,8 @@ async function _paperOpen(k){
   const win=window.open("about:blank","_blank");
   try{
     if(win) win.document.write('<div style="font-family:-apple-system,sans-serif;padding:24px;color:#555"><p style="margin:0 0 6px">Opening <b>'+esc(it.name)+'</b></p><p id="dlp" style="margin:0;color:#6b1f1f">Getting the file…</p></div>');
-    if(_isWord(it.name)){
-      // Word: read-only view in Word for the web (no sign-in).
+    if(!/\.(pdf|jpe?g|png|gif|webp|heic|txt)$/i.test(it.name)){
+      // Word, Excel, PowerPoint and anything else: read-only view on the web (no sign-in, nothing downloaded).
       const d=await _gk("/api/file",{path:it.path, action:"viewlink", days:1});
       if(!d.link) throw new Error("No link returned.");
       if(win) win.location=d.link; else window.open(d.link,"_blank");
@@ -21754,7 +21754,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-0500";
+  window.APP_VERSION = "2026.10.07-0600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
