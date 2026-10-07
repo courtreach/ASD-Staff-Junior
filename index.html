@@ -2536,9 +2536,11 @@
     _pushTimer=setTimeout(async ()=>{
       const additive = _additivePush; _additivePush = false;
       try{
-        await FB.pushSettings(DB.settings);
-        await FB.pushCounters(DB.counters);
+        // Never write back what has not been confirmed by the server this session (see FB._srvOK).
+        if(FB.serverConfirmed("__settings")) await FB.pushSettings(DB.settings);
+        if(FB.serverConfirmed("__counters")) await FB.pushCounters(DB.counters);
         for(const name of FB.COLLECTIONS){
+          if(!FB.serverConfirmed(name)) continue;
           const arr = DB[name]||[];
           // Skip re-uploading a collection whose contents are unchanged since the last push.
           // A single small edit used to re-push EVERY collection; this cuts the redundant
@@ -21471,11 +21473,13 @@ const auth = getAuth(app);
 let db;
 try{
   db = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    // iPhone / iPad (WebKit) often stall on Firestore's default streaming connection; detect and fall back.
+    experimentalAutoDetectLongPolling: true
   });
 }catch(e){
   // fallback if persistence unsupported
-  db = initializeFirestore(app, {});
+  db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 }
 
 // keep the user logged in across app restarts
@@ -21509,16 +21513,27 @@ const FB = {
     const r=this.docRef(name,id); if(!r) return;
     await deleteDoc(r);
   },
+  // What this device has seen CONFIRMED by the server this session (not just its offline cache).
+  // Nothing is pushed back to the cloud until that collection / settings / counters is confirmed —
+  // otherwise a device opening with a months-old cache (slow connection) writes it over the real
+  // data. That is exactly how the chamber settings were wiped on 07.10.2026.
+  _srvOK: {},
+  serverConfirmed(name){ return !!this._srvOK[name]; },
   async getAll(name){
     const c=this.colRef(name); if(!c) return [];
     const snap=await getDocs(c); const out=[];
     snap.forEach(d=>out.push(Object.assign({id:d.id}, d.data())));
+    if(!snap.metadata.fromCache) this._srvOK[name]=true;
     return out;
   },
   listen(name, cb){
     const c=this.colRef(name); if(!c) return ()=>{};
-    return onSnapshot(c, snap=>{
+    let lastSig=null;
+    return onSnapshot(c, {includeMetadataChanges:true}, snap=>{
+      if(!snap.metadata.fromCache) this._srvOK[name]=true;
       const out=[]; snap.forEach(d=>out.push(Object.assign({id:d.id}, d.data())));
+      const sig=snap.docs.length+"|"+snap.docChanges().length; if(snap.metadata.fromCache===false && sig===lastSig && !snap.docChanges().length) return;   // metadata-only update: just the confirmation
+      lastSig=sig;
       cb(out, snap);
     }, err=>{ console.warn("listen error", name, err); });
   },
@@ -21618,19 +21633,18 @@ const FB = {
   _listeners: [],
   // Pull everything from Firestore into a plain object shaped like DB arrays + meta
   async pullAll(){
+    // Everything requested at once (was one collection after another — slow on phones).
     const out = { settings:null, counters:null };
-    for(const name of this.activeCollections()){
-      out[name] = await this.getAll(name);
-    }
+    const names=this.activeCollections();
+    const jobs=names.map(name=>this.getAll(name).then(v=>{ out[name]=v; }));
     if(this.role!=="staff"){
       const b=this._base();
       if(b){
-        const st=await getDoc(doc(db,b,"meta","settings"));
-        out.settings = st.exists()? st.data() : null;
-        const ct=await getDoc(doc(db,b,"meta","counters"));
-        out.counters = ct.exists()? ct.data() : null;
+        jobs.push(getDoc(doc(db,b,"meta","settings")).then(st=>{ out.settings = st.exists()? st.data() : null; if(!st.metadata.fromCache) this._srvOK.__settings=true; }));
+        jobs.push(getDoc(doc(db,b,"meta","counters")).then(ct=>{ out.counters = ct.exists()? ct.data() : null; if(!ct.metadata.fromCache) this._srvOK.__counters=true; }));
       }
     }
+    await Promise.all(jobs);
     return out;
   },
   // Push one record (create/update)
@@ -21640,6 +21654,7 @@ const FB = {
   },
   // Push a whole array as a batch (used on first upload / full mirror)
   async pushCollection(name, arr){
+    if(!this._srvOK[name]){ console.warn("sync: not writing", name, "— not yet confirmed by the server"); return; }
     const b=this._baseFor(name); if(!b || !Array.isArray(arr)) return;
     for(let i=0;i<arr.length;i+=450){
       const batch=writeBatch(db);
@@ -21649,8 +21664,9 @@ const FB = {
       await batch.commit();
     }
   },
-  async pushSettings(settings){ if(settings) await this.putSettings(settings); },
+  async pushSettings(settings){ if(!this._srvOK.__settings){ console.warn("sync: not writing settings — not yet confirmed by the server"); return; } if(settings) await this.putSettings(settings); },
   async pushCounters(counters){
+    if(!this._srvOK.__counters){ console.warn("sync: not writing counters — not yet confirmed by the server"); return; }
     const b=this._base(); if(!b || !counters) return;
     await setDoc(doc(db,b,"meta","counters"), Object.assign({},counters,{_updated:serverTimestamp()}), {merge:true});
   },
@@ -21670,8 +21686,8 @@ const FB = {
     if(this.role!=="staff"){
       const b=this._base();
       if(b){
-        this._listeners.push(onSnapshot(doc(db,b,"meta","settings"), s=>{ if(s.exists()) onSettings(s.data()); }));
-        this._listeners.push(onSnapshot(doc(db,b,"meta","counters"), s=>{ if(s.exists()) onCounters(s.data()); }));
+        this._listeners.push(onSnapshot(doc(db,b,"meta","settings"), {includeMetadataChanges:true}, s=>{ if(!s.metadata.fromCache) this._srvOK.__settings=true; if(s.exists()) onSettings(s.data()); }));
+        this._listeners.push(onSnapshot(doc(db,b,"meta","counters"), {includeMetadataChanges:true}, s=>{ if(!s.metadata.fromCache) this._srvOK.__counters=true; if(s.exists()) onCounters(s.data()); }));
       }
     }
   },
@@ -21781,7 +21797,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-0700";
+  window.APP_VERSION = "2026.10.07-0800";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
