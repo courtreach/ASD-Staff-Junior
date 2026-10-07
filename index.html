@@ -1970,10 +1970,16 @@
   .ql-docx{width:100%;background:#fff}
   .ql-msg{color:#fff;font-size:15px;text-align:center;margin:auto;padding:30px}
   @media (max-width:560px){ #qlOverlay{padding:0} .ql-box{height:100vh;border-radius:0} .ql-btns #qlDl{display:none} }
+  .fv-l-short{display:none}
   @media (max-width:560px){
-    .fv-row{flex-wrap:wrap}
-    .fv-acts{width:100%;padding-left:52px}
-    .fv-acts button{flex:1}
+    .fv-row{flex-wrap:wrap;padding:10px}
+    .fv-ic{width:34px;height:40px}
+    /* buttons share the row's full width equally — they can never spill past the card */
+    .fv-acts{width:100%;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+    .fv-acts button{min-width:0;padding:8px 2px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .fv-l-long{display:none} .fv-l-short{display:inline}
+    .fv-tools .fv-search{min-width:0;flex:1 1 100%}
+    .fv-tools .fv-sort{flex:1 1 auto}
   }
 </style>
 <meta name="theme-color" content="#6b1f1f">
@@ -18890,7 +18896,7 @@ function _fvRenderList(){
         <div class="fv-name">${_hl(x._label,q)}</div>
         <div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div>
       </div>
-      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app">Download</button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button></div>`:""}
+      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app"><span class="fv-l-long">Download</span><span class="fv-l-short">Save</span></button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button></div>`:""}
     </div>`;
   };
   const drow=x=>`<div class="fv-row"><div class="fv-ic dir">📁</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>older folder, kept as it was</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
@@ -21818,7 +21824,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-0900";
+  window.APP_VERSION = "2026.10.07-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
