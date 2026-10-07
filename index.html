@@ -1951,6 +1951,17 @@
   .fv-hit{background:#fff1b8;border-radius:2px}
   .fv-res{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;cursor:pointer}
   .fv-res:hover{border-color:var(--seal)}
+  .fv-isls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .fv-isl{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px 14px 12px;cursor:pointer;font-family:inherit;min-height:118px;transition:border-color .15s,box-shadow .15s}
+  .fv-isl:hover{border-color:var(--seal);box-shadow:0 2px 10px rgba(107,31,31,.08)}
+  .fv-isl:active{transform:scale(.98)}
+  .fv-isl-ic{font-size:22px;line-height:1}
+  .fv-isl-n{font-size:30px;font-weight:800;color:var(--seal);line-height:1.1;margin-top:6px}
+  .fv-isl-l{font-size:14px;font-weight:700;color:var(--ink)}
+  .fv-isl-d{font-size:12px;color:var(--muted)}
+  .fv-box{container-type:inline-size}
+  @container (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .fv-row.sel{border-color:var(--seal);box-shadow:0 0 0 2px var(--seal-soft)}
   /* Cases register: a table on wide screens, one card per case on phones */
   .mx-narrow{display:none}
@@ -18961,7 +18972,8 @@ function _fvRenderList(){
   const f=_fv; const {files,dirs}=_fvRows();
   const q=f.q.trim().toLowerCase();
   const match=x=>!q||(x._label+" "+(x.num||"")+" "+x.name+" "+(x.mtime?fmtDate(x.mtime):"")).toLowerCase().indexOf(q)>=0;
-  let fl=files.filter(x=>(f.type==="all"||x._t===f.type)&&match(x));
+  const inType=x=>f.type==="all"||x._t===f.type||(f.type==="LS"&&(x._t==="L"||x._t==="S"));
+  let fl=files.filter(x=>inType(x)&&match(x));
   const dl=dirs.filter(x=>(f.type==="all"||f.type==="dir")&&match(x));
   const can=!!_gkUrl(); const base=(f.idx&&f.idx.folder)||(f.folder+(f.sub?"/"+f.sub:""));
   const row=x=>{
@@ -18978,11 +18990,25 @@ function _fvRenderList(){
   };
   const drow=x=>`<div class="fv-row"><div class="fv-ic dir">📁</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>older folder, kept as it was</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
   let h="";
+  if(f.type==="all"&&!q){
+    // ISLANDS: the latest few papers, then one big tile per kind of paper
+    const latest=files.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))).slice(0,3);
+    const kinds=[["N","📝","Notes"],["F","📕","PDF files"],["LS","📄","Lists & Submissions"],["C","📚","Compilations"],["D","✏️","Drafts"],["X","❔","Not yet numbered"],["dir","📁","Older folders"]];
+    const tiles=kinds.map(([t,ic,lab])=>{
+      const g=t==="dir"?dirs:files.filter(x=>t==="LS"?(x._t==="L"||x._t==="S"):x._t===t);
+      if(!g.length) return "";
+      const last=t==="dir"?"":g.map(x=>x.mtime||"").sort().pop();
+      return `<button class="fv-isl" onclick="_fvSetType('${t}')"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${lab}</span>${last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">${g.reduce((a,x)=>a+(+x.count||0),0)} items</span>`}</button>`;
+    }).join("");
+    h=`<div class="fv-isls" style="margin-top:4px">${tiles}</div>`+(latest.length?`<div class="fv-group" style="margin-top:18px">Latest papers</div>`+latest.map(row).join(""):"");
+    if(!files.length&&!dirs.length) h=`<div class="fv-empty">The folder is empty.</div>`;
+    box.innerHTML=h; return;
+  }
   if(f.sort==="new"){
     fl=fl.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||"")));
     h=fl.map(row).join("")+(dl.length?`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join(""):"");
   }else{
-    ["N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`+g.map(row).join(""); });
+    ["N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=(f.type==="all"||f.type==="LS"?`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`:"")+g.map(row).join(""); });
     if(dl.length) h+=`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join("");
   }
   if(!h) h=`<div class="fv-empty">${q?`Nothing matches “${esc(f.q)}”.`:"No papers of this kind."}</div>`;
@@ -18996,7 +19022,9 @@ function renderFilesPage(){
   const staff=isStaffView();
   const back=staff?`<div class="subnav"><button class="subnav-back" onclick="staffGo('matters')">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">Files</span></div>`:"";
   const cnt=t=>t==="all"?files.length+dirs.length:(t==="dir"?dirs.length:files.filter(x=>x._t===t).length);
-  const chips=_FV_TYPES.filter(([t])=>t==="all"||cnt(t)).map(([t,l])=>`<button class="fv-chip ${f.type===t?"on":""}" onclick="_fvSetType('${t}')">${l}<b>${cnt(t)}</b></button>`).join("");
+  const KLAB={N:"Notes",F:"PDF files",LS:"Lists & Submissions",L:"Lists of dates",S:"Submissions",C:"Compilations",D:"Drafts",X:"Not yet numbered",dir:"Older folders"};
+  const kcnt=t=>t==="LS"?cnt("L")+cnt("S"):cnt(t);
+  const chips=f.type==="all"?"":`<button class="fv-chip" onclick="_fvSetType('all')">‹ All kinds</button><span class="fv-chip on" style="cursor:default">${esc(KLAB[f.type]||"")}<b>${kcnt(f.type)}</b></span>`;
   const ch=f.chamber?` <span class="tag" style="background:${f.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff;vertical-align:middle">${esc(f.chamber)}</span>`:"";
   panel.innerHTML=`${back}
     <div class="card">
@@ -19008,10 +19036,10 @@ function renderFilesPage(){
       ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:`
       <div class="fv-tools">
         <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
-        <select class="fv-sort" onchange="_fvSetSort(this.value)"><option value="num" ${f.sort==="num"?"selected":""}>By number</option><option value="new" ${f.sort==="new"?"selected":""}>Newest first</option></select>
+        ${f.type==="all"?"":`<select class="fv-sort" onchange="_fvSetSort(this.value)"><option value="num" ${f.sort==="num"?"selected":""}>By number</option><option value="new" ${f.sort==="new"?"selected":""}>Newest first</option></select>`}
       </div>
-      <div class="fv-chips">${chips}</div>
-      <div id="fvList"></div>`)}
+      ${chips?`<div class="fv-chips">${chips}</div>`:""}
+      <div class="fv-box"><div id="fvList"></div></div>`)}
     </div>`;
   _fvRenderList();
 }
@@ -21935,7 +21963,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-1200";
+  window.APP_VERSION = "2026.10.07-1300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
