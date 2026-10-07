@@ -8945,7 +8945,7 @@ function _renderHomeCourt(){
         const fb=_forumBadge(m);
         // Referring advocate: if this listing matches one of your matters and that
         // matter has a referring advocate on file (set from the Cause-list dialog).
-        let adv=""; try{ const mt=_listingMatch(info); if(mt) adv=mt.refAdv||mt.refName||""; }catch(e){}
+        let adv="", fser=0; try{ const mt=_listingMatch(info); if(mt){ adv=mt.refAdv||mt.refName||""; fser=(mt._reg?(!isStaffView()&&+mt.serial):(_canFiles(mt)&&+mt.serial))||0; } }catch(e){}
         return `<div class="row">
           <div class="cbadges">
             <div class="ct"><b${fb.big.length>2?' style="font-size:14px"':''}>${esc(fb.big)}</b>${esc(fb.cap)}</div>
@@ -8954,7 +8954,7 @@ function _renderHomeCourt(){
           <div class="m"><div class="t">${esc(title||"—")}</div>
             ${(info.party&&cn)?`<div class="s mono">${esc(cn)}</div>`:""}
             ${adv?`<div class="s cu-adv">${/^(adv|mr|ms|mrs|dr)[s.]?\s/i.test(adv)?"":"Adv. "}${esc(adv)}</div>`:""}
-          </div></div>`;
+          </div>${fser?`<button onclick="openFiles(${fser})" title="Open this case's files" style="flex:none;align-self:center;border:1px solid var(--line);background:var(--paper2);color:var(--seal);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer">📁 Files</button>`:""}</div>`;
       }).join("") + (moreN? `<div style="font-size:12px;color:var(--muted);padding:9px 2px 2px">+ ${moreN} more — open the full cause list</div>`:"")
     : `<div style="font-size:13px;color:var(--muted);padding:11px 2px">None of your matters listed on this day.</div>`;
   el.innerHTML=`<div class="cu-embed">
@@ -14749,8 +14749,8 @@ function _eventsOn(iso){
         if(num && num.length>=5 && have.has(num)) return;   // already your recorded hearing
         const fb=(typeof _forumBadge==="function")?_forumBadge(mt):{big:mt.court||"",cap:"Court"};
         const where=fb.big==="Ch."?"In Chamber":(String(fb.big).indexOf("R-")===0?"Registrar Court "+fb.big.slice(2):(fb.cap==="Court"?"Court "+fb.big:fb.big));
-        let mid=""; try{ const mm=_listingMatch(info); if(mm) mid=mm.id; }catch(_){}
-        ev.push({type:"listing",
+        let mid="", ser=0; try{ const mm=_listingMatch(info); if(mm){ mid=mm.id||""; ser=+mm.serial||0; } }catch(_){}
+        ev.push({type:"listing", serial:ser,
           title:(info.party||info.caseNo||String(mt.title||"").replace(/^\s*\d+[.\)]?\s*/,"").slice(0,60)),
           sub:where+(mt.item?" · Item "+mt.item:"")+(day.hasMain===false?" · advance list":""),
           caseNo:info.caseNo||info.diaryNo||"", court:where, item:mt.item||"", advance:(day.hasMain===false), matterId:mid});
@@ -19470,22 +19470,29 @@ function todayWidgetHTML(){
     const isHear=e.type==="hearing";
     const isDl=e.type==="deadline";
     const isRem=e.type==="reminder";
+    const isList=e.type==="listing";
     const dIso=e.__iso||iso;
-    const go=isHear? `openMatterDetail('${e.matterId}')`
+    const go=(isHear||(isList&&e.matterId))? `openMatterDetail('${e.matterId}')`
+      : isList? `openCauseList()`
       : isDl? `openSub('todos')`
       : isRem? `openSub('reminders')`
       : `_calDayView('${dIso}')`;
     const tag=isHear?`<span class="tw-tag hear">Hearing</span>`
+      : isList?`<span class="tw-tag hear">Listed</span>`
       : isDl?`<span class="tw-tag dl">Deadline</span>`
       : isRem?`<span class="tw-tag rem">Reminder</span>`
       : e.type==="personal"?`<span class="tw-tag pers">Personal</span>`
       : `<span class="tw-tag appt">Meeting</span>`;
     const resolveBtn = isDl? `<button class="tw-done" onclick="event.stopPropagation(); doResolveTodo('${e.todoId}')" title="Mark resolved">✓</button>`
       : isRem? `<button class="tw-done" onclick="event.stopPropagation(); _resolveReminder('${e.reminderId}')" title="Mark done">✓</button>` : "";
+    // Case folder, one tap from the home screen (hearings & Supreme Court listings)
+    const _fm=(isHear||isList)&&e.matterId?matterById(e.matterId):null;
+    const _fser=(_fm&&_canFiles(_fm))?+_fm.serial:((isList&&e.serial&&!isStaffView())?+e.serial:0);
+    const folderBtn=_fser?`<button class="tw-done" style="width:auto;padding:0 9px;font-size:12.5px;font-weight:700;color:var(--seal)" onclick="event.stopPropagation(); openFiles(${_fser})" title="Open this case's files">📁 Files</button>`:"";
     return `<div class="tw-row" onclick="${go}">
       ${tag}
       <div class="tw-mid"><div class="tw-t">${esc(e.title||"—")}</div>${e.sub?`<div class="tw-s">${esc(e.sub)}</div>`:""}</div>
-      ${resolveBtn||`<svg class="hh-go" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`}
+      ${folderBtn}${resolveBtn||`<svg class="hh-go" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`}
     </div>`;
   };
   const section=(label,ev,dayIso,emptyText)=>{
@@ -21587,7 +21594,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-0100";
+  window.APP_VERSION = "2026.10.07-0200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
