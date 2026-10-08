@@ -20851,11 +20851,14 @@ const _AI_LAB={queued:"Waiting for the AI clerk",working:"AI clerk is working on
 function _aiWho(){ return isStaffView()?((window.__staff&&window.__staff.profile&&window.__staff.profile.name)||"Staff"):headLabel(); }
 function _aiCan(d){ return !!d&&d.status==="open"&&d.kind!=="note"&&d.kind!=="new"; }
 // "AI clerk last checked …" — chamber/main/meta/aiClerk {lastRun}, written by the Mac. Filled in place (no re-render).
-function _aiRunText(){ const at=window.__aiRun&&window.__aiRun.lastRun; if(!at) return ""; const t=new Date(at); if(isNaN(t)) return "";
-  const today=new Date().toDateString()===t.toDateString();
-  return `AI clerk last checked ${today?"today":fmtDate(_localISO(t))} at ${t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`; }
+function _aiRunText(){ const m=window.__aiRun||{}; const hb=m.heartbeat?new Date(m.heartbeat):null;
+  const tm=t=>(new Date().toDateString()===t.toDateString()?"today":fmtDate(_localISO(t)))+" at "+t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  if(hb&&!isNaN(hb)){
+    if(Date.now()-hb<8*60000) return m.error?`⚠ AI clerk: ${m.error}`:m.running?"● AI clerk online — working now":"● AI clerk online";
+    return `○ AI clerk offline (Mac off or asleep) — last seen ${tm(hb)}. Requests wait until it is back.`; }
+  const at=m.lastRun?new Date(m.lastRun):null; return at&&!isNaN(at)?`AI clerk last checked ${tm(at)}`:""; }
 function _aiRunHTML(){
-  if(!window.__aiRunAt||Date.now()-window.__aiRunAt>120000){ window.__aiRunAt=Date.now();
+  if(!window.__aiRunAt||Date.now()-window.__aiRunAt>60000){ window.__aiRunAt=Date.now();
     Promise.resolve().then(async()=>{ try{ if(window.FB&&FB.getMeta){ window.__aiRun=await FB.getMeta("aiClerk"); document.querySelectorAll(".ai-run").forEach(e=>e.textContent=_aiRunText()); } }catch(e){} }); }
   return `<span class="hint ai-run">${esc(_aiRunText())}</span>`;
 }
@@ -20871,7 +20874,7 @@ function _aiBlockHTML(d){
       <div class="dp-a">${btn(`_aiQueueAsk('${d.id}')`,"Cure with AI","seal")}</div></div>`;
   }
   const head=`<div class="ai-h">✨ ${esc(_AI_LAB[st]||st)}${a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>`;
-  if(st==="queued"||st==="working") return `<div class="ai-b ${st}">${head}<div class="ai-s">${st==="queued"?"Claude checks every 30 minutes in office hours (the Mac must be on). "+_aiRunHTML():esc(a.msg||"")}${a.instruction?`<br>Your note: <i>${esc(a.instruction)}</i>`:""}</div>
+  if(st==="queued"||st==="working") return `<div class="ai-b ${st}">${head}<div class="ai-s">${st==="queued"?"The AI clerk on the Head of Chamber's Mac starts within seconds. "+_aiRunHTML():esc(a.msg||"")}${a.instruction?`<br>Your note: <i>${esc(a.instruction)}</i>`:""}</div>
       <div class="dp-a">${st==="queued"?btn(`_aiCancel('${d.id}')`,"Cancel"):""}</div></div>`;
   if(st==="question") return `<div class="ai-b question">${head}<div class="ai-q">${esc(a.question||a.msg||"")}</div>
       <textarea class="in" id="aiAns_${d.id}" rows="2" placeholder="Your answer"></textarea>
@@ -20902,7 +20905,7 @@ function _aiQueueAsk(did){
   openModal("Cure with AI", `<div class="hint" style="margin-bottom:8px">${esc(_flSentence(d.text))}</div>
     <label class="fld">Anything Claude should know? (optional)</label>
     <textarea class="in" id="aiNote" rows="3" placeholder="e.g. the correct date is 04.03.2026 · answer every proforma column with No"></textarea>
-    <div class="hint" style="margin-top:8px">Claude works on the Mac every 30 minutes in office hours. It corrects copies of the filed pages; nothing is attached until you approve.</div>
+    <div class="hint" style="margin-top:8px">The AI clerk on the Head of Chamber's Mac starts within seconds (the Mac must be on). It corrects copies of the filed pages; nothing is attached until it is approved. ${_aiRunHTML()}</div>
     <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_aiQueueGo('${did}')">Send to the AI clerk</button></div>`);
 }
 function _aiQueueGo(did){
@@ -24140,7 +24143,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-2345";
+  window.APP_VERSION = "2026.10.08-2400";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
