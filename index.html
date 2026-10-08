@@ -2022,6 +2022,13 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .fsec{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px} .fsec-b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit;color:var(--ink)}
+  .fsec-b b{font-size:14.5px} .fsec-b span{font-size:12px;color:var(--muted)} .fsec-b.on{border-color:var(--seal);box-shadow:0 0 0 1px var(--seal) inset;background:#fbf6f4}
+  .fsl-box{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden} .fsl{border-top:1px solid var(--line2);padding:9px 12px} .fsl:first-child{border-top:0}
+  .fsl-h{display:flex;align-items:center;gap:8px} .fsl-ck{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--line2);color:var(--muted)}
+  .fsl.has .fsl-ck{background:#e8f4ea;color:#2e7d32} .fsl-t{flex:1;font-weight:600;font-size:13.5px} .fsl-s{font-size:12px;color:var(--muted);margin:3px 0 0 28px}
+  .fsl-f{display:flex;align-items:center;gap:8px;margin:5px 0 0 28px;font-size:13px} .fsl-n{flex:none;min-width:26px;font-family:var(--mono,monospace);font-size:12px;color:var(--muted)} .fsl-m{flex:1;min-width:0;word-break:break-word} .fsl-a{flex:none;display:flex;gap:4px}
+  .fs-map{width:100%;border-collapse:collapse;font-size:13px} .fs-map td{border-top:1px solid var(--line2);padding:4px 6px} .fs-map td.mono{text-align:right;white-space:nowrap}
   .ac-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px} .ac-status{font-size:13px;padding-top:4px}
   .ac-tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px} .ac-tile{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
   .ac-tile b{font-size:20px;font-family:var(--serif,inherit)} .ac-tile span{font-size:11.5px;color:var(--muted)}
@@ -2039,7 +2046,7 @@
   .dd.s-approve .dd-no{background:rgba(47,125,79,.14);color:#23633e} .dd.s-question .dd-no,.dd.s-staff .dd-no{background:rgba(183,121,31,.15);color:#8a5a12} .dd.s-ai .dd-no{background:rgba(124,92,191,.12);color:#5b3fa0}
   .dg{margin-bottom:14px} .dg-h{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:2px 2px 6px} .dg-h b{color:var(--ink)}
   .dg-done>summary{cursor:pointer;list-style:none} .dg-done>summary::-webkit-details-marker{display:none}
-  .dg-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;background:rgba(124,92,191,.07);border:1px solid rgba(124,92,191,.25);border-radius:8px;padding:6px 10px;margin:0 0 10px} .dg-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 2px 10px} .dg-c{font-size:12px;background:var(--line2);border:0;border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+  .fsai-list{display:flex;flex-direction:column;gap:6px;margin:8px 0} .fsai-it{display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;cursor:pointer} .fsai-it input{margin-top:3px;width:auto} .fsai-m{flex:1;min-width:0;font-size:13.5px} .dg-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;background:rgba(124,92,191,.07);border:1px solid rgba(124,92,191,.25);border-radius:8px;padding:6px 10px;margin:0 0 10px} .dg-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 2px 10px} .dg-c{font-size:12px;background:var(--line2);border:0;border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--ink)}
   .dd-reg{background:#faf7f1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;margin:4px 0 8px;font-size:13.5px;line-height:1.45}
   .dd-reg-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
   .ai-lbl{display:block;font-size:12.5px;font-weight:600;margin:4px 0 4px} .ai-in{min-height:66px;width:100%} .ai-yours{font-size:12.5px;margin:3px 0 6px} .ai-run-w{align-self:center;font-size:12px}
@@ -19529,7 +19536,7 @@ function _filingViewHTML(){
         ${listDate?`<span>Defect list <b>${esc(listDate)}</b></span>`:""}
         <span>Filing copy ${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>48?fc.name.slice(0,46)+"…":fc.name)}</button>${fc.linked?` <span class="hint">(in the case folder)</span>`:""} <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> <button class="link-btn" onclick="_flLinkFCAsk()">link</button>`}</span>
       </div>
-      ${stg.tot?_flStepper(stg.k):""}
+      ${stg.tot&&_fsSec()==="refiling"?_flStepper(stg.k):""}
     </div>`;
   const tab=(v,l)=>`<button class="fsg-b ${st.view===v?"on":""}" onclick="_flState().touched=1;_flSet('view','${v}')">${l}</button>`;
   const tabs=`<div class="fsg">${tab("defects",`Defects${stg.tot?` <b>${stg.open}</b>`:""}`)}${tab("stages","Papers")}${tab("check","Check")}</div>`;
@@ -19537,7 +19544,10 @@ function _filingViewHTML(){
   if(st.view==="defects") body=_defectsHTML(rec);
   else if(st.view==="check") body=_checkHTML(rec);
   else body=_flPapersHTML(rec, fc);
-  return head+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div>`;
+  const sec=_fsSec(), fsd=_fsDone(rec);
+  const secSw=`<div class="fsec"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_fsSetSec('filing')"><b>Filing</b><span>${(rec.fs&&(rec.fs.copies||[]).length)?"Filing copy ready":fsd.have+" of "+fsd.of+" documents"}</span></button><button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_fsSetSec('refiling')"><b>Refiling</b><span>${stg.tot?esc(stg.l):"After the defect list"}</span></button></div>`;
+  if(sec==="filing") return head+secSw+`<div class="fv-box">${_fsHTML(rec)}</div>`;
+  return head+secSw+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div>`;
 }
 function _flPapersHTML(rec, fc){
   const items=_flItems(), base=_filingFolderRel(), can=!!_gkUrl(), st=_flState();
@@ -20907,6 +20917,391 @@ function _docSaveBtnHTML(kind, obj, matterId){
 
 // These functions are reached from on-screen buttons and from code outside this block —
 // async functions and constants declared inside a block are NOT global, so export them.
+/* ================== FILING SECTION (Oct 2026) ==================
+   Owner's design: every filing has two sections — FILING (prepare the paper book) and REFILING (the
+   registry's defect list, unchanged). Filing = one slot per document in paper-book order; staff and owner
+   upload into the slots; COLLATE puts them together, numbers the pages the Supreme Court way (studied from
+   12 of the chamber's own filing copies):
+     cover, index — unnumbered · office report on limitation — A · listing proforma — A1, A2…
+     synopsis & list of dates — B, C, D… · impugned order — 1… and everything after continues 1, 2, 3…
+   fills the index's page column and the "Pgs." blanks against each annexure in the list of dates / SLP,
+   and saves the result in stage 3 as the FILING COPY (which the Refiling section then uses). */
+const _FS_SLOTS=[
+ {k:"cover",l:"Cover page",g:"front",n:"none",one:1,h:"The paper-book cover (unnumbered)"},
+ {k:"index",l:"Index",g:"front",n:"none",one:1,h:"With the page column left blank — the app fills it"},
+ {k:"office",l:"Office report on limitation",g:"front",n:"A",one:1,h:"Page A"},
+ {k:"proforma",l:"Listing proforma",g:"front",n:"A",one:1,h:"Pages A1, A2…"},
+ {k:"lod",l:"Synopsis & List of Dates",g:"letters",n:"B",one:1,word:1,h:"Word draft + the PDF saved from Word · pages B, C, D…"},
+ {k:"impugned",l:"Impugned order",g:"num",many:1,title:1,req:1,h:"Page 1 onwards — add each impugned order"},
+ {k:"slp",l:"SLP (petition)",g:"num",one:1,word:1,req:1,h:"Word draft + the PDF saved from Word"},
+ {k:"affidavit",l:"Affidavit of the Petitioner",g:"num",one:1},
+ {k:"appendix",l:"Appendix (relevant provisions of law)",g:"num",one:1,opt:1},
+ {k:"annex",l:"Annexures",g:"num",many:1,title:1,annex:1,h:"P-1, P-2… in order — a short description for each, as in the index"},
+ {k:"apps",l:"Applications",g:"num",many:1,title:1,kind:1,opt:1,h:"Condonation of delay, exemption from certified copy, exemption from official translation…"},
+ {k:"fmemo",l:"Filing memo",g:"num",one:1},
+ {k:"vakalat",l:"Vakalatnama",g:"num",one:1,req:1},
+ {k:"mop",l:"Memo of parties",g:"num",one:1}];
+const _FS_APPS=["Condonation of delay","Exemption from filing certified copy of the impugned order","Exemption from filing official translation","Permission to file the Special Leave Petition","Stay / interim relief","Other"];
+const _FS_GROUPS=[["front","Front pages","Unnumbered, then A, A1, A2…"],["letters","Synopsis & List of Dates","Lettered B, C, D…"],["num","The paper book","Numbered 1, 2, 3… from the impugned order"]];
+function _fsRec(){ const r=_flRec(); if(!r.fs||typeof r.fs!=="object") r.fs={slots:{},copies:[]}; if(!r.fs.slots) r.fs.slots={}; if(!r.fs.copies) r.fs.copies=[]; return r; }
+function _fsList(r,k){ return ((r.fs&&r.fs.slots&&r.fs.slots[k])||[]).filter(Boolean); }
+function _fsSec(){ const st=_flState(); if(!st.sec){ const r=_filingRec(_filingFolderRel(),false); st.sec=(r&&(r.defects||[]).length)?"refiling":"filing"; } return st.sec; }
+function _fsSetSec(v){ _flState().sec=v; renderFilesPage(); }
+function _fsDone(r){ const req=_FS_SLOTS.filter(s=>!s.opt); return {have:req.filter(s=>_fsList(r,s.k).length).length, of:req.length, missReq:_FS_SLOTS.filter(s=>s.req&&!_fsList(r,s.k).length).map(s=>s.l)}; }
+function _fsHTML(rec){
+  const r=rec; if(!r.fs) r.fs={slots:{},copies:[]};
+  const can=!!_gkUrl(), dn=_fsDone(r), last=(r.fs.copies||[]).slice(-1)[0], owner=!isStaffView();
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  const k=last?3:dn.have?2:1;
+  const steps=["Documents","Collate & number","Filing copy"].concat(owner?["AI check"]:[]);
+  const stepper=`<div class="fs">${steps.map((s,i)=>`<div class="fs-i ${i+1<k?"done":i+1===k?"now":""}"><span class="fs-d">${i+1<k?"✓":i+1}</span><span class="fs-l">${s}</span></div>`).join("")}</div>`;
+  let next;
+  if(!last) next=`<div class="fn"><div class="fn-t">${dn.have<dn.of?`1 · Put each document in its slot — ${dn.have} of ${dn.of} done`:"2 · Collate and number the paper book"}</div>
+      <div class="fn-s">${dn.have<dn.of?"Upload each document below, in its place. Word drafts go in with the PDF saved from Word (that keeps the layout exactly).":"All the documents are in. Collate puts them in paper-book order, numbers the pages (A, A1… · B, C… · 1, 2…), fills the index and the page blanks in the List of Dates, and saves the Filing Copy."}${dn.missReq.length?` <b>Still needed: ${esc(dn.missReq.join(", "))}.</b>`:""}</div>
+      <div class="fn-b">${btn("_fsCollateAsk()","Collate &amp; number",dn.missReq.length?"ghost":"seal")}</div></div>`;
+  else next=`<div class="fn ok"><div class="fn-t">3 · Filing copy ready</div><div class="fn-s"><b>${esc(last.file)}</b>${last.pages?" · "+last.pages+" pages":""}${last.by?" · by "+esc(last.by):""}${last.at?" · "+esc(fmtDate(_localISO(new Date(last.at)))):""}</div>
+      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download")}${btn("_fsCollateAsk()","Collate again","ghost")}${owner&&typeof _fsAiHTML==="function"?"":""}${btn("_fsSetSec('refiling')","Defect list came → Refiling","ghost")}</div>${owner&&typeof _fsAiHTML==="function"?_fsAiHTML(r,last):""}</div>`;
+  const slot=s=>{
+    const xs=_fsList(r,s.k);
+    const rows=xs.map((x,i)=>`<div class="fsl-f"><span class="fsl-n">${s.annex?"P-"+(i+1):s.many?(i+1)+".":""}</span><span class="fsl-m"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(x.file)})">${esc(x.title||x.file)}</button>${x.kind?` <span class="hint">· ${esc(x.kind)}</span>`:""}${x.word?` <span class="hint">· Word: ${esc(x.word)}</span>`:s.word?` <span class="hint" style="color:#9a5b00">· no Word draft</span>`:""}</span>
+        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act" onclick="_fsEditAsk('${s.k}',${i})">Edit</button><button class="row-act" onclick="_fsUnlink('${s.k}',${i})" title="Take it out of this slot (the file stays in the folder)">✕</button></span></div>`).join("");
+    const add=can&&(s.many||!xs.length)?`<button class="btn ${xs.length?"ghost":"seal"} sm" onclick="_fsAddAsk('${s.k}')">${xs.length?"+ Add another":"+ Upload"}</button>`:"";
+    return `<div class="fsl ${xs.length?"has":""}"><div class="fsl-h"><span class="fsl-ck">${xs.length?"✓":s.opt?"○":"•"}</span><span class="fsl-t">${esc(s.l)}${s.opt?` <span class="hint">(if any)</span>`:""}</span>${add}</div>${s.h&&!xs.length?`<div class="fsl-s">${esc(s.h)}</div>`:""}${rows}</div>`;
+  };
+  const groups=_FS_GROUPS.map(([g,l,h])=>`<div class="dg"><div class="dg-h">${l} <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:500">— ${h}</span></div><div class="fsl-box">${_FS_SLOTS.filter(s=>s.g===g).map(slot).join("")}</div></div>`).join("");
+  const older=(r.fs.copies||[]).length>1?`<details class="dr-wait" style="margin-top:10px"><summary>Earlier filing copies · ${r.fs.copies.length-1}</summary>${r.fs.copies.slice(0,-1).reverse().map(c=>`<div class="fsl-f"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(c.file)})">${esc(c.file)}</button> <span class="hint">${c.pages||""} pages · ${esc(fmtDate(_localISO(new Date(c.at))))}</span></div>`).join("")}</details>`:"";
+  return stepper+next+groups+older;
+}
+/* ---- upload into a slot ---- */
+function _fsAddAsk(k, i){
+  const s=_FS_SLOTS.find(x=>x.k===k); if(!s) return; const r=_fsRec(); const cur=i!=null?_fsList(r,k)[i]:null;
+  const n=_fsList(r,k).length;
+  const pdfs=_flItems().filter(x=>/\.pdf$/i.test(x.name)&&x.stage!==3&&x.stage!==4).map(x=>x.name);
+  openModal(cur?`Edit — ${s.l}`:`${s.l}${s.annex?" — Annexure P-"+(n+1):""}`, `
+    ${cur?"":`<label class="fld">PDF</label><input type="file" id="fsPdf" accept="application/pdf,.pdf" class="in">
+      ${pdfs.length?`<div class="hint" style="margin:6px 0 2px">or one already in this filing folder:</div><select class="in" id="fsPick"><option value="">—</option>${pdfs.map(p=>`<option>${esc(p)}</option>`).join("")}</select>`:""}`}
+    ${s.word&&!cur?`<label class="fld" style="margin-top:10px">Word draft (.docx) — kept with it for record</label><input type="file" id="fsWord" accept=".doc,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="in">
+      <div class="hint">Save the PDF from Word itself (File → Save As → PDF) so the layout is exactly as drafted.</div>`:""}
+    ${s.kind?`<label class="fld" style="margin-top:10px">Which application</label><select class="in" id="fsKind">${_FS_APPS.map(a=>`<option ${cur&&cur.kind===a?"selected":""}>${esc(a)}</option>`).join("")}</select>`:""}
+    ${s.title?`<label class="fld" style="margin-top:10px">${s.annex?"Description (as in the index)":s.k==="impugned"?"Description (e.g. Judgment dated 04.03.2026 in C.R.P. No. 1042 of 2026)":"Description"}</label><input class="in" id="fsTitle" value="${esc(cur?cur.title||"":"")}">`:""}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAddGo('${k}'${i!=null?","+i:""})">${cur?"Save":"Add"}</button></div>`);
+}
+function _fsEditAsk(k,i){ _fsAddAsk(k,i); }
+async function _fsAddGo(k, i){
+  const s=_FS_SLOTS.find(x=>x.k===k); const r=_fsRec(); const list=(r.fs.slots[k]=_fsList(r,k));
+  const title=((document.getElementById("fsTitle")||{}).value||"").trim(), kind=((document.getElementById("fsKind")||{}).value||"").trim();
+  if(i!=null){ Object.assign(list[i],{title,kind}); _filingTouch(r); closeModal(); renderFilesPage(); return; }
+  const f=(document.getElementById("fsPdf")||{}).files, w=(document.getElementById("fsWord")||{}).files, pick=((document.getElementById("fsPick")||{}).value||"");
+  if(!(f&&f[0])&&!pick){ toast("Choose the PDF.",true); return; }
+  if(f&&f[0]&&!/\.pdf$/i.test(f[0].name)){ toast("That is not a PDF.",true); return; }
+  if(s.title&&!title&&s.annex){ toast("Give the annexure a short description — it goes into the index.",true); return; }
+  const stage=(s.word||k==="index"||k==="cover")?2:1, base=_filingFolderRel();
+  const label=s.annex?`Annexure P-${list.length+1}`:s.l.replace(/\s*\(.*\)$/,"");
+  const nm=st=>`${st}.${_stageNext(st,_currentNames())} ${_safeName(label)}${title&&!s.annex?" - "+_safeName(title).slice(0,70):""}`;
+  _progressModal("Adding…","Uploading…");
+  try{
+    let file=pick, word="";
+    if(f&&f[0]) file=await _uploadPaper(base+"/"+nm(stage)+".pdf",f[0],(g,t)=>_progressSet("Uploading the PDF…",g/t));
+    if(w&&w[0]){ const ext=(/\.docx?$/i.exec(w[0].name)||[".docx"])[0].toLowerCase(); word=await _uploadPaper(base+"/"+nm(2)+ext,w[0],(g,t)=>_progressSet("Uploading the Word draft…",g/t)); }
+    list.push({file, word, title, kind, at:new Date().toISOString(), by:_aiWho()});
+    _filingTouch(r); closeModal(); toast("Added."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _fsMove(k,i,d){ const r=_fsRec(); const l=_fsList(r,k); const j=i+d; if(j<0||j>=l.length) return; [l[i],l[j]]=[l[j],l[i]]; r.fs.slots[k]=l; _filingTouch(r); renderFilesPage(); }
+function _fsUnlink(k,i){ const r=_fsRec(); const l=_fsList(r,k); if(!confirm(`Take "${(l[i]||{}).title||(l[i]||{}).file}" out of this slot? The file stays in the folder.`)) return; l.splice(i,1); r.fs.slots[k]=l; _filingTouch(r); renderFilesPage(); }
+/* ---- page labels ---- */
+function _fsLetters(i){ // 0→B, 1→C … 24→Z, 25→AA, 26→AB …
+  const n=i+1; if(n<26) return String.fromCharCode(66+i);
+  const m=n-25; return "A"+String.fromCharCode(64+m);
+}
+// text items with size, for finding blanks / labels / index cells
+async function _fsText(blob){
+  const lib=await _qlPdfLib(); const doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; const pages=[];
+  for(let i=1;i<=doc.numPages;i++){ const p=await doc.getPage(i), vp=p.getViewport({scale:1}), tc=await p.getTextContent();
+    const items=tc.items.filter(it=>it.str&&it.str.trim()).map(it=>({s:it.str, x:it.transform[4], y:vp.height-it.transform[5], w:it.width||0, z:Math.abs(it.transform[3])||Math.abs(it.transform[0])||11}));
+    const rows=_itemRows(items.map(o=>Object.assign({},o,{s:o.s.trim()})));
+    pages.push({w:vp.width,h:vp.height,items,rows,text:rows.map(r=>_joinItems(r)).join("\n")}); }
+  return {doc,pages,n:doc.numPages};
+}
+function _fsLabelAt(pg){ // the page number already printed at the top/bottom centre, with where it is
+  const rows=(pg.rows||[]).filter(r=>r[0].y<62||r[0].y>pg.h-46);
+  for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
+    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)){
+      const x0=Math.min(...mid.map(i=>i.x)), x1=Math.max(...mid.map(i=>i.x+(i.w||8))), z=Math.max(...mid.map(i=>i.z||11));
+      return {t, x0, x1, y:mid[0].y, z}; } }
+  return null;
+}
+function _fsRange(a,b){ return !a?"":a===b?a:a+"-"+b; }
+function _fsCollateAsk(){
+  const r=_fsRec(); const dn=_fsDone(r);
+  openModal("Collate & number the paper book", `
+    ${dn.missReq.length?`<div class="co-warn" style="margin-bottom:8px">Not yet in: <b>${esc(dn.missReq.join(", "))}</b>. You can still collate to see how it looks.</div>`:""}
+    <div class="hint" style="margin-bottom:8px">Order: cover · index · office report (A) · proforma (A1…) · synopsis &amp; list of dates (B…) · impugned order (1…) · SLP · affidavit · appendix · annexures · applications · filing memo · vakalatnama · memo of parties.</div>
+    <label class="co-opt"><input type="checkbox" id="fsNum" checked> Number every page that doesn't already show its number (a wrong number is replaced)</label>
+    <label class="co-opt"><input type="checkbox" id="fsAnx" checked> Write “ANNEXURE P-n” at the top of an annexure's first page if it isn't there</label>
+    <label class="co-opt"><input type="checkbox" id="fsIdx" checked> Fill the page numbers in the index</label>
+    <label class="co-opt"><input type="checkbox" id="fsPgs" checked> Fill the “Pgs.” blanks against each annexure in the List of Dates and the SLP</label>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsCollateGo()">Collate</button></div>`);
+}
+var _fsBuilt=null;
+async function _fsCollateGo(){
+  const o={num:!!(document.getElementById("fsNum")||{}).checked, anx:!!(document.getElementById("fsAnx")||{}).checked, idx:!!(document.getElementById("fsIdx")||{}).checked, pgs:!!(document.getElementById("fsPgs")||{}).checked};
+  const r=_fsRec(); const base=_filingFolderRel();
+  _progressModal("Collating…","Fetching the documents…");
+  try{
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const out=await PDFDocument.create(); const fB=await out.embedFont(StandardFonts.TimesRomanBold), fR=await out.embedFont(StandardFonts.TimesRoman);
+    const parts=[]; const warn=[]; const fills=[];
+    // 1. load every slot in paper-book order
+    const order=_FS_SLOTS.map(s=>_fsList(r,s.k).map((x,i)=>({s,x,i}))).flat();
+    for(let q=0;q<order.length;q++){ const {s,x,i}=order[q];
+      _progressSet(`Reading ${x.title||x.file}…`,0.05+0.45*q/Math.max(1,order.length));
+      const it=_flItems().find(z=>z.name===x.file); if(!it){ warn.push(`${s.l}: "${x.file}" is no longer in the filing folder — left out.`); continue; }
+      const blob=await _paperBlob({path:base+"/"+x.file,name:x.file,size:it.size});
+      const pd=await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()),{ignoreEncryption:true});
+      const tx=await _fsText(blob);
+      parts.push({s,x,i,pd,tx,n:pd.getPageCount()}); }
+    if(!parts.length) throw new Error("Nothing uploaded yet.");
+    // 2. page labels
+    let a=0, b=0, num=0;
+    parts.forEach(p=>{ p.labels=[]; for(let j=0;j<p.n;j++){ let L="";
+      if(p.s.n==="A"){ L=a===0?"A":"A"+a; a++; } else if(p.s.n==="B"){ L=_fsLetters(b++); } else if(p.s.n!=="none"){ L=String(++num); }
+      p.labels.push(L); } p.from=p.labels[0]||""; p.to=p.labels[p.labels.length-1]||""; });
+    // 3. copy pages, number them, mark annexures
+    _progressSet("Numbering the pages…",0.55);
+    const outPages=[]; let stamped=0, fixed=0;
+    for(const p of parts){ const cp=await out.copyPages(p.pd,p.pd.getPageIndices());
+      cp.forEach((pg,j)=>{ out.addPage(pg); outPages.push({pg,p,j}); const L=p.labels[j]; if(!o.num||!L) return;
+        const have=_fsLabelAt(p.tx.pages[j]||{rows:[]}); const {height:H}=pg.getSize();
+        if(have&&have.t===L) return;
+        if(have){ pg.drawRectangle({x:have.x0-3,y:H-have.y-3,width:have.x1-have.x0+6,height:have.z+5,color:rgb(1,1,1)});
+          const sz=Math.min(14,Math.max(10,have.z)), tw=fR.widthOfTextAtSize(L,sz); pg.drawText(L,{x:(have.x0+have.x1)/2-tw/2,y:H-have.y,size:sz,font:fR,color:rgb(0,0,0)}); fixed++;
+          if(fixed<=12) warn.push(`${p.s.l}${p.x.title?" ("+p.x.title+")":""}: page showed “${have.t}”, now “${L}”.`); }
+        else { _stampLabel(pg,L,fR,rgb,true); stamped++; } });
+      if(o.anx&&p.s.annex){ const t0=((p.tx.pages[0]||{}).text||"").slice(0,400); const want="ANNEXURE P-"+(p.i+1);
+        if(!new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+(p.i+1)+"\\b","i").test(t0)){ const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const tw=fB.widthOfTextAtSize(want,13);
+          pg.drawRectangle({x:W-tw-46,y:H-60,width:tw+12,height:20,color:rgb(1,1,1)}); pg.drawText(want,{x:W-tw-40,y:H-55,size:13,font:fB,color:rgb(0,0,0)}); fills.push({where:want,what:"heading written at the top"}); } } }
+    // 4. index
+    const rng=k=>{ const ps=parts.filter(p=>p.s.k===k); return ps.length?_fsRange(ps[0].from,ps[ps.length-1].to):""; };
+    const P=k=>parts.filter(p=>p.s.k===k);
+    const idxPart=parts.find(p=>p.s.k==="index");
+    if(o.idx&&idxPart){ _progressSet("Filling the index…",0.7);
+      const res=_fsFillIndex(idxPart, outPages, parts, rng, P, fR, rgb); res.fills.forEach(f=>fills.push(f)); res.warn.forEach(w=>warn.push(w)); }
+    else if(o.idx) warn.push("No index uploaded — nothing to fill.");
+    // 5. "Pgs." blanks in the list of dates and the SLP
+    if(o.pgs){ _progressSet("Filling the page references…",0.8);
+      const annex=P("annex"); const res=_fsFillPgs(parts.filter(p=>p.s.k==="lod"||p.s.k==="slp"), outPages, annex, fR, rgb); res.fills.forEach(f=>fills.push(f)); res.warn.forEach(w=>warn.push(w)); }
+    _progressSet("Saving…",0.9);
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _fsBuilt={blob,pages:out.getPageCount(),fills,warn,stamped,fixed,map:parts.map(p=>({l:p.s.annex?"Annexure P-"+(p.i+1)+(p.x.title?" — "+p.x.title:""):p.s.k==="apps"?"Application — "+(p.x.kind||p.x.title||""):p.s.l+(p.x.title?" — "+p.x.title:""),r:_fsRange(p.from,p.to),n:p.n}))};
+    closeModal(); _fsReview();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _fsReview(){
+  const b=_fsBuilt; if(!b) return; const url=URL.createObjectURL(b.blob);
+  openModal("Check before saving — Filing Copy", `
+    <div class="hint" style="margin-bottom:8px">${b.pages} pages · ${b.stamped} page numbers written · ${b.fills.length} blanks filled. <a href="${url}" target="_blank" rel="noopener">Open it to look through</a>.</div>
+    <div class="dd-reg-h">Page numbers</div><table class="fs-map">${b.map.map(m=>`<tr><td>${esc(m.l)}</td><td class="mono">${esc(m.r||"—")}</td></tr>`).join("")}</table>
+    ${b.fills.length?`<div class="dd-reg-h" style="margin-top:10px">Filled in</div><ul class="ai-ch">${b.fills.map(f=>`<li>${esc(f.where)} → <b>${esc(f.what)}</b></li>`).join("")}</ul>`:""}
+    ${b.warn.length?`<div class="dd-reg-h" style="margin-top:10px">Please check</div><div class="ai-w">⚠ ${b.warn.map(esc).join("<br>⚠ ")}</div>`:""}
+    <div class="btn-row cmp-foot"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsSaveCopy()">Save as Filing Copy</button></div>`);
+  document.getElementById("modal").classList.add("m-wide");
+}
+async function _fsSaveCopy(){
+  const b=_fsBuilt; if(!b) return; const r=_fsRec();
+  _progressModal("Saving…","Saving the Filing Copy in stage 3…");
+  try{
+    const short=(_fv.title||_caseTitle(r.serial)||"").replace(/[\\/:*?"<>|]+/g," ").slice(0,60).trim();
+    const nm=`3.${_stageNext(3,_currentNames())} Filing Copy - ${short||"Paper Book"}.pdf`;
+    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,b.blob,(g,t)=>_progressSet(null,g/t));
+    const dl=_cleanFileName("Filing Copy",..._flCleanBase(r));
+    r.fs.copies=(r.fs.copies||[]).concat([{file:name,dl,at:new Date().toISOString(),by:_aiWho(),pages:b.pages,fills:b.fills.length}]); _filingTouch(r);
+    _fsBuilt=null; closeModal(); toast("Filing Copy saved."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+/* the index: find each entry's row and write its pages in the "Part-1 (contents of paper book)" column */
+function _fsFillIndex(ip, outPages, parts, rng, P, font, rgb){
+  const fills=[], warn=[];
+  const pgs=ip.tx.pages; let colX=null, col2X=null;
+  for(const pg of pgs){ for(const it of pg.items){ const t=it.s.trim();
+    if(colX==null&&/^\(?iii\)?$/i.test(t)) colX=it.x; if(col2X==null&&/^\(?iv\)?$/i.test(t)) col2X=it.x; }
+    if(colX!=null) break; }
+  if(colX==null){ for(const pg of pgs){ const h=pg.items.find(it=>/^Part\s*[-–]?\s*(1|I)\b/i.test(it.s.trim())); if(h){ colX=h.x; const h2=pg.items.find(it=>/^Part\s*[-–]?\s*(2|II)\b/i.test(it.s.trim())); if(h2) col2X=h2.x; break; } } }
+  if(colX==null){ warn.push("Index: could not find the page-number column — fill it by hand."); return {fills,warn}; }
+  // entries: a serial "1." / "12" at the left starts an entry; its text runs until the next serial (across pages)
+  const ents=[];
+  pgs.forEach((pg,pi)=>pg.rows.forEach(row=>{ const f=row[0]; const srt=row.slice().sort((a,b)=>a.x-b.x); const lead=[]; for(const it of srt){ if(/^[\d.\s]+$/.test(it.s)) lead.push(it); else break; }
+    const t=lead.map(it=>it.s).join("").replace(/\s+/g,"");
+    if(lead.length&&lead[0].x<pg.w*0.22&&/^\d{1,2}\.?$/.test(t)){ ents.push({pi,y:f.y,z:f.z||11,text:_joinItems(srt.slice(lead.length)),rows:[row]}); }
+    else if(ents.length){ const e=ents[ents.length-1]; if(e.pi===pi||true){ e.text+=" "+_joinItems(row); e.rows.push(row); } } }));
+  const annex=P("annex"), apps=P("apps"); let appUsed=new Set(), impUsed=0; const seen=new Set();
+  const what=e=>{ const T=e.text.replace(/\s+/g," ");
+    if(/court\s*fee/i.test(T)) return null;
+    if(/office\s*report/i.test(T)) return rng("office");
+    if(/pro\s*-?\s*forma/i.test(T)) return rng("proforma");
+    if(/cover\s*page|record of proceedings|limitation report|defect list|note\s*sheet/i.test(T)) return null;
+    if(/synopsis|list of dates/i.test(T)) return rng("lod");
+    const am=/annexure\s*[-–]?\s*p\s*[-–]?\s*(\d+)/i.exec(T); if(am){ const p=annex[+am[1]-1]; return p?_fsRange(p.from,p.to):(warn.push(`Index: Annexure P-${am[1]} is in the index but not uploaded.`),null); }
+    if(/^\s*I\.?\s*A\.?\b|application/i.test(T)&&!/special leave petition along|petition with affidavit/i.test(T)){
+      const kinds=[[/certified copy/i,/certified/i],[/translation|o\.\s*t\./i,/translation/i],[/condon|delay/i,/condon|delay/i],[/permission/i,/permission/i],[/stay|interim/i,/stay|interim/i]];
+      let p=null; for(const [rt,rk] of kinds){ if(rt.test(T)){ p=apps.find((x,j)=>!appUsed.has(j)&&rk.test(x.x.kind||x.x.title||"")); break; } }
+      if(!p) p=apps.find((x,j)=>!appUsed.has(j)); if(!p){ warn.push("Index: an application row has no uploaded application."); return null; }
+      appUsed.add(apps.indexOf(p)); return _fsRange(p.from,p.to); }
+    if(/impugned/i.test(T)){ const ps=P("impugned"); return ps.length?_fsRange(ps[0].from,ps[ps.length-1].to):null; }
+    if(/special leave petition|petition along with|petition with affidavit|writ petition|transfer petition/i.test(T)){ const sl=P("slp"), af=P("affidavit"); const all=sl.concat(/affidavit/i.test(T)?af:[]); return all.length?_fsRange(all[0].from,all[all.length-1].to):null; }
+    if(/affidavit/i.test(T)) return rng("affidavit");
+    if(/appendix/i.test(T)) return rng("appendix");
+    if(/filing\s*memo/i.test(T)) return rng("fmemo");
+    if(/vakalat/i.test(T)) return rng("vakalat");
+    if(/memo of parties/i.test(T)) return rng("mop");
+    return undefined; };
+  const kOf=T=>/office\s*report/i.test(T)?"office":/pro\s*-?\s*forma/i.test(T)?"proforma":/synopsis|list of dates/i.test(T)?"lod":/annexure/i.test(T)?"annex":(/^\s*I\.?\s*A\.?\b|application/i.test(T)&&!/petition along|petition with affidavit/i.test(T))?"apps":/impugned/i.test(T)?"impugned":/special leave petition|petition along with|petition with affidavit/i.test(T)?"slp":/affidavit/i.test(T)?"affidavit":/appendix/i.test(T)?"appendix":/filing\s*memo/i.test(T)?"fmemo":/vakalat/i.test(T)?"vakalat":/memo of parties/i.test(T)?"mop":"";
+  for(const e of ents){ const v=what(e); const name=e.text.replace(/\s+/g," ").trim().slice(0,70); const kk=kOf(e.text); if(kk){ seen.add(kk); if(kk==="slp"&&/affidavit/i.test(e.text)) seen.add("affidavit"); }
+    if(v===undefined){ warn.push(`Index: did not recognise “${name}…” — check its page numbers.`); continue; }
+    if(!v) continue;
+    const pg=ip.tx.pages[e.pi]; const xEnd=col2X!=null?col2X-4:colX+70;
+    const inCell=e.rows.flat().filter(it=>it.x>=colX-12&&it.x<xEnd); const have=inCell.map(i=>i.s).join("").replace(/\s+/g,"");
+    if(have===v.replace(/\s+/g,"")) continue;
+    const op=outPages.find(o=>o.p===ip&&o.j===e.pi); if(!op) continue; const H=op.pg.getSize().height, sz=Math.min(12,Math.max(10,e.z||11));
+    if(have){ inCell.forEach(it=>op.pg.drawRectangle({x:it.x-1,y:H-it.y-(it.z||11)*0.42,width:(it.w||8)+2,height:(it.z||11)*1.32,color:rgb(1,1,1)})); warn.push(`Index: “${name}…” said ${have}, now ${v}.`); }
+    op.pg.drawText(v,{x:colX,y:H-e.y,size:sz,font,color:rgb(0,0,0)}); fills.push({where:"Index · "+name.slice(0,48),what:v}); }
+  const lab={office:"Office report on limitation",proforma:"Listing proforma",lod:"Synopsis & List of Dates",impugned:"Impugned order",slp:"SLP",affidavit:"Affidavit",appendix:"Appendix",annex:"Annexures",apps:"Applications",fmemo:"Filing memo",vakalat:"Vakalatnama",mop:"Memo of parties"};
+  Object.keys(lab).forEach(k=>{ if(P(k).length&&!seen.has(k)) warn.push(`Index: “${lab[k]}” is in the paper book but has no row in the index — add it to the index.`); });
+  const nA=annex.length, inIdx=ents.filter(e=>/annexure\s*[-–]?\s*p\s*[-–]?\s*\d+/i.test(e.text)).length; if(nA&&inIdx&&inIdx<nA) warn.push(`Index lists ${inIdx} annexure${inIdx===1?"":"s"} but ${nA} are uploaded.`);
+  return {fills,warn};
+}
+/* "annexed … as ANNEXURE P-3 … at Pgs. ___" in the list of dates and the SLP: write the annexure's pages after "Pgs."
+   Word PDFs often carry a whole line as one text run, so positions are worked out letter by letter (Times widths). */
+function _fsRowStr(row, font){
+  let str="", map=[], end=null;
+  const W=(t)=>{ try{ return font.widthOfTextAtSize(t,10); }catch(e){ return t.length*5; } };
+  row.slice().sort((a,b)=>a.x-b.x).forEach(it=>{ const t=it.s; if(end!=null&&it.x-end>1.6){ str+=" "; map.push(null); }
+    const tw=W(t)||1; for(let c=0;c<t.length;c++){ map.push({it, x:it.x+(it.w||tw)*(W(t.slice(0,c))/tw), x2:it.x+(it.w||tw)*(W(t.slice(0,c+1))/tw)}); }
+    str+=t; end=it.x+(it.w||tw); });
+  return {str,map};
+}
+function _fsFillPgs(docs, outPages, annex, font, rgb){
+  const fills=[], warn=[], done=new Set();
+  const ANX=/ANNEXURE\s*[-–]?\s*['‘’"]?\s*P\s*[-–]?\s*(\d+)/gi;
+  const PGS=/\b(Pgs?|Pages?)\b\s*\.*\s*/gi;
+  docs.forEach(p=>p.tx.pages.forEach((pg,pi)=>{
+    let lastAnx=null, lastRow=-9, prevStr="";
+    const rows=pg.rows.slice().sort((a,b)=>a[0].y-b[0].y);
+    rows.forEach((row,ri)=>{
+      const {str,map}=_fsRowStr(row,font); const evs=[];
+      let m; ANX.lastIndex=0; while((m=ANX.exec(str))) evs.push({at:m.index,anx:+m[1]});
+      if(ri&&/ANNEXURE\s*[-–]?\s*['‘’"]?\s*$/i.test(prevStr)){ const c=/^\s*['‘’"]?\s*P\s*[-–]?\s*(\d+)/i.exec(str); if(c) evs.push({at:0,anx:+c[1]}); }
+      prevStr=str;
+      PGS.lastIndex=0; while((m=PGS.exec(str))) evs.push({at:m.index,pgs:m,end:m.index+m[0].length});
+      evs.sort((a,b)=>a.at-b.at);
+      for(const e of evs){
+        if(e.anx){ lastAnx=e.anx; lastRow=ri; continue; }
+        if(lastAnx==null||ri-lastRow>2) continue;
+        const an=annex[lastAnx-1]; if(!an){ warn.push(`${p.s.l}: Annexure P-${lastAnx} is referred to but not uploaded.`); continue; }
+        const v=_fsRange(an.from,an.to);
+        // what follows "Pgs.": a blank (____ / ....) and/or an old number; a date (14.11.2017) is the next entry, not a page
+        const rest=str.slice(e.end); const bm=/^([_.\s]*?)(\d{1,3}\s*(?:-|–|to)\s*\d{1,3}|\d{1,3})?(?=[\s.,;)]|$)/.exec(rest)||["",""];
+        let old=bm[2]||""; if(old&&/^\d{1,2}\.\d{1,2}\.\d{2,4}/.test(rest.trim())) old="";
+        const blankLen=old?bm[0].length:(/^[_.\s]*/.exec(rest)||[""])[0].replace(/\s+$/,"").length;
+        if(old&&old.replace(/\s+/g,"").replace("to","-").replace("–","-")===v) { done.add(p.s.k+":"+lastAnx); continue; }
+        const op=outPages.find(o=>o.p===p&&o.j===pi); if(!op) continue; const H=op.pg.getSize().height;
+        const startC=map[e.end-1]||map[e.at]; if(!startC) continue; const z=Math.min(13,Math.max(9,startC.it.z||12));
+        let x=startC.x2;
+        const nxt=map.slice(e.end+blankLen).find(Boolean);
+        if(nxt&&nxt.x-x<font.widthOfTextAtSize(" "+v,z)+2){ warn.push(`${p.s.k==="lod"?"List of Dates":"SLP"} page ${p.labels[pi]||pi+1}: no room after “Pgs.” for Annexure P-${lastAnx} (${v}) — write it by hand.`); done.add(p.s.k+":"+lastAnx); continue; }
+        if(blankLen){ const cs=map.slice(e.end,e.end+blankLen).filter(Boolean); if(cs.length){ const x0=cs[0].x, x1=cs[cs.length-1].x2; op.pg.drawRectangle({x:x0-0.5,y:H-startC.it.y-z*0.42,width:x1-x0+1,height:z*1.32,color:rgb(1,1,1)}); /* underscores sit well below the baseline */ } }
+        op.pg.drawText(" "+v,{x,y:H-startC.it.y,size:z,font,color:rgb(0,0,0)});
+        done.add(p.s.k+":"+lastAnx);
+        fills.push({where:`${p.s.k==="lod"?"List of Dates":"SLP"} page ${p.labels[pi]||pi+1} · Annexure P-${lastAnx}`,what:"Pgs. "+v+(old?` (was ${old})`:"")});
+      } }); }));
+  const lod=docs.find(p=>p.s.k==="lod");
+  if(lod) annex.forEach((a,i)=>{ if(!done.has("lod:"+(i+1))&&new RegExp("ANNEXURE\\s*[-–]?\\s*['‘’\"]?\\s*P\\s*[-–]?\\s*"+(i+1)+"\\b","i").test(lod.tx.pages.map(x=>x.text).join("\n"))) warn.push(`List of Dates: Annexure P-${i+1} is mentioned but no “Pgs.” blank was found next to it — check by hand.`); });
+  return {fills,warn};
+}
+
+try{ Object.assign(window,{_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+/* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
+   rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
+   fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
+   by putting the AI's corrected pages in place of those pages. Staff never see any of this. */
+function _fsAiSet(fn){ const r=_fsRec(); const a=Object.assign({},r.fs.ai||{}); fn(a);
+  a.at=new Date().toISOString(); a.by=_aiWho(); a.history=(a.history||[]).slice(-11).concat([{status:a.status,at:a.at,by:a.by,msg:(a.msg||"").slice(0,300)}]);
+  r.fs.ai=a; _filingTouch(r); return r; }
+function _fsAiHTML(r,last){
+  if(isStaffView()||!last) return "";
+  const a=(r.fs&&r.fs.ai)||{}; let st=a.status||""; if(a.file&&a.file!==last.file&&st!=="queued"&&st!=="working") st="";
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm" onclick="${on}">${l}</button>`;
+  const yours=a.instruction?`<div class="ai-yours">Your instructions: <i>${esc(a.instruction)}</i></div>`:"";
+  const box=`<label class="ai-lbl" for="fsAiIn">Anything particular to look for? (optional)</label><textarea class="in ai-in" id="fsAiIn" rows="2" oninput="window.__aiDraft['fsai']=this.value" placeholder="e.g. Check the impugned order's date everywhere · Is the cover page right for a stay application?">${esc(window.__aiDraft.fsai||"")}</textarea>`;
+  const head=t=>`<div class="ai-h">✨ ${t}${a.at&&st?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>`;
+  if(!st||st==="dismissed") return `<div class="ai-b" style="margin-top:10px">${head("Check the filing copy with AI")}<div class="ai-s">The AI reads the whole paper book like the registry would — index against the pages, page references, dates and numbers everywhere, proforma, cover, annexures, applications — and suggests corrections, each shown before and after. You choose which to accept.</div>${box}
+    <div class="dp-a">${btn("_fsAiQueue()","✨ Check with AI","seal")}<span class="ai-run-w">${_aiRunHTML()}</span></div></div>`;
+  if(st==="queued"||st==="working") return `<div class="ai-b ${st}" style="margin-top:10px">${head(st==="queued"?"Waiting for the AI clerk":"The AI clerk is checking the filing copy")}${yours}<div class="ai-s">${_aiRunHTML()}</div><div class="dp-a">${st==="queued"?btn("_fsAiCancel()","Cancel"):""}</div></div>`;
+  if(st==="question") return `<div class="ai-b question" style="margin-top:10px">${head("The AI clerk has a question")}<div class="ai-q">${esc(a.question||a.msg||"")}</div>
+    <textarea class="in" id="fsAiAns" rows="2" placeholder="Your answer"></textarea><div class="dp-a">${btn("_fsAiAnswer()","Send answer","seal")}${btn("_fsAiCancel()","Cancel")}</div></div>`;
+  if(st==="error") return `<div class="ai-b error" style="margin-top:10px">${head("The AI clerk could not check it")}<div class="ai-s">${esc(a.msg||"")}</div>${box}<div class="dp-a">${btn("_fsAiQueue()","Try again","seal")}</div></div>`;
+  if(st==="checked") return `<div class="ai-b ok" style="margin-top:10px">${head("Checked by the AI clerk — nothing to change")}<div class="ai-s">${esc(a.msg||"")}</div>${box}<div class="dp-a">${btn("_fsAiQueue()","Check again")}</div></div>`;
+  if(st==="applied") return `<div class="ai-b ok" style="margin-top:10px">${head("AI suggestions applied")}<div class="ai-s">${(a.applied||[]).length} change${(a.applied||[]).length===1?"":"s"} put into ${esc(a.out||"the final filing copy")}.</div>${box}<div class="dp-a">${btn("_fsAiQueue()","Check the new copy with AI")}</div></div>`;
+  if(st==="review"){ const P=a.proposal||{}; const items=P.items||[];
+    return `<div class="ai-b review" style="margin-top:10px">${head(`${items.length} suggestion${items.length===1?"":"s"} from the AI clerk`)}${yours}${P.summary?`<div class="ai-s">${esc(P.summary)}</div>`:""}
+      ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}
+      <div class="fsai-list">${items.map(it=>`<label class="fsai-it"><input type="checkbox" class="fsai-ck" value="${esc(it.id)}" checked>
+        <span class="fsai-m"><b>${esc(it.label||"")}</b>${it.replaces?` <span class="hint">· page ${esc(it.replaces)}</span>`:""}${it.reason?`<span class="ac-d">${esc(it.reason)}</span>`:""}
+        ${(it.changes||[]).length?`<ul class="ai-ch">${it.changes.map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")}</ul>`:""}</span>
+        <button class="btn ghost sm" onclick="event.preventDefault();_fsAiCompare('${esc(it.id)}')">Compare</button></label>`).join("")}</div>
+      <div class="dp-a">${btn("_fsAiApply()","Make the final Filing Copy with the ticked changes","seal")}${btn("_fsAiChangeAsk()","Ask for changes")}${btn("_fsAiDismiss()","Dismiss all")}</div></div>`; }
+  return "";
+}
+function _fsAiQueue(){ if(isStaffView()) return; const r=_fsRec(); const last=(r.fs.copies||[]).slice(-1)[0]; if(!last) return;
+  const v=((document.getElementById("fsAiIn")||{}).value||"").trim();
+  _fsAiSet(a=>{ a.status="queued"; a.mode="filingcheck"; a.file=last.file; a.instruction=v; a.msg=""; a.question=""; a.answer=""; delete a.proposal; delete a.applied; });
+  delete window.__aiDraft.fsai; toast("Sent to the AI clerk."); renderFilesPage(); }
+function _fsAiCancel(){ _fsAiSet(a=>{ a.status=""; a.msg=""; }); renderFilesPage(); }
+function _fsAiDismiss(){ if(!confirm("Dismiss all the AI's suggestions? The filing copy stays as it is.")) return; _fsAiSet(a=>{ a.status="dismissed"; }); renderFilesPage(); }
+function _fsAiAnswer(){ const v=((document.getElementById("fsAiAns")||{}).value||"").trim(); if(!v){ toast("Type the answer first.",true); return; }
+  _fsAiSet(a=>{ a.answer=v; a.status="queued"; a.msg=""; }); renderFilesPage(); }
+function _fsAiChangeAsk(){ openModal("Ask the AI for changes", `<label class="fld">What should be different?</label><textarea class="in" id="fsAiChg" rows="3"></textarea>
+  <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAiChangeGo()">Send back</button></div>`); }
+function _fsAiChangeGo(){ const v=((document.getElementById("fsAiChg")||{}).value||"").trim(); if(!v){ toast("Say what should change.",true); return; }
+  _fsAiSet(a=>{ a.status="queued"; a.instruction=v; a.msg=""; }); closeModal(); renderFilesPage(); }
+async function _fsAiCompare(id){
+  const r=_fsRec(); const a=r.fs.ai||{}; const P=a.proposal||{}; const k=(P.items||[]).findIndex(x=>x.id===id); const it=(P.items||[])[k]; if(!it) return;
+  openModal(`${it.label||"Suggestion"} — filing copy vs AI's correction`, `
+    <div class="cmp-ai"><div class="dd-reg-h">Why</div><div><b>${esc(it.reason||"")}</b></div>${(it.changes||[]).length?`<ul class="ai-ch">${it.changes.map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")}</ul>`:""}</div>
+    <div class="hint" style="margin:6px 0">Changes are boxed in red. Tap a page to enlarge it.</div><div id="fsCmp" class="ai-cmp"><div class="hint">Loading pages…</div></div>
+    <div class="btn-row cmp-foot"><button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+  document.getElementById("modal").classList.add("m-wide");
+  const box=document.getElementById("fsCmp");
+  try{ const pv=(P.previewId&&window.FB&&FB.getAiPreview)?await FB.getAiPreview(r.chamber==="SD",P.previewId):null; const pi=pv&&pv.items&&pv.items[k];
+    if(!pi){ box.innerHTML=`<div class="hint">No pictures for this one — open <b>${esc(it.file)}</b> in the Papers to see it.</div>`; return; }
+    const cell=(src,label)=>`<div class="ai-pg">${src?`<img src="${src}" onclick="this.closest('.ai-cmp').classList.toggle('big')">`:`<div class="ai-pg-e">—</div>`}<div class="hint">${esc(label)}</div></div>`;
+    box.innerHTML=pi.pages.map(pg=>`<div class="ai-row">${cell(pg.before,"Filing copy · page "+pg.label)}${cell(pg.after,"AI's correction")}</div>`).join("");
+  }catch(e){ box.innerHTML=`<div class="hint">Could not load: ${esc(e.message)}</div>`; }
+}
+async function _fsAiApply(){
+  if(isStaffView()) return;
+  const r=_fsRec(); const a=r.fs.ai||{}; const P=a.proposal||{}; const ids=[...document.querySelectorAll(".fsai-ck:checked")].map(x=>x.value);
+  const items=(P.items||[]).filter(x=>ids.includes(x.id)); if(!items.length){ toast("Tick at least one change.",true); return; }
+  const base=_filingFolderRel(); _progressModal("Making the final Filing Copy…","Fetching the filing copy…");
+  try{
+    const {PDFDocument}=await _libPdfLib();
+    const get=async name=>{ const x=_flItems().find(i=>i.name===name); if(!x) throw new Error(`"${name}" is no longer in the filing folder.`); return PDFDocument.load(new Uint8Array(await (await _paperBlob({path:base+"/"+name,name,size:x.size})).arrayBuffer()),{ignoreEncryption:true}); };
+    const src=await get(a.file); const out=await PDFDocument.create(); const n=src.getPageCount();
+    const at={}, skip=new Set(), warn=[];
+    for(const it of items){ const fi=(it.fromIdx||[]).filter(i=>i>=0&&i<n); if(!fi.length){ warn.push(`${it.label}: no pages to replace — left out.`); continue; }
+      if(fi.some(i=>skip.has(i))){ warn.push(`${it.label}: overlaps another change — left out.`); continue; }
+      _progressSet(`Fetching ${it.label}…`,0.3); at[Math.min(...fi)]=await get(it.file); fi.forEach(i=>skip.add(i)); }
+    for(let i=0;i<n;i++){ if(at[i]){ (await out.copyPages(at[i],at[i].getPageIndices())).forEach(p=>out.addPage(p)); continue; } if(skip.has(i)) continue; const [p]=await out.copyPages(src,[i]); out.addPage(p); }
+    _progressSet("Saving…",0.85);
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    const short=(_fv.title||_caseTitle(r.serial)||"").replace(/[\\/:*?"<>|]+/g," ").slice(0,60).trim();
+    const name=await _uploadPaper(base+"/"+`3.${_stageNext(3,_currentNames())} Filing Copy (final) - ${short||"Paper Book"}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
+    r.fs.copies=(r.fs.copies||[]).concat([{file:name,dl:_cleanFileName("Filing Copy",..._flCleanBase(r)),at:new Date().toISOString(),by:_aiWho(),pages:out.getPageCount(),final:true,ai:items.length}]);
+    _fsAiSet(x=>{ x.status="applied"; x.applied=items.map(i=>i.id); x.out=name; x.msg=`${items.length} AI change${items.length===1?"":"s"} applied`; });
+    closeModal(); toast("Final Filing Copy saved."+(warn.length?" "+warn.join(" "):"")); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+try{ Object.assign(window,{_fsAiSet,_fsAiHTML,_fsAiQueue,_fsAiCancel,_fsAiDismiss,_fsAiAnswer,_fsAiChangeAsk,_fsAiChangeGo,_fsAiCompare,_fsAiApply}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -21539,9 +21934,9 @@ const NAV_ICONS={
   matters:'<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h9l4 4v12H5z"/><path d="M14 4v4h4"/></svg>'
 };
 function navFor(){
-  if(_phoneNav()) return [["home","Court"],["p_files","Files"],["p_defects","Defects"],["p_create","Create"],["more","More"]];
-  if(DB.deviceRole==="staff") return [["home","Home"],["s_entry","Record"],["s_upload","Upload"],["p_defects","Defects"],["s_personal","My billing"]];
-  return [["home","Home"],["matters","Cases"],["calendar","Calendar"],["billing","Billing"],["p_defects","Defects"],["more","More"]];
+  if(_phoneNav()) return [["home","Court"],["p_files","Files"],["p_defects","Filing"],["p_create","Create"],["more","More"]];
+  if(DB.deviceRole==="staff") return [["home","Home"],["s_entry","Record"],["s_upload","Upload"],["p_defects","Filing"],["s_personal","My billing"]];
+  return [["home","Home"],["matters","Cases"],["calendar","Calendar"],["billing","Billing"],["p_defects","Filing"],["more","More"]];
 }
 /* Distinct line icons for the home shortcut grid (24x24, currentColor). */
 const HOME_ICONS={
@@ -22799,6 +23194,8 @@ const _AC_EV={queued:"Sent to the AI clerk",working:"AI started work",review:"AI
 function _acEvents(){
   const out=[];
   _allFilingRecs().forEach(r=>{ const title=_caseTitle(r.serial)||String(r.folder||"").split("/").slice(-2,-1)[0]||"";
+    const fa=(r.fs||{}).ai; if(fa) (fa.history||[]).forEach(h=>{ if(!h||!h.at) return; const lab={queued:"Filing copy sent to the AI clerk",working:"AI started checking the filing copy",review:"AI suggestions for the filing copy",checked:"AI checked the filing copy: nothing to change",applied:"AI suggestions applied — final filing copy",question:"AI asked a question (filing copy)",error:"AI could not check the filing copy",dismissed:"Filing-copy suggestions dismissed","":"Cancelled"}[h.status||""]||h.status;
+      out.push({t:new Date(h.at), at:h.at, st:h.status||"", lab, msg:h.msg||"", by:h.by||"", r, d:{id:"",no:"—",text:"Filing copy"}, title, cur:fa.status||""}); });
     (r.defects||[]).forEach(d=>{ const a=d.ai||{}; (a.history||[]).forEach(h=>{ if(!h||!h.at) return;
       let lab=_AC_EV[h.status||""]||h.status;
       if(h.status==="queued"&&a.mode==="check") lab="Sent to the AI clerk to check";
@@ -22873,13 +23270,15 @@ function renderPhoneDefects(){
         <span class="pd-s">${_drSteps(x.st.k)}<span class="dr-sl">${esc(x.st.l)}</span></span>
         <span class="pd-s"><span class="pd-b ${x.st.open?"open":"ok"}">${x.st.open} of ${x.st.tot} open</span>${aiB(r)}${_drListDate(r)?`<span class="pf-n">list of ${esc(_drListDate(r))}</span>`:""}</span></button>
       <div class="pd-acts"><button onclick="${open(r,"stages")}">Stages</button><button onclick="${open(r,"defects")}">Defects</button><button onclick="${open(r,"check")}">Check</button></div></div>`; }).join("");
-  const wait=waiting.length?`<details class="dr-wait"><summary>${waiting.length} filing${waiting.length===1?"":"s"} without a defect list yet</summary>${waiting.map(x=>`<button class="pf-row" onclick="${open(x.r,"stages")}"><span class="pf-no">${fno(x.r)}</span><span class="pf-mid"><span class="pf-t">${esc(x.title||"")}</span><span class="pf-s">${esc(x.r.kind||"")}</span></span><span class="pf-go">›</span></button>`).join("")}</details>`:"";
-  home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Defects register</div>
-      <div class="hint">Filings whose registry defect list has been read, and how far the curing has got.${isStaffView()?"":` · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
-    <div class="fv-chips" style="margin:10px 0">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
-    ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
-      :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Defects</b> → <b>Read defect list</b>."}</div>`}
+  const fsSt=r=>{ const c=((r.fs||{}).copies||[]).length; if(c) return "Filing copy ready"; const sl=(r.fs||{}).slots||{}; const n=Object.keys(sl).filter(k=>(sl[k]||[]).length).length; return n?`${n} document slot${n===1?"":"s"} filled`:"Documents not yet in"; };
+  const wait=waiting.length?`<div class="dg" style="margin-top:6px"><div class="dg-h">Filing — being prepared <b>${waiting.length}</b></div><div class="mx-box" style="padding:0">${waiting.map(x=>`<button class="pf-row" onclick="${open(x.r,"stages")}"><span class="pf-no">${fno(x.r)}</span><span class="pf-mid"><span class="pf-t">${esc(x.title||"")}</span><span class="pf-s">${esc(x.r.kind||"")} · ${esc(fsSt(x.r))}</span></span><span class="pf-go">›</span></button>`).join("")}</div></div>`:"";
+  home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Filing register</div>
+      <div class="hint">Every filing — being prepared, and refiling after the registry's defect list.${isStaffView()?"":` · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
     ${wait}
+    <div class="dg-h" style="margin-top:14px">Refiling — defect lists <b>${listed.length}</b></div>
+    <div class="fv-chips" style="margin:6px 0 10px">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
+    ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
+      :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Refiling</b> → <b>Read defect list</b>."}</div>`}
     <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('defects')">＋ Add a defect list</button><button class="btn ghost" style="flex:1" onclick="_pickCase('filing')">⚖️ Start a new filing</button></div>`;
 }
 
@@ -24347,7 +24746,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0200";
+  window.APP_VERSION = "2026.10.09-0300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
