@@ -8941,7 +8941,9 @@ function _parseListing(rawText){
   if(dm){ diaryNo=normNum(dm[1]); number=diaryNo; }
   // \b before the type so short tokens (M.A., C.A., R.P.) can't match inside a party
   // name — e.g. the "MA" in "KUMAR" was being read as a Misc.-Application case type.
-  const cm=raw.match(/(\b(?:SLP|W\.?\s*P\.?|C\.?\s*A\.?|T\.?\s*P\.?|Crl\.?\s*A\.?|R\.?\s*P\.?|M\.?\s*A\.?|Cont\.?|Ref\.?)[^\d]*?No\.?\s*\d+(?:-\d+)?[\/\-]\d{4})/i);
+  // case types incl. contempt ("CONMT.PET.(C)"), suo motu (SMW/SMC), transferred cases (T.C.) and
+  // curative/review; a trailing "in C.A. No. 14259/2025" reference is kept with the number.
+  const cm=raw.match(/(\b(?:SLP|W\.?\s*P\.?|C\.?\s*A\.?|T\.?\s*P\.?|T\.?\s*C\.?|Crl\.?\s*A\.?|R\.?\s*P\.?|M\.?\s*A\.?|CONMT\.?\s*PET\.?|Cont\.?|SMW|SMC|Curative|Ref\.?)[^\d]*?No\.?\s*\d+(?:-\d+)?[\/\-]\d{4}(?:\s+in\s+[A-Za-z.()]+(?:\s*\([A-Za-z.]+\))?\s*No\.?\s*-?\s*\d+(?:-\d+)?[\/\-]\d{4})*)/i);
   if(cm&&!diaryNo){ caseNo=cm[1].replace(/\s+/g," ").trim(); const nn=caseNo.match(NUM); if(nn) number=normNum(nn[0]); }
   if(!number){ const nn=raw.match(NUM); if(nn) number=normNum(nn[0]); }
   // party = the line minus the case/diary portion minus the advocate's OWN name
@@ -8949,7 +8951,7 @@ function _parseListing(rawText){
   if(cm) party=party.replace(cm[1]," ");
   if(dm) party=party.replace(dm[0]," ");
   const adv=_advNameTokens();
-  party=party.split(/\s+/).filter(w=>{ const lw=w.toLowerCase().replace(/[^a-z]/g,""); return lw&&adv.indexOf(lw)<0; }).join(" ");
+  party=party.split(/\s+/).filter(w=>{ if(!w) return false; const lw=w.toLowerCase().replace(/[^a-z]/g,""); return !lw||adv.indexOf(lw)<0; }).join(" ");
   // Keep the full cause title: "PETITIONER vs RESPONDENT". Normalise the "Versus"
   // separator to "vs" but preserve it (the fetcher now supplies both parties).
   party=party.replace(/\bversus\b/ig,"vs").replace(/\s+/g," ").trim();
@@ -23693,7 +23695,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-1900";
+  window.APP_VERSION = "2026.10.08-2100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){

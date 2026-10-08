@@ -499,6 +499,222 @@ def scan_text(lines, wl, list_label, list_kind, for_date, family=""):
     return out
 
 
+
+# ==== Structured item reader (Oct 2026) — ported from the SD-Chamber fetcher ==========
+# The SC list is a 4-column table: SNO (x<60) | CASE NO. (60-180) | PARTIES (180-415) |
+# ADVOCATES (x>=415). Reading it line-by-line lost case numbers that wrap onto the next row
+# ("SLP(Crl) No." / "17504/2026"), let page headers leak into titles, and put parties
+# before the case number. Instead each item is read as a record: the WHOLE case-number
+# column across all its rows, petitioner rows up to "Versus", respondent rows after it,
+# and the advocates column on its own (so a name that wraps "DESHMUKH ADITH" / "SATISH"
+# is still found). Matching is then done per item.
+SNO_X, CASE_X, ADV_X = 60, 180, 415
+ITEM_SNO_RE = re.compile(r"^\d{1,4}(?:\.\d{1,3})?[.)]?$")
+SECTION_RE = re.compile(r"^(?:[IVXL]{1,5}(?:-[A-Z]{1,2})?|PIL(?:-W)?|[IVXL]{1,5}[A-Z])$")
+HEADER_SKIP_RE = re.compile(r"DAILY\s+CAUSE\s+LIST|ADVANCE\s+(?:LIST|CAUSE)|SUPPLEMENTARY\s+(?:LIST|CAUSE)|^\s*SNo\.?\s|Page\s+\d+\s+of\s+\d+", re.I)
+REGOFF_RE = re.compile(r",\s*REGISTRAR\b|^\s*REGISTRAR\b", re.I)
+PARTY_TERM_RE = re.compile(r"^\s*(?:IA\s*No|I\.A\.|\{|\[|O\.T\.|FOR\b|WITH\b|LIST\b|TO\s+BE|Mention|APPLICATION|ORDER\b|As\s+per\b|VIDE\b|PURSUANT\b|ONLY\b|Ready\s+for\b|IN\s+(?:SLP|C\.?A|W\.?P|T\.?P|CRL|DIARY|R\.?P|M\.?A)\b)", re.I)
+# page furniture that can sit in the party column (digital-signature stamp, running header)
+STAMP_RE = re.compile(r"^\s*(?:SUPREME\s+COURT\s+OF\s+INDIA\b|Signature\s+Not\s+Verified|Digitally\s+signed|Date\s*:\s*\d{4}|Reason\s*:)", re.I)
+_CNUM = r"\d{1,7}(?:\s*-\s*\d{1,7})?\s*[/-]\s*(?:19|20)\d{2}"
+_CTYPE = r"(?:[A-Za-z][A-Za-z.()&]*\.{0,3}\s?){1,4}?"
+CASE_NO_RE = re.compile(rf"{_CTYPE}(?:No(?:s|\(s\))?\.?\s*-?\s*)?{_CNUM}"
+                        rf"(?:\s+in\s+{_CTYPE}(?:No(?:s|\(s\))?\.?\s*-?\s*)?{_CNUM})*", re.I)
+
+
+def _case_text(words):
+    """Words of the case-number column -> 'SLP(Crl) No. 17504/2026' or
+    'CONMT.PET.(C) No. 684/2026 in C.A. No. 14259/2025'. Section codes dropped."""
+    t = " ".join(w for w in words if not SECTION_RE.match(w))
+    t = re.sub(r"\s+", " ", t).strip()
+    m = CASE_NO_RE.search(t)
+    if m:
+        num = m.group(0)
+        num = re.sub(r"(No(?:s|\(s\))?\.)\s*-?\s*(?=\d)", r"\1 ", num)
+        num = re.sub(r"\s*-\s*(?=\d)", "-", num)
+        return num.strip()
+    m = re.match(r"[A-Za-z][A-Za-z.()&]*(?:\s+No(?:s|\(s\))?\.)?", t)
+    return m.group(0) if m else t[:40]
+
+
+def parse_items(data):
+    """PDF bytes -> list of item records {court, coram, total, fresh, item, case_no,
+    petitioner, respondent, extra, advocates}. [] if word geometry is unavailable."""
+    try:
+        import pdfplumber
+    except Exception:
+        return []
+    items, cur = [], None
+    court, coram_open = "", False
+    court_info = {}   # court -> {"coram","total","fresh"}
+
+    def close():
+        nonlocal cur
+        if cur is not None:
+            ci = court_info.get(cur["court"], {})
+            cur["coram"] = ci.get("coram", "")
+            cur["total"] = ci.get("total", "")
+            cur["fresh"] = ci.get("fresh", "")
+            cur["case_no"] = _case_text(cur.pop("case_w"))
+            for k in ("petitioner", "respondent", "extra", "advocates"):
+                cur[k] = re.sub(r"\s+", " ", " ".join(cur[k])).strip()
+            items.append(cur)
+        cur = None
+
+    try:
+        with pdfplumber.open(io.BytesIO(data)) as pdf:
+            for page in pdf.pages:
+                rows = {}
+                for w in page.extract_words(use_text_flow=True):
+                    rows.setdefault(round(w["top"] / 2), []).append(w)
+                for key in sorted(rows):
+                    ws = sorted(rows[key], key=lambda w: w["x0"])
+                    full = " ".join(w["text"] for w in ws).strip()
+                    lt = " ".join(w["text"] for w in ws if w["x0"] < ADV_X).strip()
+                    if not full:
+                        continue
+                    # court header (not a "[... WILL SIT IN COURT NO.3 ...]" bench note)
+                    if not is_bench_note(lt):
+                        cm = COURT_RE.search(lt)
+                        newc = cm.group(1) if cm else ("1" if CJ_RE.search(lt) else None)
+                        if newc is not None:
+                            if newc != court:
+                                close()
+                            court = newc
+                            ci = court_info.setdefault(court, {"coram": "", "total": "", "fresh": ""})
+                            coram_open = not ci["coram"]
+                            continue
+                    if HEADER_SKIP_RE.search(full):
+                        continue
+                    if is_bench_note(lt) and cur is None:
+                        continue
+                    ci = court_info.setdefault(court, {"coram": "", "total": "", "fresh": ""})
+                    tm = TOTAL_RE.search(lt)
+                    if tm and not ci["total"]:
+                        ci["total"] = tm.group(1)
+                    fm = FRESH_RE.search(lt)
+                    if fm and not ci["fresh"]:
+                        ci["fresh"] = fm.group(1)
+                    if coram_open:
+                        if re.match(r"^\s*hon'?ble\b", lt, re.I) or REGOFF_RE.search(lt):
+                            ci["coram"] = (ci["coram"] + "; " + re.sub(r"\s+", " ", lt)).strip("; ")[:220]
+                            continue
+                        coram_open = False
+                    first = ws[0]
+                    if first["x0"] < SNO_X and ITEM_SNO_RE.match(first["text"]):
+                        sno = first["text"].rstrip(".)")
+                        casew = [w["text"] for w in ws[1:] if w["x0"] < CASE_X]
+                        partyw = " ".join(w["text"] for w in ws[1:] if CASE_X <= w["x0"] < ADV_X)
+                        advw = " ".join(w["text"] for w in ws[1:] if w["x0"] >= ADV_X)
+                        # "110. Connected <party>" (or "91.1 Connected <party>") is followed by a row
+                        # whose leading number is a running index and whose case column starts the
+                        # matter's number ("1 SLP(C) No. 1487/2024"); its party column may carry the
+                        # end of the petitioner's name ("ORS."). "110." + 1 -> item 110.1;
+                        # "91.1" keeps its printed number (the index only tells them apart).
+                        if (cur is not None and cur["connected"] and not cur["sub"] and "." not in sno
+                                and sno.isdigit() and int(sno) <= 300 and casew
+                                and not re.match(r"^connected$", casew[0], re.I)):
+                            cur["sub"] = sno
+                            if "." not in cur["item"]:
+                                cur["item"] = cur["item"] + "." + sno
+                            cur["case_w"] += casew
+                            if partyw:
+                                cur["petitioner"].append(partyw)
+                            if advw:
+                                cur["advocates"].append(advw)
+                            continue
+                        close()
+                        connected = bool(casew) and casew[0].lower() == "connected"
+                        if connected:
+                            casew = casew[1:]
+                        cur = {"court": court, "item": sno, "sub": "", "connected": connected,
+                               "case_w": casew, "petitioner": [partyw] if partyw else [],
+                               "respondent": [], "extra": [], "advocates": [advw] if advw else [],
+                               "stage": "pet"}
+                        continue
+                    if cur is None:
+                        continue
+                    cur["case_w"] += [w["text"] for w in ws if SNO_X <= w["x0"] < CASE_X]
+                    party = " ".join(w["text"] for w in ws if CASE_X <= w["x0"] < ADV_X).strip()
+                    adv = " ".join(w["text"] for w in ws if w["x0"] >= ADV_X).strip()
+                    if adv:
+                        cur["advocates"].append(adv)
+                    if not party or STAMP_RE.match(party):
+                        continue
+                    if VERSUS_RE.match(party):
+                        cur["stage"] = "resp"
+                        continue
+                    if cur["stage"] != "extra" and PARTY_TERM_RE.match(party):
+                        cur["stage"] = "extra"
+                    if cur["stage"] == "pet":
+                        cur["petitioner"].append(party)
+                    elif cur["stage"] == "resp":
+                        cur["respondent"].append(party)
+                    else:
+                        cur["extra"].append(party)
+        close()
+    except Exception as e:
+        print("  item extraction failed:", e)
+        return []
+    for it in items:
+        it.pop("stage", None)
+    return items
+
+
+def _tok(s):
+    return set(re.sub(r"[^a-z0-9 ]", " ", (s or "").lower()).split())
+
+
+def match_items(items, wl, list_label, list_kind, for_date, family=""):
+    """Find the watch-list's matters among parsed items (advocate name in the advocates
+    column, AoR code as 'NAME-4096', exact case/diary number, or party names)."""
+    name_sets = [set(name_tokens(x)) for x in wl["advocate_names"] if name_tokens(x)]
+    party_sets = [set(name_tokens(x)) for x in wl["parties"] if name_tokens(x)]
+    num_keys = set()
+    for x in wl["case_numbers"]:
+        num_keys |= number_keys(x, "case")
+    for x in wl["diary_numbers"]:
+        num_keys |= number_keys(x, "diary")
+    aor = {norm_num(x) for x in wl["aor_codes"] if norm_num(x)}
+    out, seen = [], set()
+    for it in items:
+        hits = []
+        adv_t = _tok(it["advocates"])
+        if any(s and s.issubset(adv_t) for s in name_sets):
+            hits.append("advocate")
+        codes = set(re.findall(r"-\s*(\d{3,5})\b", it["advocates"]))
+        if aor and codes & aor:
+            hits.append("aor")
+        # the case number itself, plus "IN C.A. No. …" references — never IA numbers, whose
+        # digits can equal an unrelated SLP's (IA 10043/2026 vs SLP(C) 10043/2026)
+        refs = [p for p in re.split(r"(?=\bI\.?A\.?\s*No)", it["extra"]) if re.match(r"\s*IN\s", p, re.I)]
+        numtext = " ".join([it["case_no"]] + refs)
+        if num_keys and keys_match(number_keys(numtext), num_keys):
+            hits.append("number")
+        pt = _tok(it["petitioner"] + " " + it["respondent"])
+        if any(s and s.issubset(pt) for s in party_sets):
+            hits.append("party")
+        if not hits:
+            continue
+        k = (it["court"], it["item"], it.get("sub", ""), it["case_no"])
+        if k in seen:
+            continue
+        seen.add(k)
+        strong = "number" in hits or "aor" in hits
+        conf = "high" if strong else ("medium" if "advocate" in hits else "low")
+        title = it["petitioner"] + ((" Versus " + it["respondent"]) if it["respondent"] else "")
+        out.append({
+            "for_date": for_date, "list": list_label, "kind": list_kind, "family": family,
+            "is_supplementary": list_kind == "supp",
+            "court": it["court"], "item": it["item"], "coram": it["coram"],
+            "court_total": it["total"], "court_fresh": it["fresh"],
+            "matched_on": sorted(set(hits)), "confidence": conf,
+            "case_no": it["case_no"], "petitioner": it["petitioner"][:200], "respondent": it["respondent"][:200],
+            "text": re.sub(r"\s+", " ", " ".join(x for x in (it["item"], it["case_no"], title) if x)).strip()[:300],
+        })
+    return out
+
+
 def upcoming_days(n):
     ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5, minutes=30)
     days = []
@@ -526,7 +742,11 @@ def scan_family(base, lists, date_str, wl, day):
         if kind == "main":
             day["has_main"] = True
             day["main_families"].add(family)     # this list-type's main list is now out
-        page_lines = pdf_to_lines(data)
+        items = parse_items(data)
+        if items:
+            day["matches"].extend(match_items(items, wl, label, kind, date_str, family))
+            continue
+        page_lines = pdf_to_lines(data)          # fallback: the older line-by-line reader
         if not page_lines:
             continue
         day["matches"].extend(scan_text(page_lines, wl, label, kind, date_str, family))
@@ -558,7 +778,7 @@ def main():
         # not be collapsed into one.
         seen, deduped = set(), []
         for m in day["matches"]:
-            nm = re.search(r"\d{1,6}\s*[-/]\s*\d{4}", m.get("text", ""))
+            nm = re.search(r"\d{1,6}\s*[-/]\s*\d{4}", m.get("case_no") or m.get("text", ""))
             k = (m["court"], m["item"], m["is_supplementary"],
                  nm.group(0).replace(" ", "") if nm else m.get("text", "")[:40])
             if k in seen:
