@@ -1964,6 +1964,14 @@
   body.pn-compact .chamber-top{padding:10px 16px 8px}
   body.pn-compact .chamber-top .ct-crest{margin:0}
   body.pn-compact #appRoot .mast::after{display:none}
+  .dr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .ad-tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+  .ad-tog input{accent-color:var(--seal)}
+  .dr-steps{display:inline-flex;gap:3px;vertical-align:middle}.dr-step{width:16px;height:6px;border-radius:3px;background:var(--line)}
+  .dr-step.done{background:#2e7d32}.dr-step.now{background:var(--seal)}
+  .dr-sl{font-size:12px;color:var(--muted);margin-top:3px}
+  .dr-tbl td{vertical-align:top}.dr-tbl td.mono,.dr-tbl .pd-b{white-space:nowrap}.dr-tbl tbody tr:hover{background:var(--seal-soft)}
+  .dr-wait{margin-top:14px}.dr-wait summary{cursor:pointer;font-weight:600;color:var(--seal);font-size:13.5px;margin-bottom:8px}
   .pf-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px;font-family:inherit;cursor:pointer}
   .pf-row:active{background:var(--seal-soft)}
   .pf-no{flex:none;font-family:var(--mono,ui-monospace,monospace);font-weight:700;color:var(--seal);font-size:14px;min-width:34px}
@@ -13240,14 +13248,8 @@ function saveMatter(id){
     DB.matters.push(_newMatter);
     logActivity("matter", `New ${_kindWord.toLowerCase()} ${code}${data.parties?" — "+data.parties:(data.client?" — "+data.client:"")}`, {refId:_newMatter.id});
     save(); renderAll(); closeModal(); toast(_kindWord+" saved.");
-    // Offer to set up this case's OneDrive folder right away (cases only).
-    // Use a robust chained open (guarded) — a bare setTimeout could be lost if
-    // a re-render intervenes, which is why it sometimes didn't appear.
-    if(kind==="case"){
-      const _mid=_newMatter.id;
-      const _openFolder=()=>{ try{ setupCaseFolder(_mid, {fromCreate:true}); }catch(e){ try{ toast("Open the case to set its folder.",true); }catch(_){}} };
-      requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(_openFolder, 60)));
-    }
+    // (The old "set up this case's OneDrive folder" prompt is gone: case folders are now
+    //  made by the ASDC Helper and opened from the app's Files screen.)
   }
 }
 /* Convert a query into a numbered case: renumber, keep origin note,
@@ -15648,16 +15650,9 @@ function _caseFolderName(m){
   return `${m.code||"Case"}${parties?" - "+parties:""}`;
 }
 function _caseFolderBanner(m){
-  if(m.folderUrl){
-    return `<div class="folder-banner">
-      <a class="btn seal sm" href="${esc(m.folderUrl)}" target="_blank" rel="noopener">📁 Open this case's folder</a>
-      <button class="row-act" onclick="setupCaseFolder('${m.id}')">change</button>
-    </div>`;
-  }
-  return `<div class="folder-banner">
-    <button class="btn ghost sm" onclick="setupCaseFolder('${m.id}')">📁 Set up this case's folder</button>
-    <span class="hint" style="margin-left:8px">Keep all this case's files together in OneDrive</span>
-  </div>`;
+  // Case papers open in the app (Files screen); the old paste-a-OneDrive-link set-up is retired.
+  if(m&&_canFiles(m)) return `<div class="folder-banner"><button class="btn seal sm" onclick="openFiles(${+m.serial})">📁 Open this case's papers</button></div>`;
+  return "";
 }
 function setupCaseFolder(matterId, opts){
   opts=opts||{};
@@ -20769,8 +20764,8 @@ const NAV_ICONS={
 };
 function navFor(){
   if(_phoneNav()) return [["home","Court"],["p_files","Files"],["p_defects","Defects"],["p_create","Create"],["more","More"]];
-  if(DB.deviceRole==="staff") return [["home","Home"],["s_entry","Record"],["s_upload","Upload"],["s_personal","My billing"]];
-  return [["home","Home"],["matters","Cases"],["calendar","Calendar"],["billing","Billing"],["more","More"]];
+  if(DB.deviceRole==="staff") return [["home","Home"],["s_entry","Record"],["s_upload","Upload"],["p_defects","Defects"],["s_personal","My billing"]];
+  return [["home","Home"],["matters","Cases"],["calendar","Calendar"],["billing","Billing"],["p_defects","Defects"],["more","More"]];
 }
 /* Distinct line icons for the home shortcut grid (24x24, currentColor). */
 const HOME_ICONS={
@@ -20794,7 +20789,7 @@ function renderBotNav(){
   const iconKey={home:"home",matters:"matters",calendar:"calendar",billing:"receipt",receipt:"receipt",books:"books",documents:"docs",more:"more",s_entry:"receipt",s_upload:"upload",s_personal:"person"};
   const ph=_phoneNav(), pk={home:"court",p_files:"files",p_defects:"defects",p_create:"create"};
   try{ document.body.classList.toggle("pn-compact", ph&&_shellTab!=="home"); }catch(e){}
-  const ic=t=>ph&&pk[t]?_PN_ICONS[pk[t]]:NAV_ICONS[iconKey[t]||'home'];
+  const ic=t=>(ph||t==="p_defects")&&pk[t]?_PN_ICONS[pk[t]]:NAV_ICONS[iconKey[t]||'home'];
   document.getElementById("botnav").innerHTML=items.map(([t,l])=>
     `<button class="${(t===_shellTab||(t==='billing'&&(_shellTab==='receipt'||_shellTab==='invoice'))||(ph&&t==='p_files'&&_shellTab==='files'))?'on':''}" onclick="shellGo('${t}')"><span class="nic">${ic(t)}</span><span class="nl">${l}</span></button>`
   ).join("");
@@ -21958,11 +21953,11 @@ function _pfRow(c){
 function renderPhoneFiles(listOnly){
   const home=document.getElementById("panel-home"); if(!home) return;
   if(!listOnly||!document.getElementById("pfList")){
-    home.innerHTML=`<div class="hello" style="margin-bottom:10px">Files</div>
+    home.innerHTML=`<div class="dr-head"><div class="hello" style="margin-bottom:10px">Files</div>${_adToggleHTML("renderPhoneFiles()")}</div>
       <input class="fv-search" id="pfQ" placeholder="Search a case — name, number, diary/SLP no." value="${esc(_pfQ)}" oninput="_pfQ=this.value;renderPhoneFiles(true)" style="width:100%;margin-bottom:12px">
       <div id="pfList"></div>`;
   }
-  const all=_phoneCases(); const box=document.getElementById("pfList");
+  const all=_phoneCases().filter(c=>!_adOnly()||c.chamber!=="SD"); const box=document.getElementById("pfList");
   if(!_gkUrl()&&isStaffView()){ box.innerHTML=`<div class="fv-empty">Files can be opened once the Head of Chamber has set up Documents.</div>`; return; }
   const q=_pfQ.trim().toLowerCase();
   if(q){
@@ -21992,24 +21987,59 @@ function _openFiling(folder, view){
   const name=String(folder||"").split("/").pop(); const m=/^(.+?) Filing \((\d{3})-(\d+)\)$/.exec(name); if(!m) return;
   openFiles(+m[2], "", name, view||"stages");
 }
+/* ---------- Defects register (phone tab + desktop tab) ----------
+   Every filing whose registry defect list has been read, with how far curing has got.
+   AD Chamber only by default (we are not AoR in SD Chamber matters); the owner can switch. */
+function _adOnly(){ if(isStaffView()) return true; try{ return localStorage.getItem("asdc_ad_only")!=="0"; }catch(e){ return true; } }
+function _setAdOnly(on, rerender){ try{ localStorage.setItem("asdc_ad_only", on?"1":"0"); }catch(e){} if(typeof rerender==="function") rerender(); }
+function _adToggleHTML(rerenderExpr){
+  if(isStaffView()) return "";
+  const on=_adOnly();
+  return `<label class="ad-tog"><input type="checkbox" ${on?"checked":""} onchange="_setAdOnly(this.checked);${rerenderExpr}"><span>AD Chamber only</span></label>`;
+}
+var _drFilter="all";
+const _DR_STEPS=["Listed","Curing","All cured","Refiled","Final copy"];
+function _filingStage(r){
+  const ds=(r.defects||[]).filter(d=>d.status!=="na"), all=(r.defects||[]);
+  if(!all.length) return {k:0,l:"No defect list yet",open:0,tot:0};
+  const open=ds.filter(d=>d.status==="open").length, tot=all.length, done=tot-open;
+  if((r.finals||[]).length) return {k:5,l:"Final copy made",open,tot};
+  if((r.refilings||[]).length&&!open) return {k:4,l:"Refiled — cured pages filed",open,tot};
+  if((r.refilings||[]).length) return {k:4,l:`Refiled · ${open} still open`,open,tot};
+  if(!open) return {k:3,l:"All cured — ready to refile",open,tot};
+  if(done) return {k:2,l:`Curing — ${done} of ${tot} done`,open,tot};
+  return {k:1,l:`${tot} defect${tot===1?"":"s"} listed`,open,tot};
+}
+function _drSteps(k){ return `<span class="dr-steps">${_DR_STEPS.map((s,i)=>`<span class="dr-step ${i+1<k?"done":i+1===k?"now":""}" title="${s}"></span>`).join("")}</span>`; }
+function _drListDate(r){ const ds=(r.defects||[]).map(d=>d.date||"").filter(Boolean); const last=ds.sort((a,b)=>a.split("-").reverse().join("").localeCompare(b.split("-").reverse().join(""))).pop(); return last?last.replace(/-/g,"."):""; }
 function renderPhoneDefects(){
   const home=document.getElementById("panel-home"); if(!home) return;
-  const recs=_allFilingRecs().map(r=>{ const ds=(r.defects||[]); const open=ds.filter(d=>d.status==="open").length;
-    return {r, open, tot:ds.length, title:_caseTitle(r.serial)}; })
-    .sort((a,b)=>(b.open>0)-(a.open>0)||String(b.r.updatedAt||b.r.created||"").localeCompare(String(a.r.updatedAt||a.r.created||"")));
-  const row=x=>{ const r=x.r; const st=x.tot?(x.open?`<span class="pd-b open">${x.open} of ${x.tot} open</span>`:`<span class="pd-b ok">all ${x.tot} cured</span>`):`<span class="pd-b none">no defect list yet</span>`;
-    return `<div class="pd-card"><button class="pd-main" onclick="_openFiling(${_fvQuote(r.folder)},'${x.tot?"defects":"stages"}')">
-        <span class="pd-k">⚖️ ${esc(r.kind||"Filing")} · ${esc(String(r.serial).padStart(3,"0")+"-"+r.n)}</span>
+  const ad=_adOnly();
+  const all=_allFilingRecs().filter(r=>!ad||r.chamber!=="SD").map(r=>({r, st:_filingStage(r), title:_caseTitle(r.serial)}));
+  const listed=all.filter(x=>x.st.tot>0), waiting=all.filter(x=>!x.st.tot);
+  const by={all:()=>true, open:x=>x.st.k<=2, ready:x=>x.st.k===3, done:x=>x.st.k>=4};
+  const rows=listed.filter(by[_drFilter]||by.all).sort((a,b)=>(a.st.k-b.st.k)||(b.st.open-a.st.open)||String(b.r.updatedAt||"").localeCompare(String(a.r.updatedAt||"")));
+  const cnt=f=>listed.filter(by[f]).length;
+  const chip=(f,l)=>`<button class="fv-chip ${_drFilter===f?"on":""}" onclick="_drFilter='${f}';renderPhoneDefects()">${l} <b>${cnt(f)}</b></button>`;
+  const fno=r=>esc(String(r.serial).padStart(3,"0")+"-"+r.n);
+  const open=(r,v)=>`_openFiling(${_fvQuote(r.folder)},'${v}')`;
+  const wide=rows.length?`<div class="tbl-wrap"><table class="dr-tbl"><thead><tr><th>File</th><th>Case</th><th>Filing</th><th>Diary No.</th><th>Defect list</th><th>Open</th><th>Stage</th><th></th></tr></thead><tbody>${rows.map(x=>{ const r=x.r;
+      return `<tr onclick="${open(r,"defects")}" style="cursor:pointer"><td class="mono">${fno(r)}</td><td><b>${esc(x.title||"")}</b>${r.chamber==="SD"?` <span class="tag" style="background:#3b5a7a;color:#fff">SD</span>`:""}</td><td>${esc(r.kind||"")}</td><td class="mono">${r.diaryNo?esc(r.diaryNo+"/"+r.diaryYear):"—"}</td><td>${esc(_drListDate(r)||"—")}</td><td><span class="pd-b ${x.st.open?"open":"ok"}">${x.st.open} of ${x.st.tot}</span></td><td>${_drSteps(x.st.k)}<div class="dr-sl">${esc(x.st.l)}</div></td><td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="row-act" onclick="${open(r,"defects")}">Defects</button> <button class="row-act" onclick="${open(r,"stages")}">Stages</button></td></tr>`; }).join("")}</tbody></table></div>`:"";
+  const narrow=rows.map(x=>{ const r=x.r;
+    return `<div class="pd-card"><button class="pd-main" onclick="${open(r,"defects")}">
+        <span class="pd-k">⚖️ ${esc(r.kind||"Filing")} · ${fno(r)}${r.diaryNo?` · Diary ${esc(r.diaryNo+"/"+r.diaryYear)}`:""}</span>
         <span class="pd-t">${esc(x.title||"")}</span>
-        <span class="pd-s">${st}${r.diaryNo?`<span class="pf-n">Diary ${esc(r.diaryNo+"/"+r.diaryYear)}</span>`:""}</span></button>
-      <div class="pd-acts"><button onclick="_openFiling(${_fvQuote(r.folder)},'stages')">Stages</button><button onclick="_openFiling(${_fvQuote(r.folder)},'defects')">Defects</button><button onclick="_openFiling(${_fvQuote(r.folder)},'check')">Check</button></div></div>`; };
-  const openOnes=recs.filter(x=>x.open), others=recs.filter(x=>!x.open);
-  home.innerHTML=`<div class="hello" style="margin-bottom:6px">Defects &amp; filing stages</div>
-    <div class="hint" style="margin-bottom:12px">Every Supreme Court filing: stages 1–6, the registry's defects and what is still open.</div>
-    <button class="btn seal" style="width:100%;margin-bottom:14px" onclick="_pickCase('filing')">⚖️ Start a filing in a case</button>
-    ${openOnes.length?`<div class="fv-group">Defects open · ${openOnes.length}</div>${openOnes.map(row).join("")}`:""}
-    ${others.length?`<div class="fv-group" style="margin-top:14px">Other filings · ${others.length}</div>${others.map(row).join("")}`:""}
-    ${recs.length?"":`<div class="fv-empty">No filings yet. Start one above, or open a case's Files and tap <b>New filing</b>.</div>`}`;
+        <span class="pd-s">${_drSteps(x.st.k)}<span class="dr-sl">${esc(x.st.l)}</span></span>
+        <span class="pd-s"><span class="pd-b ${x.st.open?"open":"ok"}">${x.st.open} of ${x.st.tot} open</span>${_drListDate(r)?`<span class="pf-n">list of ${esc(_drListDate(r))}</span>`:""}</span></button>
+      <div class="pd-acts"><button onclick="${open(r,"stages")}">Stages</button><button onclick="${open(r,"defects")}">Defects</button><button onclick="${open(r,"check")}">Check</button></div></div>`; }).join("");
+  const wait=waiting.length?`<details class="dr-wait"><summary>${waiting.length} filing${waiting.length===1?"":"s"} without a defect list yet</summary>${waiting.map(x=>`<button class="pf-row" onclick="${open(x.r,"stages")}"><span class="pf-no">${fno(x.r)}</span><span class="pf-mid"><span class="pf-t">${esc(x.title||"")}</span><span class="pf-s">${esc(x.r.kind||"")}</span></span><span class="pf-go">›</span></button>`).join("")}</details>`:"";
+  home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Defects register</div>
+      <div class="hint">Filings whose registry defect list has been read, and how far the curing has got.</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
+    <div class="fv-chips" style="margin:10px 0">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
+    ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
+      :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Defects</b> → <b>Read defect list</b>."}</div>`}
+    ${wait}
+    <button class="btn ghost" style="width:100%;margin-top:14px" onclick="_pickCase('filing')">⚖️ Start a filing in a case</button>`;
 }
 
 /* ---------- Create ---------- */
@@ -22040,14 +22070,14 @@ function renderPhoneCreate(){
 function _pickCase(action){
   window.__pcAction=action;
   openModal(action==="scan"?"Scan into which case?":action==="add"?"Add to which case?":"Start a filing in which case?", `
-    <input class="fv-search" id="pcQ" placeholder="Search — name, number, diary/SLP no." oninput="_pickCaseList(this.value)" style="width:100%;margin-bottom:10px">
+    <div class="dr-head" style="margin-bottom:8px"><input class="fv-search" id="pcQ" placeholder="Search — name, number, diary/SLP no." oninput="_pickCaseList(this.value)" style="flex:1;min-width:0">${_adToggleHTML("_pickCaseList((document.getElementById('pcQ')||{}).value)")}</div>
     <div id="pcList" style="max-height:55vh;overflow:auto"></div>
     <div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
   _pickCaseList(""); setTimeout(()=>{ const i=document.getElementById("pcQ"); if(i&&!("ontouchstart" in window)) i.focus(); },60);
 }
 function _pickCaseList(q){
   const box=document.getElementById("pcList"); if(!box) return;
-  const all=_phoneCases(); q=String(q||"").trim().toLowerCase(); const qd=q.replace(/\D/g,"");
+  const all=_phoneCases().filter(c=>!_adOnly()||c.chamber!=="SD"); q=String(q||"").trim().toLowerCase(); const qd=q.replace(/\D/g,"");
   const recent=_pfRecent();
   let xs=q?all.filter(c=>{ const hay=(c.title+" "+String(c.serial).padStart(3,"0")+" "+c.nums).toLowerCase(); return q.split(/\s+/).every(w=>hay.indexOf(w)>=0)||(qd.length>=3&&c.nums.indexOf(qd)>=0); })
     :all.slice().sort((a,b)=>((recent.indexOf(a.serial)+1||99)-(recent.indexOf(b.serial)+1||99))||b.serial-a.serial);
@@ -23472,7 +23502,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-1500";
+  window.APP_VERSION = "2026.10.08-1700";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
