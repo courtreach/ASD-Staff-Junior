@@ -2022,6 +2022,8 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .fsec-big{margin:12px 0 14px} .fsec-big .fsec-b{padding:13px 16px} .fsec-big .fsec-b b{font-size:16px}
+  .fh-slim{padding-bottom:10px} .fh-slim .fh-meta{margin-top:6px} .fh-ref{margin-bottom:10px;padding-top:10px}
   .fsec{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px} .fsec-b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit;color:var(--ink)}
   .fsec-b b{font-size:14.5px} .fsec-b span{font-size:12px;color:var(--muted)} .fsec-b.on{border-color:var(--seal);box-shadow:0 0 0 1px var(--seal) inset;background:#fbf6f4}
   .fsl-box{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden} .fsl{border-top:1px solid var(--line2);padding:9px 12px} .fsl:first-child{border-top:0}
@@ -19527,16 +19529,19 @@ function _filingViewHTML(){
   const st=_flState(); const rec=_filingRec(_filingFolderRel(),true);
   const m=_FILING_RX.exec(_fv.sub)||[]; const fc=_flFC(); const stg=_filingStage(rec);
   if(st.view==="stages"&&!st.stage&&!st.touched&&stg.tot) st.view="defects";
-  const listDate=_drListDate(rec);
-  const pill=stg.tot?`<span class="fh-pill k${stg.k}">${esc(stg.l)}</span>`:`<span class="fh-pill k0">No defect list yet</span>`;
-  const head=`<div class="fh">
-      <div class="fh-top"><div style="min-width:0"><div class="fh-kind">${esc(m[1]||"Filing")} · Filing ${esc((m[2]||"")+"-"+(m[3]||""))}</div><div class="fh-case">${esc(_fv.title||_caseTitle(rec.serial)||"")}</div></div>${pill}</div>
+  const listDate=_drListDate(rec), sec=_fsSec(), fsd=_fsDone(rec);
+  const copies=(rec.fs&&rec.fs.copies)||[], lastC=copies[copies.length-1];
+  /* title, then the two sections — whichever is chosen fills the page (owner, Oct 2026) */
+  const title=`<div class="fh fh-slim"><div class="fh-kind">${esc(m[1]||"Filing")} · Filing ${esc((m[2]||"")+"-"+(m[3]||""))}</div><div class="fh-case">${esc(_fv.title||_caseTitle(rec.serial)||"")}</div>
+      <div class="fh-meta"><span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span></div></div>`;
+  const secSw=`<div class="fsec fsec-big"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_fsSetSec('filing')"><b>Filing</b><span>${lastC?(lastC.final?"Final filing copy ready":"Filing copy ready"):fsd.have?fsd.have+" of "+fsd.of+" documents":"Documents, numbering, filing copy"}</span></button><button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_fsSetSec('refiling')"><b>Refiling</b><span>${stg.tot?esc(stg.l):"Starts with the registry's defect list"}</span></button></div>`;
+  if(sec==="filing") return title+secSw+`<div class="fv-box fsec-page">${_fsHTML(rec)}</div>`;
+  const meta=`<div class="fh fh-ref">
       <div class="fh-meta">
-        <span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span>
-        ${listDate?`<span>Defect list <b>${esc(listDate)}</b></span>`:""}
+        ${listDate?`<span>Defect list <b>${esc(listDate)}</b></span>`:`<span><b>No defect list yet</b></span>`}
         <span>Filing copy ${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>48?fc.name.slice(0,46)+"…":fc.name)}</button>${fc.linked?` <span class="hint">(in the case folder)</span>`:""} <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> <button class="link-btn" onclick="_flLinkFCAsk()">link</button>`}</span>
       </div>
-      ${stg.tot&&_fsSec()==="refiling"?_flStepper(stg.k):""}
+      ${stg.tot?_flStepper(stg.k):""}
     </div>`;
   const tab=(v,l)=>`<button class="fsg-b ${st.view===v?"on":""}" onclick="_flState().touched=1;_flSet('view','${v}')">${l}</button>`;
   const tabs=`<div class="fsg">${tab("defects",`Defects${stg.tot?` <b>${stg.open}</b>`:""}`)}${tab("stages","Papers")}${tab("check","Check")}</div>`;
@@ -19544,10 +19549,7 @@ function _filingViewHTML(){
   if(st.view==="defects") body=_defectsHTML(rec);
   else if(st.view==="check") body=_checkHTML(rec);
   else body=_flPapersHTML(rec, fc);
-  const sec=_fsSec(), fsd=_fsDone(rec);
-  const secSw=`<div class="fsec"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_fsSetSec('filing')"><b>Filing</b><span>${(rec.fs&&(rec.fs.copies||[]).length)?"Filing copy ready":fsd.have+" of "+fsd.of+" documents"}</span></button><button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_fsSetSec('refiling')"><b>Refiling</b><span>${stg.tot?esc(stg.l):"After the defect list"}</span></button></div>`;
-  if(sec==="filing") return head+secSw+`<div class="fv-box">${_fsHTML(rec)}</div>`;
-  return head+secSw+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div>`;
+  return title+secSw+`<div class="fsec-page">`+meta+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div></div>`;
 }
 function _flPapersHTML(rec, fc){
   const items=_flItems(), base=_filingFolderRel(), can=!!_gkUrl(), st=_flState();
@@ -20945,7 +20947,7 @@ const _FS_APPS=["Condonation of delay","Exemption from filing certified copy of 
 const _FS_GROUPS=[["front","Front pages","Unnumbered, then A, A1, A2…"],["letters","Synopsis & List of Dates","Lettered B, C, D…"],["num","The paper book","Numbered 1, 2, 3… from the impugned order"]];
 function _fsRec(){ const r=_flRec(); if(!r.fs||typeof r.fs!=="object") r.fs={slots:{},copies:[]}; if(!r.fs.slots) r.fs.slots={}; if(!r.fs.copies) r.fs.copies=[]; return r; }
 function _fsList(r,k){ return ((r.fs&&r.fs.slots&&r.fs.slots[k])||[]).filter(Boolean); }
-function _fsSec(){ const st=_flState(); if(!st.sec){ const r=_filingRec(_filingFolderRel(),false); st.sec=(r&&(r.defects||[]).length)?"refiling":"filing"; } return st.sec; }
+function _fsSec(){ const st=_flState(); if(window.__fsSecWant){ st.sec=window.__fsSecWant; window.__fsSecWant=null; } if(!st.sec){ const r=_filingRec(_filingFolderRel(),false); st.sec=(r&&(r.defects||[]).length)?"refiling":"filing"; } return st.sec; }
 function _fsSetSec(v){ _flState().sec=v; renderFilesPage(); }
 function _fsDone(r){ const req=_FS_SLOTS.filter(s=>!s.opt); return {have:req.filter(s=>_fsList(r,s.k).length).length, of:req.length, missReq:_FS_SLOTS.filter(s=>s.req&&!_fsList(r,s.k).length).map(s=>s.l)}; }
 function _fsHTML(rec){
@@ -23155,8 +23157,9 @@ function _caseTitle(serial){
   const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+serial); return m?(m.parties||m.client||""):"";
 }
 function _allFilingRecs(){ return [].concat((DB.filings||[]).filter(f=>f&&f.bundle), isStaffView()?[]:(DB.sdFilings||[]).filter(f=>f&&f.bundle)); }
-function _openFiling(folder, view){
+function _openFiling(folder, view, sec){
   const name=String(folder||"").split("/").pop(); const m=/^(.+?) Filing \((\d{3})-(\d+)\)$/.exec(name); if(!m) return;
+  window.__fsSecWant=sec||(view==="defects"||view==="check"?"refiling":null);
   openFiles(+m[2], "", name, view||"stages");
 }
 /* ---------- Defects register (phone tab + desktop tab) ----------
@@ -23207,7 +23210,7 @@ function _acEvents(){
 function _acNeeds(){
   const xs=[]; _allFilingRecs().forEach(r=>(r.defects||[]).forEach(d=>{ const s=(d.ai||{}).status; if(s==="review"||s==="question"||s==="error"||s==="staff") xs.push({r,d,s}); })); return xs;
 }
-function _acGo(folder,did){ _openFiling(folder,"defects");
+function _acGo(folder,did){ if(!did){ _openFiling(folder,"stages","filing"); return; } _openFiling(folder,"defects");
   (async()=>{ for(let i=0;i<80;i++){ await new Promise(r=>setTimeout(r,100)); if(document.getElementById("dd_"+did)) break; } try{ _ddOpen(did); }catch(e){} })(); }
 function renderAiClerk(){
   const panel=document.getElementById("panel-aiclerk"); if(!panel) return;
@@ -23270,17 +23273,35 @@ function renderPhoneDefects(){
         <span class="pd-s">${_drSteps(x.st.k)}<span class="dr-sl">${esc(x.st.l)}</span></span>
         <span class="pd-s"><span class="pd-b ${x.st.open?"open":"ok"}">${x.st.open} of ${x.st.tot} open</span>${aiB(r)}${_drListDate(r)?`<span class="pf-n">list of ${esc(_drListDate(r))}</span>`:""}</span></button>
       <div class="pd-acts"><button onclick="${open(r,"stages")}">Stages</button><button onclick="${open(r,"defects")}">Defects</button><button onclick="${open(r,"check")}">Check</button></div></div>`; }).join("");
-  const fsSt=r=>{ const c=((r.fs||{}).copies||[]).length; if(c) return "Filing copy ready"; const sl=(r.fs||{}).slots||{}; const n=Object.keys(sl).filter(k=>(sl[k]||[]).length).length; return n?`${n} document slot${n===1?"":"s"} filled`:"Documents not yet in"; };
-  const wait=waiting.length?`<div class="dg" style="margin-top:6px"><div class="dg-h">Filing — being prepared <b>${waiting.length}</b></div><div class="mx-box" style="padding:0">${waiting.map(x=>`<button class="pf-row" onclick="${open(x.r,"stages")}"><span class="pf-no">${fno(x.r)}</span><span class="pf-mid"><span class="pf-t">${esc(x.title||"")}</span><span class="pf-s">${esc(x.r.kind||"")} · ${esc(fsSt(x.r))}</span></span><span class="pf-go">›</span></button>`).join("")}</div></div>`:"";
-  home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Filing register</div>
-      <div class="hint">Every filing — being prepared, and refiling after the registry's defect list.${isStaffView()?"":` · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
-    ${wait}
-    <div class="dg-h" style="margin-top:14px">Refiling — defect lists <b>${listed.length}</b></div>
-    <div class="fv-chips" style="margin:6px 0 10px">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
+  /* two sections on top — whichever is chosen fills the page (owner, Oct 2026) */
+  let sec="refiling"; try{ sec=localStorage.getItem("asdc_fr_sec")||(listed.length?"refiling":"filing"); }catch(e){}
+  const fsInfo=r=>{ const c=((r.fs||{}).copies||[]); const last=c[c.length-1]; const d=_fsDone(r);
+    if(last) return {k:3,l:last.final?"Final filing copy ready":"Filing copy ready", sub:`${last.pages||"?"} pages · ${fmtDate(_localISO(new Date(last.at)))}`};
+    return d.have?{k:d.have>=d.of?2:1,l:d.have>=d.of?"Ready to collate":"Documents going in",sub:`${d.have} of ${d.of} documents`}:{k:0,l:"Not started",sub:"No documents yet"}; };
+  const fRows=all.map(x=>Object.assign(x,{f:fsInfo(x.r)})).sort((a,b)=>((a.st.tot?1:0)-(b.st.tot?1:0))||(a.f.k-b.f.k)||String(b.r.updatedAt||"").localeCompare(String(a.r.updatedAt||"")));
+  const fOpen=r=>`_openFiling(${_fvQuote(r.folder)},'stages','filing')`;
+  const fSteps=k=>`<span class="dr-steps">${["Documents","Collate","Filing copy"].map((s,i)=>`<span class="dr-step ${i<k?"done":i===k?"now":""}" title="${s}"></span>`).join("")}</span>`;
+  const fWide=fRows.length?`<div class="tbl-wrap"><table class="dr-tbl"><thead><tr><th>File</th><th>Case</th><th>Filing</th><th>Diary No.</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>${fRows.map(x=>{ const r=x.r;
+      return `<tr onclick="${fOpen(r)}" style="cursor:pointer"><td class="mono">${fno(r)}</td><td><b>${esc(x.title||"")}</b>${r.chamber==="SD"?` <span class="tag" style="background:#3b5a7a;color:#fff">SD</span>`:""}</td><td>${esc(r.kind||"")}</td><td class="mono">${r.diaryNo?esc(r.diaryNo+"/"+r.diaryYear):"—"}</td><td>${fSteps(x.f.k)}<div class="dr-sl">${esc(x.f.sub)}</div></td><td><b>${esc(x.f.l)}</b>${x.st.tot?` <span class="tag">refiling</span>`:""}</td><td onclick="event.stopPropagation()"><button class="row-act" onclick="${fOpen(r)}">Open</button></td></tr>`; }).join("")}</tbody></table></div>`:"";
+  const fNarrow=fRows.map(x=>{ const r=x.r; return `<div class="pd-card"><button class="pd-main" onclick="${fOpen(r)}">
+        <span class="pd-k">⚖️ ${esc(r.kind||"Filing")} · ${fno(r)}${r.diaryNo?` · Diary ${esc(r.diaryNo+"/"+r.diaryYear)}`:""}</span>
+        <span class="pd-t">${esc(x.title||"")}</span>
+        <span class="pd-s">${fSteps(x.f.k)}<span class="dr-sl">${esc(x.f.l)}</span></span>
+        <span class="pd-s"><span class="pf-n">${esc(x.f.sub)}</span>${x.st.tot?` <span class="tag">refiling</span>`:""}</span></button></div>`; }).join("");
+  const filingSec=`${fRows.length?`<div class="mx-box"><div class="mx-wide">${fWide}</div><div class="mx-narrow">${fNarrow}</div></div>`:`<div class="fv-empty">No filings yet. Start one with the button below.</div>`}
+    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('filing')">⚖️ Start a new filing</button></div>`;
+  const refilingSec=`<div class="fv-chips" style="margin:0 0 10px">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
     ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
       :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Refiling</b> → <b>Read defect list</b>."}</div>`}
-    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('defects')">＋ Add a defect list</button><button class="btn ghost" style="flex:1" onclick="_pickCase('filing')">⚖️ Start a new filing</button></div>`;
+    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('defects')">＋ Add a defect list</button></div>`;
+  const inProg=fRows.filter(x=>x.f.k<3).length;
+  home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Filing</div>
+      <div class="hint">${isStaffView()?"Prepare the paper book, then cure the registry's defects.":`Prepare the paper book, then cure the registry's defects · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
+    <div class="fsec fsec-big"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_frSec('filing')"><b>Filing</b><span>${fRows.length} filing${fRows.length===1?"":"s"}${inProg?` · ${inProg} being prepared`:""}</span></button>
+      <button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_frSec('refiling')"><b>Refiling</b><span>${listed.length} with a defect list${cnt("open")?` · ${cnt("open")} open`:""}</span></button></div>
+    <div class="fsec-page">${sec==="filing"?filingSec:refilingSec}</div>`;
 }
+function _frSec(v){ try{ localStorage.setItem("asdc_fr_sec",v); }catch(e){} renderPhoneDefects(); }
 
 /* ---------- Create ---------- */
 function renderPhoneCreate(){
@@ -24746,7 +24767,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0300";
+  window.APP_VERSION = "2026.10.09-0330";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
