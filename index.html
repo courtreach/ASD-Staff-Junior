@@ -2023,6 +2023,17 @@
   .ps-l{flex:1;font-weight:600;font-size:14px}.ps-c{font-size:12.5px;color:var(--muted);font-weight:700}
   .ps-a{display:flex;gap:4px}.ps-b{padding:0 10px 8px}.ps-link{font-size:13px;padding:6px 2px}
   @media (max-width:560px){ .dd-b{padding-left:12px} .fh-case{font-size:17px} .fs-l{font-size:10px} }
+  .mode-r{display:flex;flex-direction:column;gap:6px}.mode-r label{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;background:#fff}
+  .mode-r input{margin-top:3px;accent-color:var(--seal)}
+  .dp-mode{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .co-doc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px;background:#fff}
+  .co-doc.no{border-color:#e5b8b8;background:#fff6f6}.co-c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+  .co-doc.ok .co-c{background:#2e7d32;color:#fff}.co-doc.no .co-c{background:var(--seal);color:#fff}
+  .co-list{margin:4px 0 0;padding-left:22px;font-size:13.5px}.co-list li{padding:5px 0;border-bottom:1px solid var(--line2)}
+  .co-l{font-weight:600}.co-m{font-size:11px;font-weight:700;border-radius:5px;padding:1px 6px;margin:0 6px}.co-m.replace{background:#fbeeee;color:var(--seal)}.co-m.add{background:#e8f1fb;color:#24527a}
+  .co-p{color:var(--muted);font-size:12.5px}
+  .co-warn{margin-top:8px;font-size:12.5px;background:#fff7e6;border:1px solid #f0d9a8;border-radius:8px;padding:7px 10px}
+  .co-opt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13.5px}.co-opt label{display:inline-flex;gap:4px;align-items:center}
   .pf-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px;font-family:inherit;cursor:pointer}
   .pf-row:active{background:var(--seal-soft)}
   .pf-no{flex:none;font-family:var(--mono,ui-monospace,monospace);font-weight:700;color:var(--seal);font-size:14px;min-width:34px}
@@ -19352,7 +19363,7 @@ async function _docFromTpl(b64, vals){
   zip.file("word/document.xml",x);
   return zip.generateAsync({type:"blob",compression:"DEFLATE",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
 }
-function _decChkAsk(which){
+function _decChkAsk(which, forDefectPages){
   const rec=_inFiling()?_filingRec(_filingFolderRel(),true):null;
   const dn=rec&&rec.diaryNo?{no:rec.diaryNo,year:rec.diaryYear}:(_caseDiary(_fv.serial)||{no:"",year:String(new Date().getFullYear())});
   const lab=which==="chk"?"Checklist":"Declaration";
@@ -19362,10 +19373,10 @@ function _decChkAsk(which){
       <div style="flex:1"><label class="fld">Year</label><input class="in mono" id="dcYr" value="${esc(dn.year||"")}" inputmode="numeric"></div></div>
     <label class="fld" style="margin-top:8px">Date</label><input class="in" type="date" id="dcDate" value="${_localISO()}">
     <div class="btn-row" style="margin-top:14px;flex-wrap:wrap;gap:8px"><button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn ghost" onclick="_decChkGo('${which}',false)">Download</button>
-      ${rec?`<button class="btn seal" onclick="_decChkGo('${which}',true)">Save in stage 5</button>`:""}</div>`);
+      <button class="btn ghost" onclick="_decChkGo('${which}',false)">Download Word</button>
+      ${rec?`<button class="btn ${forDefectPages?"ghost":"seal"}" onclick="_decChkGo('${which}',true)">Save Word in stage 5</button><button class="btn ${forDefectPages?"seal":"ghost"}" onclick="_decChkGo('${which}',true,true)">Save as PDF for the defect pages</button>`:""}</div>`);
 }
-async function _decChkGo(which, toFolder){
+async function _decChkGo(which, toFolder, asPdf){
   const no=((document.getElementById("dcNo")||{}).value||"").replace(/\D/g,""), yr=((document.getElementById("dcYr")||{}).value||"").replace(/\D/g,"");
   const dt=(document.getElementById("dcDate")||{}).value||_localISO();
   if(!no||yr.length!==4){ toast("Enter the diary number and year.",true); return; }
@@ -19375,11 +19386,13 @@ async function _decChkGo(which, toFolder){
     const rec=_inFiling()?_filingRec(_filingFolderRel(),true):null;
     if(rec&&(rec.diaryNo!==no||rec.diaryYear!==yr)){ rec.diaryNo=no; rec.diaryYear=yr; _filingTouch(rec); }
     if(toFolder&&rec){
-      const name=`5.${_stageNext(5,_currentNames())} ${lab} - Diary ${no}-${yr}.docx`;
+      let up=blob, name=`5.${_stageNext(5,_currentNames())} ${lab} - Diary ${no}-${yr}.docx`;
+      if(asPdf){ _progressModal("Saving…","Making the PDF…"); up=await _docxSimplePdf(blob); name=name.replace(/\.docx$/,".pdf"); }
       _progressModal("Saving…","Saving "+name+"…");
-      const got=await _uploadPaper(_filingFolderRel()+"/"+name,blob,(g,t)=>_progressSet(null,g/t));
+      const got=await _uploadPaper(_filingFolderRel()+"/"+name,up,(g,t)=>_progressSet(null,g/t));
       _defectsAutoCure(rec, which==="chk"?/CHECK ?LIST/:/DECLARATION/, got);
       closeModal(); toast("Saved: "+got); _fv.live=true; _filesLoad();
+      if(window.__collateAfter) setTimeout(_collateAsk,700);
     }else{
       const a=document.createElement("a"); const u=URL.createObjectURL(blob); a.href=u; a.download=`${lab} - Diary ${no}-${yr}.docx`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),60000);
       closeModal(); toast(lab+" downloaded.");
@@ -19430,24 +19443,24 @@ function _flStepper(k){
 function _flHasStage5(rx){ return _flItems().some(x=>x.stage===5&&rx.test(x.name)); }
 function _flNextHTML(rec, st, fc){
   const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
-  if(!st.tot) return `<div class="fn"><div class="fn-t">Read the registry's defect list</div>
-      <div class="fn-s">Save the Defects page of this diary number from the Supreme Court site as a PDF, then read it here.${fc?"":" Link the filing copy too, so each defect can be matched to its pages."}</div>
+  if(!st.tot) return `<div class="fn"><div class="fn-t">1 · Read the registry's defect list</div>
+      <div class="fn-s">Save the Defects page of this diary number from the Supreme Court site as a PDF and read it here — each defect is separated so it can be dealt with on its own.${fc?"":" Link the filing copy too, so each defect is matched to its pages."}</div>
       <div class="fn-b">${btn("_defReadAsk()","Read defect list")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}${btn("_defAddAsk()","Add a defect by hand","ghost")}</div></div>`;
-  if(st.k<=2) return `<div class="fn"><div class="fn-t">Cure ${st.open} open defect${st.open===1?"":"s"}</div>
-      <div class="fn-s">Open a defect below to attach the corrected pages, rescan a page or stamp TRUE COPY. General points (fee, checklist) are marked done.</div>
+  const blocking=(rec.defects||[]).filter(d=>d.status==="open"&&/^(pages|doc|new)$/.test(d.kind)).length;
+  const decl=_flStage5(/Declaration/i);
+  if(blocking) return `<div class="fn"><div class="fn-t">2 · Deal with each defect — ${blocking} to go</div>
+      <div class="fn-s">Open a defect below and attach the corrected pages, rescan, or stamp TRUE COPY. For a translation or an extra better copy choose <b>Add after</b> — it goes after the document as 32A, 32B…</div>
       <div class="fn-b">${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
-  if(st.k===3){
-    const hasRef=(rec.refilings||[]).length, hasDecl=_flHasStage5(/Declaration/i), hasChk=_flHasStage5(/Checklist/i);
-    const li=(done,l,act)=>`<li class="${done?"ok":""}"><span class="fn-c">${done?"✓":""}</span><span>${l}</span>${act}</li>`;
-    return `<div class="fn"><div class="fn-t">All defects cured — prepare the refiling</div>
-      <ul class="fn-l">${li(hasRef,"Cured pages PDF",btn("_buildRefilingAsk()",hasRef?"Build again":"Build","ghost"))}${li(hasDecl,"Declaration",btn("_decChkAsk('decl')",hasDecl?"Make again":"Make","ghost"))}${li(hasChk,"Advocate's checklist",btn("_decChkAsk('chk')",hasChk?"Make again":"Make","ghost"))}</ul></div>`;
-  }
-  if(st.k===4) return `<div class="fn"><div class="fn-t">Refiled — build the final copy</div>
-      <div class="fn-s">Swaps every cured part into the filing copy and saves it as the final copy (stage 6).</div>
-      <div class="fn-b">${btn("_buildFinalAsk()","Build final copy")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
-  const fin=_flLatest(6,true);
-  return `<div class="fn ok"><div class="fn-t">Final copy ready</div><div class="fn-s">${fin?esc(fin.name):""}</div>
-      <div class="fn-b">${fin?btn(`_paperOpen(_paperReg({path:${_fvQuote(_filingFolderRel()+"/"+fin.name)},name:${_fvQuote(fin.name)},size:${+fin.size||0},ext:'.pdf'}))`,"Open final copy"):""}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
+  const refs=rec.refilings||[], last=refs[refs.length-1];
+  if(!refs.length) return `<div class="fn"><div class="fn-t">3 · Collate the defect pages</div>
+      <div class="fn-s">Every defect has its pages. Put them together in paper-book order with the original page numbers${decl?"":" — <b>the defect pages must include a declaration; none has been added yet</b>"}.</div>
+      <div class="fn-b">${decl?"":btn("window.__collateAfter=false;_decChkAsk('decl',true)","Add declaration","ghost")}${btn("_collateAsk()","Collate defect pages")}</div></div>`;
+  const fin=(rec.finals||[]).slice(-1)[0];
+  if(!fin) return `<div class="fn"><div class="fn-t">4 · File the defect pages, then compile the final copy</div>
+      <div class="fn-s">Defect pages ready: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+" pages":""}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+  return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s">${esc(fin.dl||fin.file)}${fin.pages?" · "+fin.pages+" pages":""}</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
 function _filingViewHTML(){
   const st=_flState(); const rec=_filingRec(_filingFolderRel(),true);
@@ -19503,7 +19516,7 @@ function _defectsHTML(rec){
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
@@ -19903,7 +19916,7 @@ function _joinItems(items){
 function _pageLabel(pg){
   const rows=(pg.rows||[]).filter(r=>r[0].y<62||r[0].y>pg.h-46);
   for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
-    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}|[A-Z])$/.test(t)) return t; }
+    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)) return t; }
   return "";
 }
 async function _flLoadCtx(force){
@@ -20049,7 +20062,7 @@ function _defFromText(no, text, rule, date, index){
   const parts=c.parts.map(p=>{ const part={id:uid(), key:p.key, label:p.label, pages:"", cure:null, whole:!!p.whole};
     const e=p.ix&&(index||[]).find(x=>p.ix.test(x.label)); if(e&&e.pages) part.pages=e.pages;
     if(!part.pages&&p.key==="cover") part.pages="cover"; return part; });
-  return {id:uid(), no, text:String(text||"").trim(), rule:String(rule||"").trim(), date:date||"", kind:c.kind, flags:c.flags, parts, status:"open", note:""};
+  return {id:uid(), no, text:String(text||"").trim(), rule:String(rule||"").trim(), date:date||"", kind:c.kind, flags:c.flags, parts, status:c.kind==="note"?"na":"open", note:c.kind==="note"?"For information — the registry says it is not a defect.":""};
 }
 function _defectsAutoCure(rec, rx, file){
   if(!rec) return; let hit=false;
@@ -20146,36 +20159,6 @@ async function _defPreview(did,pid){
     const w=document.createElement("div"); w.className="dpv-p"; w.appendChild(c); const l=document.createElement("div"); l.textContent="PDF "+(i+1)+(_flCtx.labelOf[i]?" · page "+_flCtx.labelOf[i]:""); w.appendChild(l); box.appendChild(w);
   }
 }
-function _defAttachAsk(did,pid){
-  const {p}=_defFind(did,pid); if(!p) return;
-  const pdfs=_flItems().filter(x=>(x.stage===2||x.stage===5||x.stage===1)&&/\.pdf$/i.test(x.name));
-  openModal("Cured "+(p.whole?"document":"pages")+" — "+p.label, `
-    <div class="hint" style="margin-bottom:10px">A PDF of the corrected ${p.whole?"document":"pages"}. Word files: save as PDF first.</div>
-    ${pdfs.length?`<label class="fld">Already in this filing</label><select class="in" id="caPick"><option value="">—</option>${pdfs.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("")}</select>`:""}
-    <label class="fld" style="margin-top:8px">${pdfs.length?"Or from this device (saved in stage 5)":"From this device (saved in stage 5)"}</label>
-    <input class="in" type="file" id="caFile" accept="application/pdf,.pdf">
-    <label class="fld" style="margin-top:8px">Which pages of that PDF <span style="color:var(--muted);font-weight:400">(blank = all)</span></label>
-    <input class="in mono" id="caPages" placeholder="e.g. 2-3">
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Attach</button></div>`);
-}
-async function _defAttachGo(did,pid){
-  const {rec,d,p}=_defFind(did,pid); if(!p) return;
-  const pick=(document.getElementById("caPick")||{}).value||""; const f=(document.getElementById("caFile")||{}).files;
-  const pages=((document.getElementById("caPages")||{}).value||"").trim()||"all";
-  if(pages!=="all"&&!/^\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*$/.test(pages)){ toast("Pages like 2-3 or 1,4.",true); return; }
-  let file=pick;
-  try{
-    if(!file){ if(!f||!f[0]){ toast("Choose a PDF.",true); return; }
-      if(!/\.pdf$/i.test(f[0].name)){ toast("It must be a PDF.",true); return; }
-      _progressModal("Saving…","Saving in stage 5…");
-      file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Cured - ${_safeName(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
-    p.cure={file,pages,how:"attach"}; _defCheckDone(d); _filingTouch(rec); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
-  }catch(e){ closeModal(); toast(e.message,true); }
-}
-function _defRescan(did,pid){
-  const {p}=_defFind(did,pid); if(!p) return;
-  _scanOpen({stage:5, title:(p.whole?"Fresh ":"Better copy - ")+p.label, onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan"}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
-}
 /* TRUE COPY stamp: a line to sign on, with TRUE COPY under it, on each chosen page (no saved signature). */
 async function _defTrueCopy(did,pid){
   const {rec,d,p}=_defFind(did,pid); if(!p) return;
@@ -20222,88 +20205,367 @@ async function _blankSpot(doc, idx, W, H, bw, bh){
     return best;
   }catch(e){ return dflt; }
 }
-function _blobReady(blob,name,note){
-  window.__readyBlob={blob,name};
-  openModal("Ready", `<div style="font-weight:600;margin-bottom:4px">${esc(name)}</div><div class="hint" style="margin-bottom:12px">${esc(note||"Saved in the filing folder.")}</div>
-    <div class="btn-row" style="gap:8px"><button class="btn seal" style="flex:1" onclick="_blobOpenIn(window.open('about:blank','_blank'),window.__readyBlob.blob,window.__readyBlob.name)">Open</button>
-    <button class="btn ghost" style="flex:1" onclick="(function(){const u=URL.createObjectURL(window.__readyBlob.blob),a=document.createElement('a');a.href=u;a.download=window.__readyBlob.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);})()">Download</button>
+/* ---------- simple Word → PDF (vector) for the owner's declaration / checklist templates ----------
+   Reads the paragraphs and tables of a .docx (alignment, bold, size, indents, spacing, column
+   widths, margins) and lays them out with pdf-lib in Times on A4. Made for plain legal formats
+   like these two templates — not a general Word renderer. */
+async function _docxSimplePdf(blob){
+  const JSZip=await _libZip(); const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+  const zip=await JSZip.loadAsync(blob); const xml=await zip.file("word/document.xml").async("string");
+  const W="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  // style sizes / bold (paragraph styles and the document default), used when a run sets none
+  const ST={}; let defSz=12;
+  try{ const sx=new DOMParser().parseFromString(await zip.file("word/styles.xml").async("string"),"application/xml");
+    const dd=sx.getElementsByTagNameNS(W,"rPrDefault")[0]; const dz=dd&&dd.getElementsByTagNameNS(W,"sz")[0]; if(dz) defSz=(+dz.getAttributeNS(W,"val")||24)/2;
+    [...sx.getElementsByTagNameNS(W,"style")].forEach(st=>{ const id=st.getAttributeNS(W,"styleId"); const rp=[...st.childNodes].find(n=>n.localName==="rPr");
+      const z=rp&&[...rp.childNodes].find(n=>n.localName==="sz"); const b=rp&&[...rp.childNodes].find(n=>n.localName==="b");
+      ST[id]={sz:z?(+z.getAttributeNS(W,"val")||0)/2:0, b:!!b&&b.getAttributeNS(W,"val")!=="0"}; }); }catch(e){}
+  const dom=new DOMParser().parseFromString(xml,"application/xml");
+  const q=(el,tag)=>el?[...el.getElementsByTagNameNS(W,tag)]:[];
+  const kid=(el,tag)=>el?[...el.childNodes].filter(n=>n.localName===tag):[];
+  const at=(el,a)=>el?(el.getAttributeNS(W,a)||el.getAttribute("w:"+a)):null;
+  const body=q(dom,"body")[0];
+  const sect=kid(body,"sectPr")[0]||q(body,"sectPr").slice(-1)[0];
+  const mar=sect?q(sect,"pgMar")[0]:null; const tw=v=>(+v||0)/20;
+  const M={l:tw(at(mar,"left"))||72,r:tw(at(mar,"right"))||72,t:tw(at(mar,"top"))||72,b:Math.max(54,tw(at(mar,"bottom"))||72)};
+  const PW=595.28, PH=841.89, CW=PW-M.l-M.r;
+  const doc=await PDFDocument.create();
+  const F={r:await doc.embedFont(StandardFonts.TimesRoman), b:await doc.embedFont(StandardFonts.TimesRomanBold)};
+  const clean=s=>String(s||"").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/ /g," ").replace(/[^\x09\x0a\x20-\x7e\xa0-\xff]/g,"");
+  let page=doc.addPage([PW,PH]), y=PH-M.t;
+  const newPage=()=>{ page=doc.addPage([PW,PH]); y=PH-M.t; };
+  const runInfo=p=>{
+    let text="", bold=false, size=0;
+    q(p,"r").forEach(r=>{ if(r.closest&&r.closest("txbxContent")) return;
+      const rp=kid(r,"rPr")[0]; const b=rp?kid(rp,"b")[0]:null; if(b&&at(b,"val")!=="0"&&at(b,"val")!=="false") bold=true;
+      const sz=rp?kid(rp,"sz")[0]:null; if(sz) size=Math.max(size,(+at(sz,"val")||24)/2);
+      [...r.childNodes].forEach(n=>{ if(n.localName==="t") text+=n.textContent; else if(n.localName==="tab") text+="\t"; else if(n.localName==="br") text+="\n"; }); });
+    const pp=kid(p,"pPr")[0]; const jc=pp?kid(pp,"jc")[0]:null; const ind=pp?kid(pp,"ind")[0]:null; const sp=pp?kid(pp,"spacing")[0]:null;
+    const ps=pp?kid(pp,"pStyle")[0]:null; const style=ps?at(ps,"val")||"":"";
+    const sd=ST[style]||ST.Normal||{}; if(sd.b) bold=true; if(/Heading/i.test(style)) bold=true;
+    return {text:clean(text), bold, size:size||sd.sz||(ST.Normal&&ST.Normal.sz)||defSz||12, align:(jc&&at(jc,"val"))||"left",
+      indL:tw(ind&&(at(ind,"left")||at(ind,"start"))), first:tw(ind&&at(ind,"firstLine"))-tw(ind&&at(ind,"hanging")),
+      before:tw(sp&&at(sp,"before")), after:sp&&at(sp,"after")!=null?tw(at(sp,"after")):4, line:sp&&at(sp,"line")?(+at(sp,"line")/240):1.15};
+  };
+  const wrap=(text,font,size,width,firstIndent)=>{
+    const out=[]; String(text).split("\n").forEach(par=>{
+      const words=par.replace(/\t/g," ").split(/ +/).filter(w=>w!==""); let line="", w0=width-(out.length===0?firstIndent:0);
+      words.forEach(w=>{ const t=line?line+" "+w:w; if(font.widthOfTextAtSize(t,size)<=w0||!line){ line=t; } else { out.push(line); line=w; w0=width; } });
+      out.push(line); });
+    return out;
+  };
+  const drawPara=(info, x0, width, inCell)=>{
+    const font=info.bold?F.b:F.r, size=info.size, lh=size*info.line*1.18;
+    let txt=info.text; const lead=(/^\t+/.exec(txt)||[""])[0].length; txt=txt.replace(/^\t+/,"");
+    const indent=info.indL+lead*36;
+    if(!txt.trim()){ return size*0.9; }
+    // "New Delhi            MOBILE No. …": a wide run of spaces/tabs splits a line into left + right parts
+    const sp=/^(.*?\S)[ \t]{4,}(\S.*?)\s*$/.exec(txt);
+    if(sp&&!inCell&&!/\n/.test(txt)){ const lw=font.widthOfTextAtSize(sp[2],size);
+      return {h:lh, render:(top)=>{ const yy=top-lh+size*0.25; page.drawText(sp[1],{x:x0+indent,y:yy,size,font}); page.drawText(sp[2],{x:x0+width-lw,y:yy,size,font}); }}; }
+    const lines=wrap(txt,font,size,width-indent,Math.max(0,info.first));
+    let h=0; const out=[];
+    lines.forEach((ln,i)=>{ const xi=x0+indent+(i===0?Math.max(0,info.first):0); const avail=width-indent-(i===0?Math.max(0,info.first):0);
+      const lw=font.widthOfTextAtSize(ln,size); let x=xi;
+      if(info.align==="center") x=x0+indent+(width-indent-lw)/2; else if(info.align==="right"||info.align==="end") x=x0+width-lw;
+      out.push({ln,x,avail,last:i===lines.length-1,lw}); h+=lh; });
+    return {h, render:(top)=>{ let yy=top; out.forEach(o=>{ yy-=lh;
+      if(info.align==="both"&&!o.last&&o.ln.includes(" ")){ const ws=o.ln.split(" "); const gap=(o.avail-font.widthOfTextAtSize(ws.join(""),size))/(ws.length-1); let x=o.x;
+        ws.forEach(w=>{ page.drawText(w,{x,y:yy+size*0.25,size,font}); x+=font.widthOfTextAtSize(w,size)+gap; }); }
+      else page.drawText(o.ln,{x:o.x,y:yy+size*0.25,size,font}); }); }};
+  };
+  for(const el of [...body.childNodes]){
+    if(el.localName==="p"){
+      if(q(el,"sectPr").length&&!q(el,"t").length) continue;
+      const info=runInfo(el); y-=info.before;
+      const r=drawPara(info,M.l,CW);
+      if(typeof r==="number"){ y-=r; continue; }
+      if(y-r.h<M.b) newPage();
+      r.render(y); y-=r.h+info.after;
+    }else if(el.localName==="tbl"){
+      const grid=q(el,"gridCol").map(g=>tw(at(g,"w"))); const gsum=grid.reduce((a,b)=>a+b,0)||CW; const cols=grid.map(g=>g*CW/gsum);
+      for(const tr of kid(el,"tr")){
+        const cells=kid(tr,"tc"); let x=M.l; const pad=4; const lay=[];
+        cells.forEach((tc,ci)=>{ const span=+(at(q(tc,"gridSpan")[0],"val")||1); const w=cols.slice(ci,ci+span).reduce((a,b)=>a+b,0)||cols[ci]||60;
+          const paras=kid(tc,"p").map(p=>{ const i=runInfo(p); i.size=Math.min(i.size,12); i.before=0; i.after=1; return i; });
+          const rs=paras.map(i=>drawPara(i,x+pad,w-2*pad,true)); const h=rs.reduce((a,r)=>a+(typeof r==="number"?r*0.5:r.h+1),0)+2*pad;
+          lay.push({x,w,rs,paras,h}); x+=w; });
+        const rh=Math.max(18,...lay.map(c=>c.h));
+        if(y-rh<M.b) newPage();
+        lay.forEach(c=>{ page.drawRectangle({x:c.x,y:y-rh,width:c.w,height:rh,borderColor:rgb(0,0,0),borderWidth:0.6});
+          let yy=y-pad; c.rs.forEach(r=>{ if(typeof r==="number"){ yy-=r*0.5; return; } r.render(yy); yy-=r.h+1; }); });
+        y-=rh;
+      }
+      y-=8;
+    }
+  }
+  return new Blob([await doc.save()],{type:"application/pdf"});
+}
+
+/* ---------- DEFECT PAGES: deal with each defect → collate (with declaration) → final copy ----------
+   Each cured part goes in one of two ways:
+     replace — corrected pages / true copy / better copy take the place of the original pages;
+     add     — a translation (or an extra better copy) goes right after the original document and
+               is numbered from its last page: after 32 → 32A, 32B, …
+   Collating puts every cured part in paper-book order, writes the original page number on any
+   page that doesn't show one, and includes the declaration (and checklist, if asked). */
+function _defDefaultMode(d){ return /TRANSLAT|TYPED\s+COPY|ENGLISH\s+VERSION/i.test((d&&d.text)||"")?"add":"replace"; }
+function _sfx(k){ let s=""; k=k+1; while(k>0){ const r=(k-1)%26; s=String.fromCharCode(65+r)+s; k=Math.floor((k-1)/26); } return s; }
+function _partAnchor(p){ const t=_expandLabels(p.pages||""); return t.length?t[t.length-1].replace(/^p/,""):""; }
+function _cleanFileName(){ return [...arguments].filter(Boolean).join("_").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,120)+".pdf"; }
+function _flCleanBase(rec){
+  const t=String(_caseTitle(rec.serial)||"").split(/\s+v\.?s?\.?\s+/i)[0].split(/\s+/).slice(0,4).join(" ");
+  return [rec.kind||"Filing", rec.diaryNo?("Diary "+rec.diaryNo+" "+(rec.diaryYear||"")):("File "+String(rec.serial).padStart(3,"0")+" "+rec.n), t];
+}
+function _flStage5(rx){ const xs=_flItems().filter(x=>x.stage===5&&rx.test(x.name)&&/\.pdf$/i.test(x.name)); return xs.length?xs[xs.length-1]:null; }
+function _cureModeHTML(d,p){
+  const m=(p.cure&&p.cure.mode)||"replace", a=_partAnchor(p);
+  const txt=m==="add"?`Goes in after page ${esc(a||"?")} — numbered ${esc(a?a+"A, "+a+"B…":"…A, …B")}`:`Replaces paper-book page${/[-,]/.test(p.pages||"")?"s":""} ${esc(p.pages||"?")}`;
+  return `<div class="dp-mode">${txt} · <button class="link-btn" onclick="_defModeSet('${d.id}','${p.id}','${m==="add"?"replace":"add"}')">${m==="add"?"replace instead":"add after instead"}</button></div>`;
+}
+function _defModeSet(did,pid,mode){ const {rec,p}=_defFind(did,pid); if(!p||!p.cure) return; p.cure.mode=mode; _filingTouch(rec); renderFilesPage(); }
+function _defAttachAsk(did,pid){
+  const {d,p}=_defFind(did,pid); if(!p) return;
+  const pdfs=_flItems().filter(x=>(x.stage===2||x.stage===5||x.stage===1)&&/\.pdf$/i.test(x.name));
+  const dm=p.whole?"replace":_defDefaultMode(d), a=_partAnchor(p);
+  openModal("Corrected "+(p.whole?"document":"pages")+" — "+p.label, `
+    <div class="hint" style="margin-bottom:10px">A PDF of the corrected ${p.whole?"document":"pages"}${p.pages?` (paper-book ${/[-,]/.test(p.pages)?"pages":"page"} ${esc(p.pages)})`:""}. Word files: save as PDF first.</div>
+    ${pdfs.length?`<label class="fld">Already in this filing</label><select class="in" id="caPick"><option value="">—</option>${pdfs.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("")}</select>`:""}
+    <label class="fld" style="margin-top:8px">${pdfs.length?"Or from this device (saved in stage 5)":"From this device (saved in stage 5)"}</label>
+    <input class="in" type="file" id="caFile" accept="application/pdf,.pdf">
+    <label class="fld" style="margin-top:8px">Which pages of that PDF <span style="color:var(--muted);font-weight:400">(blank = all)</span></label>
+    <input class="in mono" id="caPages" placeholder="e.g. 2-3">
+    ${p.whole?"":`<label class="fld" style="margin-top:10px">How they go in</label>
+    <div class="mode-r"><label><input type="radio" name="caMode" value="replace" ${dm==="replace"?"checked":""}> <span><b>Replace</b> the original pages${p.pages?" "+esc(p.pages):""}</span></label>
+      <label><input type="radio" name="caMode" value="add" ${dm==="add"?"checked":""}> <span><b>Add after</b> the document — translation or additional better copy, numbered ${esc(a?a+"A, "+a+"B…":"…A, …B")}</span></label></div>`}
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Attach</button></div>`);
+}
+async function _defAttachGo(did,pid){
+  const {rec,d,p}=_defFind(did,pid); if(!p) return;
+  const pick=(document.getElementById("caPick")||{}).value||""; const f=(document.getElementById("caFile")||{}).files;
+  const pages=((document.getElementById("caPages")||{}).value||"").trim()||"all";
+  const mr=document.querySelector('input[name="caMode"]:checked'); const mode=mr?mr.value:"replace";
+  if(pages!=="all"&&!/^\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*$/.test(pages)){ toast("Pages like 2-3 or 1,4.",true); return; }
+  let file=pick;
+  try{
+    if(!file){ if(!f||!f[0]){ toast("Choose a PDF.",true); return; }
+      if(!/\.pdf$/i.test(f[0].name)){ toast("It must be a PDF.",true); return; }
+      _progressModal("Saving…","Saving in stage 5…");
+      file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${mode==="add"?"Added":"Corrected"} - ${_safeName(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
+    p.cure={file,pages,how:"attach",mode}; _defCheckDone(d); _filingTouch(rec); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _defRescan(did,pid){
+  const {d,p}=_defFind(did,pid); if(!p) return;
+  const mode=p.whole?"replace":_defDefaultMode(d);
+  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added - ":"Better copy - ")+p.label, onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan",mode}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
+}
+function _blobReady(blob,name,note,dlName){
+  window.__readyBlob={blob,name,dl:dlName||name};
+  openModal("Ready", `<div style="font-weight:600;margin-bottom:4px;word-break:break-word">${esc(dlName||name)}</div><div class="hint" style="margin-bottom:12px">${esc(note||"Saved in the filing folder.")}</div>
+    <div class="btn-row" style="gap:8px"><button class="btn seal" style="flex:1" onclick="(function(){const u=URL.createObjectURL(window.__readyBlob.blob),a=document.createElement('a');a.href=u;a.download=window.__readyBlob.dl;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);})()">⬇ Download</button>
+    <button class="btn ghost" style="flex:1" onclick="_blobOpenIn(window.open('about:blank','_blank'),window.__readyBlob.blob,window.__readyBlob.dl)">Open</button>
     <button class="btn ghost" onclick="closeModal()">Close</button></div>`);
 }
-/* the cured pieces, in paper-book order */
+async function _flDownloadStored(name, dlName){
+  const x=_flItems().find(i=>i.name===name); if(!x){ toast("That file is no longer in the filing folder.",true); return; }
+  _progressModal("Fetching…","Fetching "+name+"…");
+  try{ const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size},(g,t)=>_progressSet(null,t?g/t:null)); closeModal(); _blobReady(b,name,"From the filing folder.",dlName); }
+  catch(e){ closeModal(); toast(e.message,true); }
+}
+/* the cured parts, in paper-book order; replace parts may not overlap */
 async function _curedPieces(rec, ctx){
   const pieces=[]; const warn=[];
   (rec.defects||[]).forEach(d=>{ if(d.status==="na"||!(d.kind==="pages"||d.kind==="doc")) return;
     d.parts.forEach(p=>{ if(!p.cure) return; const r=_resolvePart(p,ctx);
-      if(!r.idx.length){ warn.push(p.label+": pages not found in the filing copy"); return; }
-      pieces.push({d,p,idx:r.idx,start:r.idx[0],end:r.idx[r.idx.length-1]}); }); });
-  pieces.sort((a,b)=>a.start-b.start);
-  for(let i=1;i<pieces.length;i++) if(pieces[i].start<=pieces[i-1].end){ warn.push(pieces[i].p.label+" overlaps "+pieces[i-1].p.label+" — left out"); pieces.splice(i,1); i--; }
+      if(!r.idx.length){ warn.push(p.label+": its pages are not found in the filing copy — left out"); return; }
+      const mode=(p.cure.mode==="add"&&!p.whole)?"add":"replace";
+      pieces.push({d,p,mode,idx:r.idx,start:r.idx[0],end:r.idx[r.idx.length-1]}); }); });
+  pieces.sort((a,b)=>(a.mode==="add"?a.end+0.5:a.start)-(b.mode==="add"?b.end+0.5:b.start));
+  const reps=pieces.filter(x=>x.mode==="replace");
+  for(let i=1;i<reps.length;i++) if(reps[i].start<=reps[i-1].end){ warn.push(reps[i].p.label+" overlaps "+reps[i-1].p.label+" — left out"); pieces.splice(pieces.indexOf(reps[i]),1); reps.splice(i,1); i--; }
   return {pieces,warn};
 }
+// cured PDF → pdf-lib doc + the page label each of its pages already shows (to avoid double numbering)
 async function _loadCure(PDFDocument, p, cache){
   const name=p.cure.file;
   if(!cache[name]){ const x=_flItems().find(i=>i.name===name);
     if(!x) throw new Error(`"${name}" is no longer in the filing folder.`);
     const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size});
-    cache[name]=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true}); }
-  const doc=cache[name]; const n=doc.getPageCount();
+    const doc=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true});
+    let labels=[]; try{ const td=await _pdfTextDoc(b); labels=td.pages.map(_pageLabel); }catch(e){}
+    cache[name]={doc,labels}; }
+  const {doc,labels}=cache[name]; const n=doc.getPageCount();
   let idx=[]; if(!p.cure.pages||p.cure.pages==="all") idx=Array.from({length:n},(_,i)=>i);
   else String(p.cure.pages).split(",").forEach(t=>{ const m=/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(t); if(m){ for(let k=+m[1];k<=+(m[2]||m[1]);k++) if(k>=1&&k<=n) idx.push(k-1); } });
   if(!idx.length) throw new Error(`No pages to use from "${name}".`);
-  return {doc,idx};
+  return {doc,idx,shown:idx.map(i=>labels[i]||"")};
 }
-function _stampLabel(pg, label, font, rgb){
-  const {width:W,height:H}=pg.getSize(); const tw=font.widthOfTextAtSize(label,13);
-  pg.drawRectangle({x:W/2-tw/2-8,y:H-40,width:tw+16,height:22,color:rgb(1,1,1)});
-  pg.drawText(label,{x:W/2-tw/2,y:H-34,size:13,font,color:rgb(0,0,0)});
+// The numbers a cured part's pages should carry.
+function _pieceLabels(pc, n, ctx, used){
+  // the printed number, or — for front pages the filing copy doesn't number (A1, A2…) — the index's
+  const fb=_expandLabels(pc.p.pages||"").filter(t=>!/^p\d/.test(t)&&t!=="COVER");
+  const lab=i=>ctx.labelOf[i]||(fb.length===pc.idx.length?fb[pc.idx.indexOf(i)]:"")||"";
+  if(pc.mode==="add"){
+    const base=lab(pc.end)||_partAnchor(pc.p); if(!base) return Array(n).fill("");
+    const k0=used[base]||0; used[base]=k0+n;
+    return Array.from({length:n},(_,k)=>base+_sfx(k0+k));
+  }
+  const orig=pc.idx.map(lab); const out=orig.slice(0,n);
+  const last=orig[orig.length-1]||"";
+  for(let k=orig.length;k<n;k++) out.push(last?last+_sfx(k-orig.length):"");
+  return out;
 }
-function _buildAsk(kind){
-  const rec=_flRec();
-  openModal(kind==="final"?"Build final copy":"Build cured pages PDF", `
-    <div class="hint" style="margin-bottom:10px">${kind==="final"?"Takes the filing copy in stage 3 and swaps in every cured part. Saved in stage 6.":"Only the cured pages and fresh documents, in paper-book order — the PDF you refile. Saved in stage 5."}</div>
-    <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px"><input type="checkbox" id="bdNum" checked style="margin-top:3px"> <span>Put the original page numbers on the cured pages <span class="hint">(only where the number of pages is unchanged)</span></span></label>
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_buildGo('${kind}')">Build</button></div>`);
+function _ctxLabelTop(ctx){
+  if(ctx.__lt!=null) return ctx.__lt;
+  let top=true;
+  for(let i=0;i<ctx.pages.length;i++){ const pg=ctx.pages[i]; if(!ctx.labelOf[i]) continue;
+    const r=(pg.rows||[]).find(r=>r.map(x=>x.s).join("").replace(/\s+/g,"")===ctx.labelOf[i]); if(r){ top=r[0].y<pg.h/2; break; } }
+  ctx.__lt=top; return top;
 }
-function _buildRefilingAsk(){ _buildAsk("refile"); }
-function _buildFinalAsk(){ _buildAsk("final"); }
-async function _buildGo(kind){
-  const num=!!(document.getElementById("bdNum")||{}).checked; const rec=_flRec();
-  _progressModal("Building…","Fetching the filing copy…");
+function _stampLabel(pg, label, font, rgb, top){
+  const {width:W,height:H}=pg.getSize(); const sz=12, tw=font.widthOfTextAtSize(label,sz), y=top===false?18:H-36;
+  pg.drawRectangle({x:W/2-tw/2-7,y:y-5,width:tw+14,height:20,color:rgb(1,1,1)});
+  pg.drawText(label,{x:W/2-tw/2,y,size:sz,font,color:rgb(0,0,0)});
+}
+// add a cured part's pages to `out`, numbering any page that doesn't already show its number
+async function _addPieceTo(out, pc, ctx, cache, font, rgb, used, numOn, warn, PDFDocument){
+  const {doc,idx,shown}=await _loadCure(PDFDocument,pc.p,cache);
+  const cp=await out.copyPages(doc,idx); const labels=_pieceLabels(pc,cp.length,ctx,used); const top=_ctxLabelTop(ctx);
+  cp.forEach((pg,i)=>{ out.addPage(pg); const L=labels[i];
+    if(numOn&&L&&shown[i]!==L&&pc.p.cure.how!=="stamp") _stampLabel(pg,L,font,rgb,top); });
+  if(pc.mode==="replace"&&cp.length!==pc.idx.length) warn.push(`${pc.p.label}: ${cp.length} page${cp.length===1?"":"s"} in place of ${pc.idx.length}`);
+  return labels;
+}
+/* --- declaration / checklist as PDFs for the defect pages --- */
+async function _docxToPdf(blob){
+  await _qlDocxLib(); await _docPdfLibs();
+  const box=document.createElement("div"); box.style.cssText="position:fixed;left:0;top:0;z-index:-5;pointer-events:none;background:#fff";
+  document.body.appendChild(box);
   try{
-    const ctx=await _flLoadCtx();
-    const {pieces,warn}=await _curedPieces(rec,ctx);
-    if(!pieces.length) throw new Error("Nothing cured yet that has pages to file.");
-    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
-    const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.TimesRomanBold); const cache={};
-    const addCure=async pc=>{
-      if(pc.p.cure.how==="stamp"&&kind==="refile"){ }
-      const {doc,idx}=await _loadCure(PDFDocument,pc.p,cache); const cp=await out.copyPages(doc,idx);
-      const same=cp.length===pc.idx.length;
-      cp.forEach((pg,i)=>{ out.addPage(pg); const lab=same?ctx.labelOf[pc.idx[i]]:""; if(num&&lab&&pc.p.cure.how!=="stamp") _stampLabel(pg,lab,font,rgb); });
-      if(!same) warn.push(`${pc.p.label}: ${cp.length} page${cp.length===1?"":"s"} replace ${pc.idx.length}`);
-    };
-    if(kind==="refile"){
-      for(let i=0;i<pieces.length;i++){ _progressSet(`Adding ${pieces[i].p.label}…`,(i+1)/(pieces.length+1)); await addCure(pieces[i]); }
-    }else{
-      _progressSet("Opening the filing copy…",0.2);
-      const src=await PDFDocument.load(new Uint8Array(await ctx.blob.arrayBuffer()),{ignoreEncryption:true});
-      const total=src.getPageCount(); const keep=[]; let i=0, k=0;
-      const plan=[]; while(i<total){ const pc=pieces[k]; if(pc&&i===pc.start){ plan.push({pc}); i=pc.end+1; k++; } else { plan.push({src:i}); keep.push(i); i++; } }
-      const copied=await out.copyPages(src,keep); let c=0;
-      for(let j=0;j<plan.length;j++){ if(plan[j].pc){ _progressSet(`Swapping in ${plan[j].pc.p.label}…`,0.3+0.6*j/plan.length); await addCure(plan[j].pc); } else out.addPage(copied[c++]); }
+    await window.docx.renderAsync(blob, box, null, {inWrapper:false, breakPages:true, ignoreLastRenderedPageBreak:true, renderHeaders:true, renderFooters:true});
+    await new Promise(r=>setTimeout(r,120));
+    const secs=[...box.querySelectorAll("section.docx")]; if(!secs.length) throw new Error("Could not lay out the document.");
+    const pdf=new window.jspdf.jsPDF({unit:"mm",format:"a4",compress:true}); let first=true;
+    for(const sec of secs){
+      const c=await window.html2canvas(sec,{scale:2,backgroundColor:"#ffffff",logging:false});
+      const pageH=Math.round(c.width*297/210);
+      for(let y=0;y<c.height-4;y+=pageH){ const h=Math.min(pageH,c.height-y); const s=document.createElement("canvas"); s.width=c.width; s.height=h;
+        const g=s.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,s.width,s.height); g.drawImage(c,0,y,c.width,h,0,0,c.width,h);
+        if(!first) pdf.addPage(); first=false; pdf.addImage(s.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,h*210/c.width,undefined,"FAST"); }
     }
+    return pdf.output("blob");
+  }finally{ box.remove(); }
+}
+function _flDeclAttachAsk(which){
+  const lab=which==="chk"?"Checklist":"Declaration";
+  openModal("Signed "+lab.toLowerCase(), `<div class="hint" style="margin-bottom:10px">The signed ${lab.toLowerCase()} as a PDF — or scan it.</div>
+    <input class="in" type="file" id="sdFile" accept="application/pdf,.pdf">
+    <div class="btn-row" style="margin-top:12px;gap:8px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn ghost" onclick="closeModal();_scanOpen({stage:5,title:'${lab} (signed)'})">📷 Scan instead</button><button class="btn seal" onclick="_flDeclAttachGo('${which}')">Attach</button></div>`);
+}
+async function _flDeclAttachGo(which){
+  const f=(document.getElementById("sdFile")||{}).files; if(!f||!f[0]){ toast("Choose the PDF.",true); return; }
+  const lab=which==="chk"?"Checklist":"Declaration"; const rec=_flRec();
+  try{ _progressModal("Saving…","Saving in stage 5…");
+    const got=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${lab} (signed) - ${fmtDate(_localISO())}.pdf`,f[0],(g,t)=>_progressSet(null,g/t));
+    _defectsAutoCure(rec, which==="chk"?/CHECK ?LIST/:/DECLARATION/, got);
+    closeModal(); toast(lab+" attached."); _fv.live=true; _filesLoad();
+    if(window.__collateAfter) setTimeout(_collateAsk,600);
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+/* --- step 3: collate the defect pages --- */
+function _flAsks(rec){ const ds=(rec.defects||[]).filter(d=>d.status!=="na"); return {decl:true, chk:ds.some(d=>/CHECK ?LIST/i.test(d.text))}; }
+async function _collateAsk(){
+  window.__collateAfter=false;
+  const rec=_flRec();
+  _progressModal("Collating…","Reading the filing copy…");
+  let ctx; try{ ctx=await _flLoadCtx(); }catch(e){ closeModal(); toast(e.message,true); return; }
+  const {pieces,warn}=await _curedPieces(rec,ctx); const used={};
+  const decl=_flStage5(/Declaration/i), chk=_flStage5(/Check ?list/i), asks=_flAsks(rec);
+  const rows=pieces.map(pc=>{ const L=_pieceLabels(pc,pc.mode==="add"?2:pc.idx.length,ctx,{});
+    const lab=pc.mode==="add"?`after ${esc(ctx.labelOf[pc.end]||_partAnchor(pc.p))} → ${esc(L[0]||"")}, ${esc(L[1]||"")}…`:`${pc.idx.length} page${pc.idx.length===1?"":"s"} · ${esc(L.filter(Boolean)[0]||"")}${L.length>1?"–"+esc(L.filter(Boolean).slice(-1)[0]||""):""}`;
+    return `<li><span class="co-l">${esc(pc.p.label)}</span><span class="co-m ${pc.mode}">${pc.mode==="add"?"Added":"Replaces"}</span><span class="co-p">${lab}</span></li>`; }).join("");
+  const docRow=(ok,lab,which,req)=>`<div class="co-doc ${ok?"ok":"no"}"><span class="co-c">${ok?"✓":"!"}</span><div style="flex:1;min-width:0"><b>${lab}</b>${ok?` <span class="hint">${esc(ok.name)}</span>`:`<div class="hint">${req?"The defect pages must include a "+lab.toLowerCase()+". None has been added.":"Asked for by the registry."}</div>`}</div>
+      ${ok?"":`<button class="btn seal sm" onclick="window.__collateAfter=true;_decChkAsk('${which}',true)">Make ${lab.toLowerCase()}</button><button class="btn ghost sm" onclick="window.__collateAfter=true;_flDeclAttachAsk('${which}')">Attach signed</button>`}</div>`;
+  const openGen=(rec.defects||[]).filter(d=>d.status==="open"&&(d.kind==="general"));
+  closeModal();
+  openModal("Collate the defect pages", `
+    ${docRow(decl,"Declaration","decl",true)}${asks.chk?docRow(chk,"Advocate's checklist","chk",false):""}
+    <div class="fld" style="margin-top:12px">Cured pages, in paper-book order</div>
+    ${pieces.length?`<ol class="co-list">${rows}</ol>`:`<div class="fv-empty">No corrected pages attached yet.</div>`}
+    ${warn.length?`<div class="co-warn">${warn.map(esc).join("<br>")}</div>`:""}
+    ${openGen.length?`<div class="co-warn">Still open: ${openGen.map(d=>esc(_flSentence(d.text))).join("; ")}</div>`:""}
+    <label class="co-opt"><input type="checkbox" id="coNum" checked> Write the original page number on each page that doesn't already show it</label>
+    <div class="co-opt">Declaration goes <label><input type="radio" name="coDecl" value="first" checked> first</label> <label><input type="radio" name="coDecl" value="last"> last</label></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_collateGo()" ${pieces.length||decl?"":"disabled"}>Collate &amp; download</button></div>`);
+}
+async function _collateGo(){
+  const rec=_flRec(); const numOn=!!(document.getElementById("coNum")||{}).checked;
+  const declFirst=((document.querySelector('input[name="coDecl"]:checked')||{}).value||"first")==="first";
+  const decl=_flStage5(/Declaration/i), chk=_flStage5(/Check ?list/i), asks=_flAsks(rec);
+  if(!decl&&!confirm("There is no declaration in the defect pages. Collate without it?")) return;
+  _progressModal("Collating…","Reading the filing copy…");
+  try{
+    const ctx=await _flLoadCtx(); const {pieces,warn}=await _curedPieces(rec,ctx);
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.TimesRomanBold); const cache={}, used={};
+    const addFile=async it=>{ const b=await _paperBlob({path:_filingFolderRel()+"/"+it.name,name:it.name,size:it.size}); const d=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true}); (await out.copyPages(d,d.getPageIndices())).forEach(pg=>out.addPage(pg)); };
+    const front=[]; if(decl) front.push(decl); if(asks.chk&&chk) front.push(chk);
+    if(declFirst) for(const it of front){ _progressSet("Adding "+it.name+"…",0.2); await addFile(it); }
+    for(let i=0;i<pieces.length;i++){ _progressSet(`Adding ${pieces[i].p.label}…`,0.25+0.6*i/Math.max(1,pieces.length)); await _addPieceTo(out,pieces[i],ctx,cache,font,rgb,used,numOn,warn,PDFDocument); }
+    if(!declFirst) for(const it of front){ _progressSet("Adding "+it.name+"…",0.88); await addFile(it); }
+    if(!out.getPageCount()) throw new Error("Nothing to collate yet.");
     _progressSet("Saving…",0.92);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
-    const stage=kind==="final"?6:5;
     const rnd=(rec.refilings||[]).length+1;
-    const nm=kind==="final"?`6.${_stageNext(6,_currentNames())} Final Copy - ${fmtDate(_localISO())}.pdf`:`5.${_stageNext(5,_currentNames())} Cured Pages - Refiling ${rnd} - ${fmtDate(_localISO())}.pdf`;
-    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage "+stage+" — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
-    if(kind==="final"){ rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name}]); } else rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name}]);
-    _filingTouch(rec); closeModal();
-    _blobReady(blob,name,(warn.length?"Check: "+warn.join(" · ")+". ":"")+`Saved in stage ${stage}.`);
+    const nm=`5.${_stageNext(5,_currentNames())} Defect Pages${rnd>1?" "+rnd:""} - ${rec.diaryNo?"Diary "+rec.diaryNo+"-"+rec.diaryYear:fmtDate(_localISO())}.pdf`;
+    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage 5 — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
+    const dl=_cleanFileName("Defect Pages",..._flCleanBase(rec));
+    rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount()}]); _filingTouch(rec);
+    closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages${decl?", declaration "+(declFirst?"first":"last"):", no declaration"}. Saved in stage 5.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
+/* --- step 4: compile the final filed copy --- */
+function _finalAsk(){
+  openModal("Compile the final copy", `<div class="hint" style="margin-bottom:10px">Takes the filing copy and puts in every cured part: replaced pages take the place of the originals, added pages (translations, extra better copies) go after their document as 32A, 32B… Saved in stage 6.</div>
+    <label class="co-opt"><input type="checkbox" id="fnNum" checked> Write the page number on each new page that doesn't already show it</label>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_finalGo()">Compile &amp; download</button></div>`);
+}
+async function _finalGo(){
+  const numOn=!!(document.getElementById("fnNum")||{}).checked; const rec=_flRec();
+  _progressModal("Compiling…","Fetching the filing copy…");
+  try{
+    const ctx=await _flLoadCtx(); const {pieces,warn}=await _curedPieces(rec,ctx);
+    if(!pieces.length) throw new Error("Nothing cured yet that has pages to put in.");
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    _progressSet("Opening the filing copy…",0.15);
+    const src=await PDFDocument.load(new Uint8Array(await ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.TimesRomanBold); const cache={}, used={};
+    const reps=pieces.filter(x=>x.mode==="replace"), adds=pieces.filter(x=>x.mode==="add");
+    const addsAt={}; adds.forEach(a=>{ (addsAt[a.end]=addsAt[a.end]||[]).push(a); });
+    const total=src.getPageCount(); const keep=[]; for(let i=0;i<total;i++) if(!reps.some(r=>i>=r.start&&i<=r.end)) keep.push(i);
+    const copied=await out.copyPages(src,keep); const byIdx={}; keep.forEach((i,k)=>byIdx[i]=copied[k]);
+    let i=0;
+    while(i<total){
+      const r=reps.find(x=>x.start===i); let upto=i;
+      if(r){ _progressSet(`Putting in ${r.p.label}…`,0.2+0.7*i/total); await _addPieceTo(out,r,ctx,cache,font,rgb,used,numOn,warn,PDFDocument); upto=r.end; }
+      else out.addPage(byIdx[i]);
+      for(let j=i;j<=upto;j++) for(const a of (addsAt[j]||[])){ _progressSet(`Adding ${a.p.label}…`,0.2+0.7*j/total); await _addPieceTo(out,a,ctx,cache,font,rgb,used,numOn,warn,PDFDocument); }
+      i=upto+1;
+    }
+    _progressSet("Saving…",0.93);
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Copy - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
+    const dl=_cleanFileName("Final Copy",..._flCleanBase(rec));
+    rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount()}]); _filingTouch(rec);
+    closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages (filing copy had ${total}). Saved in stage 6.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
+    _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+// old entry points → new steps
+function _buildRefilingAsk(){ _collateAsk(); }
+function _buildFinalAsk(){ _finalAsk(); }
 
 /* ---------- CHECK BEFORE FILING: likely registry defects, found in the filing copy itself ---------- */
 function _checkHTML(rec){
@@ -20530,7 +20792,7 @@ function _docSaveBtnHTML(kind, obj, matterId){
 
 // These functions are reached from on-screen buttons and from code outside this block —
 // async functions and constants declared inside a block are NOT global, so export them.
-try{ Object.assign(window,{_addPaperGo,_blankSpot,_buildGo,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildAsk,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5}); }catch(e){}
+try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -22191,15 +22453,15 @@ function _adToggleHTML(rerenderExpr){
   return `<label class="ad-tog"><input type="checkbox" ${on?"checked":""} onchange="_setAdOnly(this.checked);${rerenderExpr}"><span>AD Chamber only</span></label>`;
 }
 var _drFilter="all";
-const _DR_STEPS=["Listed","Curing","All cured","Refiled","Final copy"];
+const _DR_STEPS=["Listed","Curing","Collate","Defect pages","Final copy"];
 function _filingStage(r){
-  const ds=(r.defects||[]).filter(d=>d.status!=="na"), all=(r.defects||[]);
-  if(!all.length) return {k:0,l:"No defect list yet",open:0,tot:0};
+  const all=(r.defects||[]); if(!all.length) return {k:0,l:"No defect list yet",open:0,tot:0};
+  const ds=all.filter(d=>d.status!=="na");
   const open=ds.filter(d=>d.status==="open").length, tot=all.length, done=tot-open;
-  if((r.finals||[]).length) return {k:5,l:"Final copy made",open,tot};
-  if((r.refilings||[]).length&&!open) return {k:4,l:"Refiled — cured pages filed",open,tot};
-  if((r.refilings||[]).length) return {k:4,l:`Refiled · ${open} still open`,open,tot};
-  if(!open) return {k:3,l:"All cured — ready to refile",open,tot};
+  const blocking=ds.filter(d=>d.status==="open"&&/^(pages|doc|new)$/.test(d.kind)).length;
+  if((r.finals||[]).length) return {k:5,l:"Final copy compiled",open,tot};
+  if((r.refilings||[]).length) return {k:4,l:"Defect pages ready"+(open?` · ${open} still open`:""),open,tot};
+  if(!blocking) return {k:3,l:"Ready to collate"+(open?` · ${open} general open`:""),open,tot};
   if(done) return {k:2,l:`Curing — ${done} of ${tot} done`,open,tot};
   return {k:1,l:`${tot} defect${tot===1?"":"s"} listed`,open,tot};
 }
@@ -23695,7 +23957,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-2100";
+  window.APP_VERSION = "2026.10.08-2300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
