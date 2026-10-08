@@ -1,52 +1,16 @@
 {
-  "generated_at": "2026-10-08T15:51:27.236416Z",
+  "generated_at": "2026-10-08T21:05:18.341471Z",
   "window": [
-    "2026-10-08",
     "2026-10-09",
     "2026-10-12",
     "2026-10-13",
     "2026-10-14",
     "2026-10-15",
     "2026-10-16",
-    "2026-10-19"
+    "2026-10-19",
+    "2026-10-20"
   ],
   "by_date": {
-    "2026-10-08": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Regular / Final - Main",
-        "Registrar - Main",
-        "Curative & Review (circulation)",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 1,
-      "matches": [
-        {
-          "for_date": "2026-10-08",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "9",
-          "item": "304",
-          "coram": "HON'BLE MR. JUSTICE AHSANUDDIN AMANULLAH; HON'BLE MR. JUSTICE MANMOHAN",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "case_no": "SLP(Crl) No. 6622/2025",
-          "petitioner": "THE STATE OF KARNATAKA",
-          "respondent": "SHALLY AND ANR.",
-          "text": "304 SLP(Crl) No. 6622/2025 THE STATE OF KARNATAKA Versus SHALLY AND ANR."
-        }
-      ]
-    },
     "2026-10-09": {
       "lists_found": [
         "Miscellaneous - Main",
@@ -102,22 +66,45 @@
     },
     "2026-10-12": {
       "lists_found": [
+        "Miscellaneous - Main",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
-      "has_main": false,
-      "match_count": 1,
+      "has_main": true,
+      "match_count": 2,
       "matches": [
         {
           "for_date": "2026-10-12",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
           "family": "MJ",
           "is_supplementary": false,
-          "court": "",
-          "item": "651",
-          "coram": "",
+          "court": "2",
+          "item": "7",
+          "coram": "HON'BLE MR. JUSTICE VIKRAM NATH; HON'BLE MR. JUSTICE R. MAHADEVAN; HON'BLE MR. JUSTICE APARESH KUMAR SINGH",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "Diary No. 40606-2026",
+          "petitioner": "SHASINDRAN C",
+          "respondent": "P B NOOH AND ANR.",
+          "text": "7 Diary No. 40606-2026 SHASINDRAN C Versus P B NOOH AND ANR."
+        },
+        {
+          "for_date": "2026-10-12",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "6",
+          "item": "11",
+          "coram": "HON'BLE MR. JUSTICE DIPANKAR DATTA; HON'BLE MR. JUSTICE SHEEL NAGU",
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
@@ -125,10 +112,10 @@
             "aor"
           ],
           "confidence": "high",
-          "case_no": "SLP(Crl) No. 15497/2026",
-          "petitioner": "MANOJ",
-          "respondent": "STATE OF KERALA",
-          "text": "651 SLP(Crl) No. 15497/2026 MANOJ Versus STATE OF KERALA"
+          "case_no": "Diary No. 25117-2025",
+          "petitioner": "SYED YUSUF ALI AND ORS.",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
+          "text": "11 Diary No. 25117-2025 SYED YUSUF ALI AND ORS. Versus THE STATE OF MAHARASHTRA AND ORS."
         }
       ]
     },
