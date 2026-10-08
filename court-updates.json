@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T08:27:49.714184Z",
+  "generated_at": "2026-10-08T10:14:27.997123Z",
   "window": [
     "2026-10-08",
     "2026-10-09",
@@ -40,6 +40,9 @@
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(Crl) No. 6622/2025",
+          "petitioner": "THE STATE OF KARNATAKA",
+          "respondent": "SHALLY AND ANR.",
           "text": "304 SLP(Crl) No. 6622/2025 THE STATE OF KARNATAKA Versus SHALLY AND ANR."
         }
       ]
@@ -70,7 +73,10 @@
             "number"
           ],
           "confidence": "high",
-          "text": "32 SLP(Crl) No. DILIP S GHUMARE Versus HIGH COURT OF JUDICATURE AT BOMBAY AND ORS. DAILY CAUSE LIST FOR DATED : 09-10-2026 COURT NO. : 2"
+          "case_no": "SLP(Crl) No. 17504/2026",
+          "petitioner": "DILIP S GHUMARE",
+          "respondent": "HIGH COURT OF JUDICATURE AT BOMBAY AND ORS.",
+          "text": "32 SLP(Crl) No. 17504/2026 DILIP S GHUMARE Versus HIGH COURT OF JUDICATURE AT BOMBAY AND ORS."
         }
       ]
     },
@@ -95,10 +101,14 @@
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
-            "advocate"
+            "advocate",
+            "aor"
           ],
-          "confidence": "medium",
-          "text": "651 SLP(Crl) No. MANOJ Versus STATE OF KERALA"
+          "confidence": "high",
+          "case_no": "SLP(Crl) No. 15497/2026",
+          "petitioner": "MANOJ",
+          "respondent": "STATE OF KERALA",
+          "text": "651 SLP(Crl) No. 15497/2026 MANOJ Versus STATE OF KERALA"
         }
       ]
     },
@@ -109,25 +119,8 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 5,
+      "match_count": 4,
       "matches": [
-        {
-          "for_date": "2026-10-13",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "1",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "1 CONMT.PET.(C) No. Versus MOHAMMAD YOUNUS AND ORS. IN SLP(C) No. - 23379/2023,"
-        },
         {
           "for_date": "2026-10-13",
           "list": "Miscellaneous - Advance",
@@ -143,6 +136,9 @@
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(C) No. 24919/2026",
+          "petitioner": "M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
           "text": "269 SLP(C) No. 24919/2026 M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED Versus THE STATE OF MAHARASHTRA AND ORS."
         },
         {
@@ -160,7 +156,10 @@
             "number"
           ],
           "confidence": "high",
-          "text": "803 SLP(C) No. SACHIN JAGDISHBHAI CHAUHAN AND ORS. Versus CHIEF OFFICER TALAJA NAGARPALIKA"
+          "case_no": "SLP(C) No. 9823-9827/2025",
+          "petitioner": "SACHIN JAGDISHBHAI CHAUHAN AND ORS.",
+          "respondent": "CHIEF OFFICER TALAJA NAGARPALIKA",
+          "text": "803 SLP(C) No. 9823-9827/2025 SACHIN JAGDISHBHAI CHAUHAN AND ORS. Versus CHIEF OFFICER TALAJA NAGARPALIKA"
         },
         {
           "for_date": "2026-10-13",
@@ -175,9 +174,13 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(C) No. 27751/2025",
+          "petitioner": "SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS.",
+          "respondent": "SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS.",
           "text": "899 SLP(C) No. 27751/2025 SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS. Versus SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS."
         },
         {
@@ -193,9 +196,13 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(C) No. 38281/2025",
+          "petitioner": "WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
           "text": "1251 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
         }
       ]
@@ -207,7 +214,7 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 3,
+      "match_count": 1,
       "matches": [
         {
           "for_date": "2026-10-14",
@@ -224,41 +231,10 @@
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(C) No. 9388/2022",
+          "petitioner": "COMMITTEE OF MANAGEMENT ANJUMAN INTEZAMIA MASAJID VARANASI",
+          "respondent": "RAKHI SINGH AND ORS.",
           "text": "98 SLP(C) No. 9388/2022 COMMITTEE OF MANAGEMENT ANJUMAN INTEZAMIA MASAJID VARANASI Versus RAKHI SINGH AND ORS."
-        },
-        {
-          "for_date": "2026-10-14",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "154",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "154 SLP(Crl) No. BIPINCHAND KANAIYALAL JOSHI @ LALA DOCTOR Versus THE STATE OF GUJARAT AND ANR."
-        },
-        {
-          "for_date": "2026-10-14",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "155",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "MANOJ NARAIN AGARWAL SLP(C) No. 3125/2026 Versus STATE OF UTTARAKHAND AND ORS."
         }
       ]
     },
@@ -284,9 +260,13 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(Crl) No. 8841/2026",
+          "petitioner": "FAVAS RAHIMT",
+          "respondent": "STATE OF KERALA",
           "text": "64 SLP(Crl) No. 8841/2026 FAVAS RAHIMT Versus STATE OF KERALA"
         }
       ]
@@ -298,7 +278,7 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": false,
-      "match_count": 6,
+      "match_count": 4,
       "matches": [
         {
           "for_date": "2026-10-16",
@@ -313,44 +293,14 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(Crl) No. 5500/2026",
+          "petitioner": "MINIKETAN SARTHI",
+          "respondent": "STATE OF CHHATTISGARH",
           "text": "180 SLP(Crl) No. 5500/2026 MINIKETAN SARTHI Versus STATE OF CHHATTISGARH"
-        },
-        {
-          "for_date": "2026-10-16",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "274",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "274 CONMT.PET.(C) No. AMEEN AHMAD Versus DEEPALI RASTOGI AND ORS. IN C.A. No. - 14259/2025,"
-        },
-        {
-          "for_date": "2026-10-16",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "",
-          "item": "363",
-          "coram": "",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "text": "PANDU HEMBROM SLP(Crl) No. 629/2026 Versus THE STATE OF JHARKHAND"
         },
         {
           "for_date": "2026-10-16",
@@ -365,9 +315,13 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "Diary No. 67086-2025",
+          "petitioner": "SADASHIV",
+          "respondent": "THE STATE OF KARNATAKA",
           "text": "504 Diary No. 67086-2025 SADASHIV Versus THE STATE OF KARNATAKA"
         },
         {
@@ -385,6 +339,9 @@
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(C) No. 70/2019",
+          "petitioner": "K M DASTUR REINSURANCE BROKERS PVT LTD",
+          "respondent": "RITU TAIMNI",
           "text": "629 SLP(C) No. 70/2019 K M DASTUR REINSURANCE BROKERS PVT LTD Versus RITU TAIMNI"
         },
         {
@@ -400,14 +357,18 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
+            "aor",
             "number"
           ],
           "confidence": "high",
+          "case_no": "SLP(Crl) No. 19901/2025",
+          "petitioner": "TULESHWAR SINGH GOND AND ANR.",
+          "respondent": "STATE OF CHHATTISGARH",
           "text": "958 SLP(Crl) No. 19901/2025 TULESHWAR SINGH GOND AND ANR. Versus STATE OF CHHATTISGARH"
         }
       ]
     }
   },
-  "match_count": 18,
+  "match_count": 13,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
