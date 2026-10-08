@@ -1972,6 +1972,57 @@
   .dr-sl{font-size:12px;color:var(--muted);margin-top:3px}
   .dr-tbl td{vertical-align:top}.dr-tbl td.mono,.dr-tbl .pd-b{white-space:nowrap}.dr-tbl tbody tr:hover{background:var(--seal-soft)}
   .dr-wait{margin-top:14px}.dr-wait summary{cursor:pointer;font-weight:600;color:var(--seal);font-size:13.5px;margin-bottom:8px}
+  .fh{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .fh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .fh-kind{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--brass)}
+  .fh-case{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:19px;font-weight:700;color:var(--ink);margin-top:2px;line-height:1.25}
+  .fh-pill{flex:none;font-size:12px;font-weight:700;border-radius:20px;padding:4px 11px;white-space:nowrap;background:var(--line2);color:#5b5348}
+  .fh-pill.k1,.fh-pill.k2{background:#fbeeee;color:var(--seal)}.fh-pill.k3{background:#fff1d6;color:#7a5200}.fh-pill.k4,.fh-pill.k5{background:#e8f4ea;color:#2e7d32}
+  .fh-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:13px;color:var(--muted)}.fh-meta b{color:var(--ink)}
+  .fs{display:flex;margin-top:14px}
+  .fs-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;font-size:11px;color:var(--muted);text-align:center}
+  .fs-i::before{content:"";position:absolute;top:11px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0}
+  .fs-i:first-child::before{display:none}
+  .fs-i.done::before,.fs-i.now::before{background:#2e7d32}
+  .fs-d{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:11.5px;background:#fff;border:2px solid var(--line);color:var(--muted)}
+  .fs-i.done .fs-d{background:#2e7d32;border-color:#2e7d32;color:#fff}.fs-i.now .fs-d{border-color:var(--seal);color:var(--seal)}
+  .fs-i.now .fs-l{color:var(--seal);font-weight:700}.fs-i.done .fs-l{color:var(--ink)}
+  .fn{margin-top:12px;border:1px solid var(--line);border-left:4px solid var(--seal);border-radius:12px;background:#fffaf5;padding:12px 14px}
+  .fn.ok{border-left-color:#2e7d32;background:#f4faf5}
+  .fn-t{font-weight:700;font-size:15px;color:var(--ink)}.fn-s{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .fn-b{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .fn-l{list-style:none;margin:8px 0 0;padding:0}.fn-l li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line2);font-size:14px}
+  .fn-l li:first-child{border-top:0}.fn-l li span:nth-child(2){flex:1}.fn-c{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+  .fn-l li.ok .fn-c{background:#2e7d32;border-color:#2e7d32;color:#fff}
+  .fsg{display:flex;background:var(--line2);border-radius:11px;padding:3px;margin:14px 0 10px}
+  .fsg-b{flex:1;border:0;background:none;border-radius:9px;padding:8px 6px;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
+  .fsg-b.on{background:#fff;color:var(--seal);box-shadow:0 1px 3px rgba(0,0,0,.08)}.fsg-b b{margin-left:3px}
+  .dl-h{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12.5px;color:var(--muted);margin:2px 2px 8px}
+  .dl{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+  .dd{border-top:1px solid var(--line2)}.dd:first-child{border-top:0}
+  .dd>summary{list-style:none;display:flex;align-items:flex-start;gap:10px;padding:11px 12px;cursor:pointer}
+  .dd>summary::-webkit-details-marker{display:none}
+  .dd[open]>summary{background:#fbf8f3}
+  .dd-no{flex:none;width:24px;height:24px;border-radius:50%;background:var(--line2);color:var(--ink);font-weight:700;font-size:12px;display:grid;place-items:center;margin-top:1px}
+  .dd.open .dd-no{background:#fbeeee;color:var(--seal)}.dd.cured .dd-no{background:#e8f4ea;color:#2e7d32}
+  .dd-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .dd-t{font-size:14px;font-weight:600;color:var(--ink);line-height:1.4}.dd.cured .dd-t,.dd.na .dd-t{color:var(--muted);font-weight:500}
+  .dd-s{font-size:12px;color:var(--muted)}.dd-s i{font-style:normal;background:var(--line2);border-radius:5px;padding:0 6px;margin-left:2px}
+  .dd-st{flex:none;font-size:11.5px;font-weight:700;border-radius:12px;padding:2px 9px;margin-top:2px}
+  .dd-st.open{background:#fbeeee;color:var(--seal)}.dd-st.cured{background:#e8f4ea;color:#2e7d32}.dd-st.na{background:var(--line2);color:#5b5348}
+  .dd-b{padding:4px 12px 12px 46px}
+  .dd-rule{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .dp{border:1px solid var(--line2);border-radius:10px;padding:9px 11px;margin-top:8px;background:#fdfcfa}
+  .dp-l{font-weight:700;font-size:13.5px}.dp-w{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .dp-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.dp-ok{color:#2e7d32;font-size:13px;margin-top:6px;word-break:break-word}
+  .dd-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .ps{border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:8px;overflow:hidden}
+  .ps>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+  .ps>summary::-webkit-details-marker{display:none}
+  .ps-n{width:24px;height:24px;border-radius:7px;background:var(--seal-soft);color:var(--seal);font-weight:700;font-size:12.5px;display:grid;place-items:center;flex:none}
+  .ps-l{flex:1;font-weight:600;font-size:14px}.ps-c{font-size:12.5px;color:var(--muted);font-weight:700}
+  .ps-a{display:flex;gap:4px}.ps-b{padding:0 10px 8px}.ps-link{font-size:13px;padding:6px 2px}
+  @media (max-width:560px){ .dd-b{padding-left:12px} .fh-case{font-size:17px} .fs-l{font-size:10px} }
   .pf-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:7px;font-family:inherit;cursor:pointer}
   .pf-row:active{background:var(--seal-soft)}
   .pf-no{flex:none;font-family:var(--mono,ui-monospace,monospace);font-weight:700;color:var(--seal);font-size:14px;min-width:34px}
@@ -19097,11 +19148,11 @@ function renderFilesPage(){
   panel.innerHTML=`${back}
     <div class="card">
       <div class="fv-head">
-        <div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
-          <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>
-        <div style="display:flex;gap:6px">${f.sub?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
+        ${_inFiling()?`<div style="min-width:0;flex:1"><button class="btn ghost sm" onclick="_filesUp()">‹ All papers of ${esc(String(f.serial).padStart(3,"0"))}</button></div>`:`<div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
+          <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>`}
+        <div style="display:flex;gap:6px">${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
       </div>
-      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">+ Add paper</button><button class="btn ghost sm" onclick="_scanOpen({})">📷 Scan</button><button class="btn ghost sm" onclick="_newFilingAsk()">⚖️ New filing</button></div>`:""}
+      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">+ Add paper</button><button class="btn ghost sm" onclick="_scanOpen({})">📷 Scan</button><button class="btn ghost sm" onclick="_newFilingAsk()">⚖️ New filing</button><button class="btn ghost sm" onclick="_dlStartAsk()">⚠️ Defect list</button></div>`:""}
       ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:_inFiling()?_filingViewHTML():`
       <div class="fv-tools">
         <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
@@ -19352,48 +19403,228 @@ function _flItems(){
     .sort((a,b)=>(a.stage-b.stage)||(a.sn-b.sn)||a.name.localeCompare(b.name));
 }
 function _flLatest(stage, pdfOnly){ const xs=_flItems().filter(x=>x.stage===stage&&(!pdfOnly||/\.pdf$/i.test(x.name))); return xs.length?xs[xs.length-1]:null; }
+/* ---------- the filing screen (Oct 2026 redesign): header · progress · next step · tabs ---------- */
+function _flFC(){
+  const x=_flLatest(3,true); if(x) return {name:x.name,size:x.size,path:_filingFolderRel()+"/"+x.name,linked:false};
+  const rec=_filingRec(_filingFolderRel(),false);
+  if(rec&&rec.filingCopyPath) return {name:rec.filingCopyPath.split("/").pop(),size:rec.filingCopySize||0,path:rec.filingCopyPath,linked:true};
+  return null;
+}
+function _flSentence(t){
+  let s=String(t||"").replace(/\s+/g," ").trim(); if(!s) return "";
+  if(s===s.toUpperCase()){
+    s=s.toLowerCase().replace(/^([a-z])/,m=>m.toUpperCase())
+       .replace(/(\b\w+)?([.?!]\s+)([a-z])/g,(m,w,p,c)=>(w||"")+p+(/^(no|nos|dt|rs|vs|sr|ors|anr|col|cols|para|paras|pp|pg)$/i.test(w||"")||String(w||"").length<4?c:c.toUpperCase()));
+    s=s.replace(/\b(p|r)\s*-\s*(\d+[a-z]?)\b/gi,(m,a,b)=>a.toUpperCase()+"-"+b.toUpperCase())
+       .replace(/\b(i\/o|v\/a|n\/a|ia|slp|cc|o\.t\.|ot|sc|hc)(?=\W|$)/gi,m=>m.toUpperCase()).replace(/\brs\.\s*/gi,"Rs. ")
+       .replace(/\bno\.\s*/gi,"No. ").replace(/\bdt\.\s*/gi,"dt. ");
+  }
+  return s;
+}
+function _flOpenFC(){ const fc=_flFC(); if(!fc) return; const k=_paperReg({path:fc.path,name:fc.name,size:fc.size,ext:".pdf",label:fc.name,num:"",mtime:""}); _paperOpen(k); }
+function _flStepper(k){
+  return `<div class="fs">${_DR_STEPS.map((s,i)=>`<div class="fs-i ${i+1<k?"done":i+1===k?"now":""}"><span class="fs-d">${i+1<k?"✓":i+1}</span><span class="fs-l">${s}</span></div>`).join("")}</div>`;
+}
+function _flHasStage5(rx){ return _flItems().some(x=>x.stage===5&&rx.test(x.name)); }
+function _flNextHTML(rec, st, fc){
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  if(!st.tot) return `<div class="fn"><div class="fn-t">Read the registry's defect list</div>
+      <div class="fn-s">Save the Defects page of this diary number from the Supreme Court site as a PDF, then read it here.${fc?"":" Link the filing copy too, so each defect can be matched to its pages."}</div>
+      <div class="fn-b">${btn("_defReadAsk()","Read defect list")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}${btn("_defAddAsk()","Add a defect by hand","ghost")}</div></div>`;
+  if(st.k<=2) return `<div class="fn"><div class="fn-t">Cure ${st.open} open defect${st.open===1?"":"s"}</div>
+      <div class="fn-s">Open a defect below to attach the corrected pages, rescan a page or stamp TRUE COPY. General points (fee, checklist) are marked done.</div>
+      <div class="fn-b">${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
+  if(st.k===3){
+    const hasRef=(rec.refilings||[]).length, hasDecl=_flHasStage5(/Declaration/i), hasChk=_flHasStage5(/Checklist/i);
+    const li=(done,l,act)=>`<li class="${done?"ok":""}"><span class="fn-c">${done?"✓":""}</span><span>${l}</span>${act}</li>`;
+    return `<div class="fn"><div class="fn-t">All defects cured — prepare the refiling</div>
+      <ul class="fn-l">${li(hasRef,"Cured pages PDF",btn("_buildRefilingAsk()",hasRef?"Build again":"Build","ghost"))}${li(hasDecl,"Declaration",btn("_decChkAsk('decl')",hasDecl?"Make again":"Make","ghost"))}${li(hasChk,"Advocate's checklist",btn("_decChkAsk('chk')",hasChk?"Make again":"Make","ghost"))}</ul></div>`;
+  }
+  if(st.k===4) return `<div class="fn"><div class="fn-t">Refiled — build the final copy</div>
+      <div class="fn-s">Swaps every cured part into the filing copy and saves it as the final copy (stage 6).</div>
+      <div class="fn-b">${btn("_buildFinalAsk()","Build final copy")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
+  const fin=_flLatest(6,true);
+  return `<div class="fn ok"><div class="fn-t">Final copy ready</div><div class="fn-s">${fin?esc(fin.name):""}</div>
+      <div class="fn-b">${fin?btn(`_paperOpen(_paperReg({path:${_fvQuote(_filingFolderRel()+"/"+fin.name)},name:${_fvQuote(fin.name)},size:${+fin.size||0},ext:'.pdf'}))`,"Open final copy"):""}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
+}
 function _filingViewHTML(){
   const st=_flState(); const rec=_filingRec(_filingFolderRel(),true);
-  const items=_flItems(); const base=_filingFolderRel(); const can=!!_gkUrl();
-  const m=_FILING_RX.exec(_fv.sub)||[];
-  const open=(rec.defects||[]).filter(d=>d.status==="open").length, tot=(rec.defects||[]).length;
-  const head=`<div class="fl-head">
-      <div><div class="fl-kind">⚖️ ${esc(m[1]||"Filing")} filing <span class="mono" style="color:var(--muted)">${esc((m[2]||"")+"-"+(m[3]||""))}</span></div>
-        <div class="fl-diary">Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"change":"add"}</button></div></div>
-      <div class="fl-tools">
-        <button class="btn ghost sm" onclick="_addPaperAsk(${st.stage||0})">+ Add</button>
-        <button class="btn ghost sm" onclick="_scanOpen({stage:${st.stage||1}})">📷 Scan</button>
-      </div></div>`;
-  const nav=`<div class="fv-chips" style="margin-top:10px">
-      <button class="fv-chip ${st.view==="stages"&&!st.stage?"on":""}" onclick="_flState().stage=0;_flSet('view','stages')">Stages</button>
-      <button class="fv-chip ${st.view==="defects"?"on":""}" onclick="_flSet('view','defects')">Defects${tot?` <b>${open}/${tot}</b>`:""}</button>
-      <button class="fv-chip ${st.view==="check"?"on":""}" onclick="_flSet('view','check')">Check before filing</button>
-      <button class="fv-chip" onclick="_decChkAsk('decl')">Declaration</button>
-      <button class="fv-chip" onclick="_decChkAsk('chk')">Checklist</button></div>`;
-  let body="";
+  const m=_FILING_RX.exec(_fv.sub)||[]; const fc=_flFC(); const stg=_filingStage(rec);
+  if(st.view==="stages"&&!st.stage&&!st.touched&&stg.tot) st.view="defects";
+  const listDate=_drListDate(rec);
+  const pill=stg.tot?`<span class="fh-pill k${stg.k}">${esc(stg.l)}</span>`:`<span class="fh-pill k0">No defect list yet</span>`;
+  const head=`<div class="fh">
+      <div class="fh-top"><div style="min-width:0"><div class="fh-kind">${esc(m[1]||"Filing")} · Filing ${esc((m[2]||"")+"-"+(m[3]||""))}</div><div class="fh-case">${esc(_fv.title||_caseTitle(rec.serial)||"")}</div></div>${pill}</div>
+      <div class="fh-meta">
+        <span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span>
+        ${listDate?`<span>Defect list <b>${esc(listDate)}</b></span>`:""}
+        <span>Filing copy ${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>48?fc.name.slice(0,46)+"…":fc.name)}</button>${fc.linked?` <span class="hint">(in the case folder)</span>`:""} <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> <button class="link-btn" onclick="_flLinkFCAsk()">link</button>`}</span>
+      </div>
+      ${stg.tot?_flStepper(stg.k):""}
+    </div>`;
+  const tab=(v,l)=>`<button class="fsg-b ${st.view===v?"on":""}" onclick="_flState().touched=1;_flSet('view','${v}')">${l}</button>`;
+  const tabs=`<div class="fsg">${tab("defects",`Defects${stg.tot?` <b>${stg.open}</b>`:""}`)}${tab("stages","Papers")}${tab("check","Check")}</div>`;
+  let body;
   if(st.view==="defects") body=_defectsHTML(rec);
   else if(st.view==="check") body=_checkHTML(rec);
-  else if(st.stage){
-    const s=_STG.find(x=>x.n===st.stage); const xs=items.filter(x=>x.stage===st.stage);
-    body=`<div class="fv-chips"><button class="fv-chip" onclick="_flSet('stage',0)">‹ All stages</button><span class="fv-chip on" style="cursor:default">${s.ic} ${st.stage} · ${esc(s.l)} <b>${xs.length}</b></span></div>
-      <div class="hint" style="margin:2px 2px 8px">${esc(s.h)}</div>
-      ${xs.length?xs.map(x=>_fvRowHTML(x,base,"",can)).join(""):`<div class="fv-empty">Nothing in this stage yet.</div>`}
-      <div class="btn-row" style="margin-top:8px;gap:8px"><button class="btn ghost sm" onclick="_addPaperAsk(${st.stage})">+ Add to stage ${st.stage}</button><button class="btn ghost sm" onclick="_scanOpen({stage:${st.stage}})">📷 Scan into stage ${st.stage}</button></div>`;
-  }else{
-    const tiles=_STG.map(s=>{ const g=items.filter(x=>x.stage===s.n); const last=g.map(x=>x.mtime||"").sort().pop();
-      const extra=s.n===4&&tot?`<span class="fv-isl-d" style="color:${open?"var(--seal)":"var(--green,#2e7d32)"}">${open?open+" defect"+(open===1?"":"s")+" open":"all cured"}</span>`:"";
-      return `<button class="fv-isl" onclick="_flSet('stage',${s.n})"><span class="fv-isl-ic">${s.ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${s.n} · ${esc(s.l)}</span>${extra||(last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">empty</span>`)}</button>`; }).join("");
-    const loose=items.filter(x=>!x.stage);
-    const opts=_STG.map(s=>`<option value="${s.n}">${s.n} · ${esc(s.l)}</option>`).join("");
-    body=`<div class="fv-isls">${tiles}</div>`+
-      (loose.length?`<div class="fv-group" style="margin-top:18px">Not yet sorted · ${loose.length}</div><div class="hint" style="margin:0 2px 8px">Older papers without a stage number. Choose a stage to number them.</div>`+
-        loose.map(x=>{ const k=can?_paperReg({path:base+"/"+x.name,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:"",mtime:x.mtime||""}):-1;
-          return `<div class="fv-row"><div class="fv-ic" style="background:${_FK[_fileKind(x.ext)][1]}">${_FK[_fileKind(x.ext)][0]}</div>
-            <div class="fv-main" ${k>=0?`onclick="_qlShow(${k})"`:""}><div class="fv-name">${esc(x.name)}</div><div class="fv-meta"><span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div></div>
-            <div class="fv-acts"><select class="fv-sort" style="min-width:150px" onchange="_sortIntoStage(${_fvQuote(x.name)},this.value)"><option value="">Sort into…</option>${opts}</select></div></div>`; }).join(""):"");
-  }
-  return head+nav+`<div class="fv-box" style="margin-top:10px">${body}</div>`;
+  else body=_flPapersHTML(rec, fc);
+  return head+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div>`;
 }
+function _flPapersHTML(rec, fc){
+  const items=_flItems(), base=_filingFolderRel(), can=!!_gkUrl(), st=_flState();
+  const opts=_STG.map(s=>`<option value="${s.n}">${s.n} · ${esc(s.l)}</option>`).join("");
+  const groups=_STG.map(s=>{
+    const xs=items.filter(x=>x.stage===s.n);
+    const extra=(s.n===3&&fc&&fc.linked)?`<div class="ps-link">📕 <button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name)}</button> <span class="hint">— filing copy kept where it is in the case folder</span></div>`:"";
+    return `<details class="ps" ${xs.length||extra||st.stage===s.n?"open":""}><summary><span class="ps-n">${s.n}</span><span class="ps-l">${esc(s.l)}</span><span class="ps-c">${xs.length||""}</span>
+        <span class="ps-a" onclick="event.preventDefault();event.stopPropagation()"><button class="row-act" onclick="_addPaperAsk(${s.n})">+ Add</button><button class="row-act" onclick="_scanOpen({stage:${s.n}})">Scan</button></span></summary>
+      <div class="ps-b">${extra}${xs.length?xs.map(x=>_fvRowHTML(x,base,"",can)).join(""):(extra?"":`<div class="hint" style="padding:6px 2px">${esc(s.h)}</div>`)}</div></details>`; }).join("");
+  const loose=items.filter(x=>!x.stage);
+  const looseHTML=loose.length?`<details class="ps" open><summary><span class="ps-n">·</span><span class="ps-l">Not yet sorted</span><span class="ps-c">${loose.length}</span></summary><div class="ps-b">`+
+    loose.map(x=>`<div class="fv-row"><div class="fv-ic" style="background:${_FK[_fileKind(x.ext)][1]}">${_FK[_fileKind(x.ext)][0]}</div>
+      <div class="fv-main"><div class="fv-name">${esc(x.name)}</div><div class="fv-meta"><span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div></div>
+      <div class="fv-acts"><select class="fv-sort" style="min-width:140px" onchange="_sortIntoStage(${_fvQuote(x.name)},this.value)"><option value="">Sort into…</option>${opts}</select></div></div>`).join("")+`</div></details>`:"";
+  return groups+looseHTML+`<div class="btn-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="_decChkAsk('decl')">Declaration</button><button class="btn ghost sm" onclick="_decChkAsk('chk')">Checklist</button></div>`;
+}
+/* ---------- defects list: one row each, tap to open the cure options ---------- */
+function _defectsHTML(rec){
+  const all=(rec.defects||[]).slice();
+  if(!all.length) return `<div class="fv-empty">No defects yet.</div>`;
+  const maxR=Math.max(...all.map(d=>d.round||1));
+  const cur=all.filter(d=>(d.round||1)===maxR).sort((a,b)=>a.no-b.no), old=all.filter(d=>(d.round||1)<maxR);
+  const stLab={open:"Open",cured:"Cured",na:"Not needed"};
+  const res=p=>(_flCtx&&_flCtx.folder===_filingFolderRel()&&p.pages)?_resolvePart(p,_flCtx):null;
+  const row=d=>{
+    const subs=d.parts.filter(p=>d.kind!=="new").map(p=>`${esc(p.label)}${p.pages&&p.pages!=="cover"?` · pp. ${esc(p.pages)}`:""}`).join(" · ");
+    const tags=[d.flags&&d.flags.better?"better copy":"", d.flags&&d.flags.truecopy?"true copy":"", d.kind==="general"?"general":"", d.kind==="note"?"for information":"", d.kind==="new"?"new documents":"", d.kind==="doc"?"fresh document":""].filter(Boolean);
+    const parts=d.parts.map(p=>{
+      const r=res(p);
+      const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
+      let acts;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>`;
+      else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
+      else{
+        const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
+        const b=[];
+        if(tc) b.push(`<button class="btn seal sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`);
+        b.push(`<button class="btn ${tc||bc?"ghost":"seal"} sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach corrected ${p.whole?"document":"pages"}</button>`);
+        b.push(`<button class="btn ${bc&&!tc?"seal":"ghost"} sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>`);
+        acts=`<div class="dp-a">${b.join("")}</div>`;
+      }
+      return `<div class="dp"><div class="dp-l">${esc(p.label)}</div>${where}${acts}</div>`; }).join("");
+    const stBtns=d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
+      :`<button class="btn ghost sm" onclick="_defSet('${d.id}','open')">Reopen</button>`;
+    return `<details class="dd ${d.status}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
+      <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}</span><span class="dd-st ${d.status}">${stLab[d.status]||d.status}</span></summary>
+      <div class="dd-b">${d.rule?`<div class="dd-rule">Registry rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}
+        ${parts}
+        <div class="dd-f">${stBtns}<button class="link-btn" onclick="_defEditAsk('${d.id}')">edit remark / note</button></div></div></details>`;
+  };
+  const mapNote=_flFC()&&cur.some(d=>d.parts.some(p=>!p.pages&&d.kind!=="new"))?`<div class="hint" style="margin:0 2px 8px">Some pages are not matched yet — <button class="link-btn" onclick="_defMapPages()">find pages in the filing copy</button>.</div>`:"";
+  return `<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
+      <span><button class="link-btn" onclick="_defAddAsk()">+ add by hand</button> · <button class="link-btn" onclick="_defReadAsk()">read another list</button></span></div>
+    ${mapNote}<div class="dl">${cur.map(row).join("")}</div>
+    ${old.length?`<details class="dr-wait" style="margin-top:12px"><summary>Earlier defect lists · ${old.length} defect${old.length===1?"":"s"}</summary><div class="dl">${old.sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no).map(row).join("")}</div></details>`:""}`;
+}
+/* ---------- link the filing copy that is already in the case folder ---------- */
+async function _caseFolderPdfs(folder){
+  const out=[];
+  const top=await _gk("/api/list",{folder}).catch(()=>({items:[]}));
+  const subs=[];
+  (top.items||[]).forEach(i=>{ if(i.isFolder){ if(!/^_to_delete$/i.test(i.name)) subs.push(i.name); } else if(/\.pdf$/i.test(i.name)) out.push({path:folder+"/"+i.name,name:i.name,where:"",size:i.size}); });
+  for(const s of subs.slice(0,12)){
+    const d=await _gk("/api/list",{folder:folder+"/"+s}).catch(()=>({items:[]}));
+    (d.items||[]).forEach(i=>{ if(!i.isFolder&&/\.pdf$/i.test(i.name)) out.push({path:folder+"/"+s+"/"+i.name,name:i.name,where:s,size:i.size}); });
+  }
+  const score=x=>(/filing copy/i.test(x.name)?0:/paper ?book/i.test(x.name)?1:/final copy|defect free/i.test(x.name)?2:/\bslp\b|petition/i.test(x.name)?3:5)+(x.size>1048576?0:1);
+  return out.sort((a,b)=>score(a)-score(b)||(b.size||0)-(a.size||0));
+}
+function _fcOptions(pdfs, sel){
+  return pdfs.map(x=>`<option value="${esc(x.path)}" data-size="${+x.size||0}" ${x.path===sel?"selected":""}>${esc((x.where?x.where+" / ":"")+x.name)} · ${esc(_fmtSize(x.size))}</option>`).join("");
+}
+async function _flLinkFCAsk(){
+  const caseFolder=_fv.folder;
+  openModal("Filing copy", `<div class="hint">Looking for PDFs in the case folder…</div>`);
+  const pdfs=await _caseFolderPdfs(caseFolder); const rec=_flRec();
+  openModal("Filing copy", `
+    <div class="hint" style="margin-bottom:10px">The paper book as filed. It stays where it is — the app only remembers which file it is.</div>
+    <label class="fld">In the case folder</label>
+    <select class="in" id="lfcSel"><option value="">—</option>${_fcOptions(pdfs, rec.filingCopyPath||"")}</select>
+    <label class="fld" style="margin-top:10px">Or from this device <span style="color:var(--muted);font-weight:400">(saved in stage 3)</span></label>
+    <input class="in" type="file" id="lfcFile" accept="application/pdf,.pdf">
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_flLinkFCGo()">Use this</button></div>`);
+}
+async function _flLinkFCGo(){
+  const rec=_flRec(); const sel=document.getElementById("lfcSel"); const f=(document.getElementById("lfcFile")||{}).files;
+  try{
+    if(f&&f[0]){
+      _progressModal("Saving…","Saving the filing copy in stage 3…");
+      const nm=await _uploadPaper(_filingFolderRel()+"/"+`3.${_stageNext(3,_currentNames())} Filing Copy.pdf`,f[0],(g,t)=>_progressSet(null,g/t));
+      rec.filingCopyPath=_filingFolderRel()+"/"+nm; rec.filingCopySize=f[0].size;
+    }else if(sel&&sel.value){ rec.filingCopyPath=sel.value; rec.filingCopySize=+(sel.selectedOptions[0].getAttribute("data-size")||0); }
+    else { toast("Choose the filing copy.",true); return; }
+    _flCtx=null; _filingTouch(rec); closeModal(); toast("Filing copy linked."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+/* ---------- start from the defect list (existing cases: papers already in the folder) ---------- */
+async function _dlStartAsk(){
+  if(!_fv.folder||!_gkUrl()){ toast("Open a case's Files first.",true); return; }
+  openModal("Defect list", `<div class="hint">Looking at the case folder…</div>`);
+  const pdfs=await _caseFolderPdfs(_fv.folder);
+  const ser=String(_fv.serial).padStart(3,"0");
+  const fils=_currentNames().filter(n=>{ const m=_FILING_RX.exec(n); return m&&m[2]===ser; });
+  const dn=_caseDiary(_fv.serial)||{no:"",year:String(new Date().getFullYear())};
+  openModal("Defect list — "+(_fv.title||""), `
+    <div class="hint" style="margin-bottom:12px">For a case whose papers are already in the folder: read the registry's defect list and carry on from there. Nothing in the folder is moved or renamed.</div>
+    <label class="fld">Defect list (PDF from the Supreme Court site)</label>
+    <input class="in" type="file" id="dsList" accept="application/pdf,.pdf">
+    <label class="fld" style="margin-top:12px">Filing copy (the paper book as filed)</label>
+    <select class="in" id="dsFC">${pdfs.length?"":"<option value=''>No PDFs found in the folder</option>"}${_fcOptions(pdfs,(pdfs[0]||{}).path)}<option value="">— link it later —</option></select>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <div style="flex:2"><label class="fld">${fils.length?"Filing":"What was filed"}</label>
+        <select class="in" id="dsKind">${fils.map(n=>`<option value="@${esc(n)}">${esc(n)}</option>`).join("")}${_FILING_KINDS.map(k=>`<option value="${esc(k)}">${fils.length?"New: ":""}${esc(k)}</option>`).join("")}</select></div>
+      <div style="flex:1.3"><label class="fld">Diary No.</label><input class="in mono" id="dsNo" value="${esc(dn.no||"")}" inputmode="numeric"></div>
+      <div style="flex:1"><label class="fld">Year</label><input class="in mono" id="dsYr" value="${esc(dn.year||"")}" inputmode="numeric"></div></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_dlStartGo()">Read defects</button></div>`);
+}
+async function _dlStartGo(){
+  const lf=(document.getElementById("dsList")||{}).files; if(!lf||!lf[0]){ toast("Choose the defect list PDF.",true); return; }
+  const fcSel=document.getElementById("dsFC"), kindV=(document.getElementById("dsKind")||{}).value||"SLP";
+  const no=((document.getElementById("dsNo")||{}).value||"").replace(/\D/g,""), yr=((document.getElementById("dsYr")||{}).value||"").replace(/\D/g,"");
+  const fcPath=fcSel&&fcSel.value||"", fcSize=fcSel&&fcSel.selectedOptions[0]?+(fcSel.selectedOptions[0].getAttribute("data-size")||0):0;
+  const blob=lf[0];
+  try{
+    _progressModal("Setting up…","Preparing the filing folder…");
+    let sub;
+    if(kindV.charAt(0)==="@") sub=kindV.slice(1);
+    else{ const ser=String(_fv.serial).padStart(3,"0"); let n=0; _currentNames().forEach(x=>{ const m=_FILING_RX.exec(x); if(m&&m[2]===ser) n=Math.max(n,+m[3]); });
+      sub=`${kindV.replace(/[()]/g,"")} Filing (${ser}-${n+1})`; await _gkNew("/api/mkdir",{parent:_fv.folder, name:sub}); }
+    const rel=_fv.folder+"/"+sub; const rec=_filingRec(rel,true);
+    if(no){ rec.diaryNo=no; rec.diaryYear=yr; }
+    if(fcPath&&!rec.filingCopyPath){ rec.filingCopyPath=fcPath; rec.filingCopySize=fcSize; }
+    _filingTouch(rec);
+    _fv.sub=sub; _fv.idx={folder:rel,items:[],bundles:[]}; _fv.fl={sub, stage:0, view:"defects"}; _flCtx=null;
+    _progressSet("Saving the defect list…",0.2);
+    const name=await _uploadPaper(rel+"/"+`4.1 Defect List - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet(null,0.2+0.2*g/t));
+    await _defIngest(rec, blob, name);
+    closeModal(); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); }
+}
+// Read a defect list PDF into the filing record (shared by "Read defect list" and the start flow).
+async function _defIngest(rec, blob, name){
+  _progressSet("Reading the defects…",0.5);
+  const rows=_parseDefectList(await _pdfTextDoc(blob,12));
+  if(!rows.length){ toast("No defects could be read from that PDF — add them by hand.",true); return 0; }
+  let index=rec.index||[];
+  if(_flFC()){ try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){} }
+  const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
+  const fresh=rows.map(r=>Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name}));
+  const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.no===d.no&&f.text===d.text));
+  rec.defects=keep.concat(fresh); _filingTouch(rec);
+  toast(`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
+  return fresh.length;
+}
+
 function _flDiaryAsk(){
   const rec=_filingRec(_filingFolderRel(),true);
   openModal("Diary number", `<div style="display:flex;gap:8px"><div style="flex:2"><label class="fld">Diary No.</label><input class="in mono" id="fdNo" value="${esc(rec.diaryNo||"")}" inputmode="numeric"></div>
@@ -19674,15 +19905,15 @@ function _pageLabel(pg){
   return "";
 }
 async function _flLoadCtx(force){
-  const fc=_flLatest(3,true); if(!fc) throw new Error("Put the filing copy (PDF) in stage 3 first.");
-  if(_flCtx&&!force&&_flCtx.name===fc.name&&_flCtx.folder===_filingFolderRel()&&_flCtx.size===fc.size) return _flCtx;
-  const it={path:_filingFolderRel()+"/"+fc.name,name:fc.name,size:fc.size};
+  const fc=_flFC(); if(!fc) throw new Error("Link the filing copy first (Defects → Link filing copy).");
+  if(_flCtx&&!force&&_flCtx.path===fc.path&&_flCtx.folder===_filingFolderRel()) return _flCtx;
+  const it={path:fc.path,name:fc.name,size:fc.size};
   const blob=await _paperBlob(it,(g,t)=>_progressSet("Fetching the filing copy — "+(g/1048576).toFixed(1)+(t?" of "+(t/1048576).toFixed(1):"")+" MB…",t?g/t:null));
   _progressSet("Reading the filing copy…",null);
   const td=await _pdfTextDoc(blob);
   const labelOf=td.pages.map(_pageLabel), map={};
   labelOf.forEach((l,i)=>{ if(l&&!(l in map)) map[l]=i; });
-  _flCtx={name:fc.name, size:fc.size, folder:_filingFolderRel(), blob, doc:td.doc, pages:td.pages, map, labelOf, n:td.numPages};
+  _flCtx={name:fc.name, size:fc.size, path:fc.path, folder:_filingFolderRel(), blob, doc:td.doc, pages:td.pages, map, labelOf, n:td.numPages};
   return _flCtx;
 }
 /* paper-book labels → PDF page indices. "p6-7" means PDF pages 6–7. */
@@ -19825,37 +20056,6 @@ function _defectsAutoCure(rec, rx, file){
 }
 function _defCheckDone(d){ if(d.status==="na") return; if((d.kind==="pages"||d.kind==="doc"||d.kind==="new")&&d.parts.length) d.status=d.parts.every(p=>p.cure)?"cured":"open"; }
 
-/* ---------- defects screen ---------- */
-function _defectsHTML(rec){
-  const ds=(rec.defects||[]).slice().sort((a,b)=>a.no-b.no);
-  const kindLab={pages:"Pages",doc:"Whole document",new:"New documents",general:"General",note:"For information"};
-  const stLab={open:"Open",cured:"Cured",na:"Not needed"};
-  const cards=ds.map(d=>{
-    const parts=d.parts.map(p=>{
-      const res=_flCtx&&_flCtx.folder===_filingFolderRel()&&p.pages?_resolvePart(p,_flCtx):null;
-      const where=d.kind==="new"?"":`<span class="df-pg">${p.pages?("pp. "+esc(p.pages)):"pages not found"}${res&&res.idx.length?` · PDF ${esc(_rangeText(res.idx))}${res.guessed?" (found by heading)":""}`:""}${res&&res.miss.length&&!res.idx.length?` · <b style="color:var(--seal)">not found in the filing copy</b>`:""}</span>
-        <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">pages</button>${res&&res.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}`;
-      const cure=p.cure?`<div class="df-cure">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>`:
-        (d.kind==="new"?`<div class="df-acts"><button class="btn ghost sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`:
-        `<div class="df-acts"><button class="btn ghost sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach cured ${p.whole?"document":"pages"}</button>
-          <button class="btn ghost sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>
-          ${(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole?`<button class="btn ghost sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`:""}</div>`);
-      return `<div class="df-part"><div><b>${esc(p.label)}</b> ${where}</div>${cure}</div>`; }).join("");
-    const simple=(d.kind==="general"||d.kind==="note")?`<div class="df-acts">${d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Done"}</button>`:""}</div>`:"";
-    return `<div class="df-card ${d.status}">
-      <div class="df-top"><span class="df-no">${d.no}</span><div class="df-text">${esc(d.text)}</div>
-        <select class="df-st" onchange="_defSet('${d.id}',this.value)">${["open","cured","na"].map(s=>`<option value="${s}" ${d.status===s?"selected":""}>${stLab[s]}</option>`).join("")}</select></div>
-      <div class="df-meta"><span class="df-kind ${d.kind}">${kindLab[d.kind]||d.kind}</span>${d.flags&&d.flags.better?`<span class="df-kind">better copy</span>`:""}${d.flags&&d.flags.truecopy?`<span class="df-kind">true copy</span>`:""}${d.date?`<span>${esc(d.date)}</span>`:""}
-        <button class="link-btn" onclick="_defEditAsk('${d.id}')">edit</button></div>
-      ${parts}${simple}</div>`; }).join("");
-  const nCure=ds.reduce((n,d)=>n+d.parts.filter(p=>p.cure&&(d.kind==="pages"||d.kind==="doc")).length,0);
-  return `<div class="btn-row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px">
-      <button class="btn seal sm" onclick="_defReadAsk()">Read defect list</button>
-      <button class="btn ghost sm" onclick="_defAddAsk()">+ Add by hand</button>
-      ${ds.length?`<button class="btn ghost sm" onclick="_defMapPages()">Find pages in filing copy</button>`:""}
-      ${nCure?`<button class="btn ghost sm" onclick="_buildRefilingAsk()">Build cured pages PDF</button><button class="btn ghost sm" onclick="_buildFinalAsk()">Build final copy</button>`:""}</div>
-    ${ds.length?cards:`<div class="fv-empty">No defects yet. Save the registry's defect list (PDF) in stage 4 or pick it from this device, then tap <b>Read defect list</b>.</div>`}`;
-}
 function _flRec(){ return _filingRec(_filingFolderRel(),true); }
 function _defFind(did,pid){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); const p=d&&pid?d.parts.find(x=>x.id===pid):null; return {rec,d,p}; }
 function _defSet(did, st){ const {rec,d}=_defFind(did); if(!d) return; d.status=st; _filingTouch(rec); renderFilesPage(); }
@@ -19882,17 +20082,8 @@ async function _defReadGo(existing){
       const x=_flItems().find(i=>i.name===existing);
       blob=await _paperBlob({path:_filingFolderRel()+"/"+existing,name:existing,size:x?x.size:0});
     }
-    _progressSet("Reading the defects…",0.5);
-    const rows=_parseDefectList(await _pdfTextDoc(blob,12));
-    if(!rows.length){ closeModal(); toast("No defects could be read from that PDF — add them by hand.",true); _fv.live=true; _filesLoad(); return; }
-    let index=rec.index||[];
-    try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){}
-    const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
-    const fresh=rows.map(r=>Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name}));
-    const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.no===d.no&&f.text===d.text));
-    rec.defects=keep.concat(fresh); _filingTouch(rec);
-    closeModal(); toast(`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
-    _fv.live=true; _flState().view="defects"; _filesLoad();
+    await _defIngest(rec, blob, name);
+    closeModal(); _fv.live=true; _flState().view="defects"; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 function _defAddAsk(){
@@ -20115,8 +20306,8 @@ async function _buildGo(kind){
 /* ---------- CHECK BEFORE FILING: likely registry defects, found in the filing copy itself ---------- */
 function _checkHTML(rec){
   const st=_flState(); const c=st.check;
-  const fc=_flLatest(3,true);
-  if(!fc) return `<div class="fv-empty">Put the filing copy (PDF) in stage 3, then check it here before filing.</div>`;
+  const fc=_flFC();
+  if(!fc) return `<div class="fv-empty">Link the filing copy (or put it in stage 3), then check it here before filing.</div>`;
   const head=`<div class="hint" style="margin-bottom:10px">Reads <b>${esc(fc.name)}</b> and flags what the registry usually marks: blank proforma columns, interim relief missing on the cover, dates and years that don't match, true copy not marked, blank case numbers, poor scans. It is a helper, not a guarantee.</div>`;
   if(!c||c.file!==fc.name) return head+`<button class="btn seal" onclick="_checkRun()">Check the filing copy</button>`;
   if(c.running) return head+`<div class="fv-empty">${esc(c.running)}</div>`;
@@ -20128,7 +20319,7 @@ function _checkHTML(rec){
 }
 function _pgWhere(ctx,i){ const l=ctx.labelOf[i]; return "PDF page "+(i+1)+(l?" · paper-book page "+l:""); }
 async function _checkRun(){
-  const st=_flState(); const fc=_flLatest(3,true); if(!fc) return;
+  const st=_flState(); const fc=_flFC(); if(!fc) return;
   st.check={file:fc.name, running:"Fetching the filing copy…", results:[]}; renderFilesPage();
   const R=[]; const add=(sev,text,where)=>R.push({sev,text,where:where||""});
   try{
@@ -20337,7 +20528,7 @@ function _docSaveBtnHTML(kind, obj, matterId){
 
 // These functions are reached from on-screen buttons and from code outside this block —
 // async functions and constants declared inside a block are NOT global, so export them.
-try{ Object.assign(window,{_addPaperGo,_blankSpot,_buildGo,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildAsk,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc}); }catch(e){}
+try{ Object.assign(window,{_addPaperGo,_blankSpot,_buildGo,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildAsk,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -22039,7 +22230,7 @@ function renderPhoneDefects(){
     ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
       :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Defects</b> → <b>Read defect list</b>."}</div>`}
     ${wait}
-    <button class="btn ghost" style="width:100%;margin-top:14px" onclick="_pickCase('filing')">⚖️ Start a filing in a case</button>`;
+    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('defects')">＋ Add a defect list</button><button class="btn ghost" style="flex:1" onclick="_pickCase('filing')">⚖️ Start a new filing</button></div>`;
 }
 
 /* ---------- Create ---------- */
@@ -22069,7 +22260,7 @@ function renderPhoneCreate(){
 // Pick a case, open its Files, then scan / add / start a filing there.
 function _pickCase(action){
   window.__pcAction=action;
-  openModal(action==="scan"?"Scan into which case?":action==="add"?"Add to which case?":"Start a filing in which case?", `
+  openModal(action==="scan"?"Scan into which case?":action==="add"?"Add to which case?":action==="defects"?"Defect list for which case?":"Start a filing in which case?", `
     <div class="dr-head" style="margin-bottom:8px"><input class="fv-search" id="pcQ" placeholder="Search — name, number, diary/SLP no." oninput="_pickCaseList(this.value)" style="flex:1;min-width:0">${_adToggleHTML("_pickCaseList((document.getElementById('pcQ')||{}).value)")}</div>
     <div id="pcList" style="max-height:55vh;overflow:auto"></div>
     <div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
@@ -22088,7 +22279,7 @@ async function _pickCaseGo(serial){
   const action=window.__pcAction; closeModal(); openFiles(serial);
   for(let i=0;i<150;i++){ if(_fv.serial===+serial&&_fv.idx&&!_fv.loading) break; if(_fv.err&&!_fv.loading) return; await new Promise(r=>setTimeout(r,100)); }
   if(!_fv.idx) return;
-  if(action==="scan") _scanOpen({}); else if(action==="add") _addPaperAsk(0); else if(action==="filing") _newFilingAsk();
+  if(action==="scan") _scanOpen({}); else if(action==="add") _addPaperAsk(0); else if(action==="filing") _newFilingAsk(); else if(action==="defects") _dlStartAsk();
 }
 
 /* ---------- More ---------- */
@@ -23502,7 +23693,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-1700";
+  window.APP_VERSION = "2026.10.08-1900";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
