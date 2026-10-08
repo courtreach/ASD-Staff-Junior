@@ -21304,6 +21304,75 @@ async function _fsAiApply(){
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 try{ Object.assign(window,{_fsAiSet,_fsAiHTML,_fsAiQueue,_fsAiCancel,_fsAiDismiss,_fsAiAnswer,_fsAiChangeAsk,_fsAiChangeGo,_fsAiCompare,_fsAiApply}); }catch(e){}
+/* ---------- a filing for a NEW case in the pipeline (Oct 2026) ----------
+   Owner: "the filing section is for cases in the pipeline — they may have no serial number or folder yet".
+   The case is created as an ordinary case: the next file number (owner's device; a staff device leaves it
+   pending until the owner's app next syncs — the existing rule), then the Mac helper makes its folder
+   "AD Chamber/<Title> (NNN)" as it does for every new case (and records it on the case), and the app makes
+   the filing folder "<Kind> Filing (NNN-1)" inside it the moment the folder is there. */
+function _pfNewCaseAsk(){
+  const staff=isStaffView();
+  openModal("New case — start its filing", `
+    <div class="hint" style="margin-bottom:10px">For a case that is not yet in the app. It gets the next file number${staff?" (given by the Head of Chamber's app when it next opens)":""}; your Mac then makes its case folder — usually within two minutes — and the filing folder is made inside it automatically.</div>
+    <label class="fld">Cause title</label><input class="in" id="pnTitle" placeholder="e.g. M Anupriya v V Sivasankaran">
+    <label class="fld" style="margin-top:8px">Client (who instructs)</label><input class="in" id="pnClient" placeholder="Name of the client">
+    ${staff?"":`<label class="fld" style="margin-top:8px">Chamber</label><select class="in" id="pnCh"><option value="AD">AD Chamber</option><option value="SD">SD Chamber</option></select>`}
+    <label class="fld" style="margin-top:8px">What is being filed</label><select class="in" id="pnKind">${_FILING_KINDS.map(k=>`<option>${esc(k)}</option>`).join("")}</select>
+    <label class="fld" style="margin-top:8px">Against (court below / impugned order) — optional</label><input class="in" id="pnBelow" placeholder="e.g. Madras High Court, C.R.P. No. 1042 of 2026, order dated 04.03.2026">
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_pfNewCaseGo()">Create the case</button></div>`);
+  setTimeout(()=>{ const i=document.getElementById("pnTitle"); if(i) i.focus(); },60);
+}
+function _pfNewCaseGo(){
+  const title=((document.getElementById("pnTitle")||{}).value||"").replace(/\s+/g," ").trim(), client=((document.getElementById("pnClient")||{}).value||"").trim();
+  const kind=((document.getElementById("pnKind")||{}).value||"SLP").replace(/[()]/g,"").trim(), below=((document.getElementById("pnBelow")||{}).value||"").trim();
+  const chamber=isStaffView()?"AD":((document.getElementById("pnCh")||{}).value||"AD");
+  if(title.length<4){ toast("Type the cause title.",true); return; }
+  if(!client){ toast("Type the client's name.",true); return; }
+  const norm=t=>String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b/g,"v").replace(/[^a-z0-9]+/g," ").trim();
+  const dup=(DB.matters||[]).find(m=>!isVoided(m)&&norm(m.parties||m.client)===norm(title));
+  if(dup&&!confirm(`“${dup.parties||dup.client}” is already in the app${dup.serial?" as "+String(dup.serial).padStart(3,"0"):""}. Create a separate new case anyway?\n\n(Cancel, then pick it from the list instead, if it is the same case.)`)) return;
+  const m={id:uid(), code:nextMatterCode(), kind:"case", opened:todayISO(), client, parties:title, matterType:kind, court:"Supreme Court of India",
+    status:"Active", chamber, notes:below?("Against: "+below):"", pipeline:true, pendingFiling:{kind, at:new Date().toISOString(), by:_aiWho()}};
+  _stampSerial(m); DB.matters.push(m);
+  try{ logActivity("matter", `New case ${m.code} — ${title} (filing in the pipeline)`, {refId:m.id}); }catch(e){}
+  save(); closeModal();
+  toast(m.serial?`Case ${String(m.serial).padStart(3,"0")} created — your Mac will make its folder, then the filing folder follows.`:"Case created — it gets its file number when the Head of Chamber's app next opens.");
+  try{ localStorage.setItem("asdc_fr_sec","filing"); }catch(e){}
+  try{ (isStaffView()?staffGo:shellGo)("p_defects"); }catch(e){}
+  setTimeout(_pfPendingTick,1500);
+}
+function _pfPending(){ return (DB.matters||[]).filter(m=>m&&m.pendingFiling&&!m.pendingFiling.done&&!isVoided(m)); }
+function _pfFolderOf(m){ if(m.folder) return m.folder; if(!isStaffView()&&m.serial){ const r=(DB.register||[]).find(x=>+x.serial===+m.serial); if(r&&r.folder) return r.folder; } return ""; }
+function _pfState(m){ if(!m.serial) return {k:0,l:"Waiting for the file number",s:"Given by the Head of Chamber's app when it next opens"};
+  if(!_pfFolderOf(m)) return {k:1,l:"Waiting for the case folder",s:"Your Mac makes it — usually within two minutes (the Mac must be on)"};
+  return {k:2,l:"Making the filing folder…",s:m.pendingFiling.err||"Almost there"}; }
+function _pfPendingHTML(){
+  const xs=_pfPending(); if(!xs.length) return "";
+  return `<div class="dg" style="margin-bottom:12px"><div class="dg-h">Being set up <b>${xs.length}</b></div><div class="fsl-box">${xs.map(m=>{ const s=_pfState(m);
+    return `<div class="fsl"><div class="fsl-h"><span class="fsl-ck">${s.k+1}</span><span class="fsl-t">${esc(m.parties||m.client)} <span class="hint">· ${esc(m.pendingFiling.kind)}${m.serial?" · "+String(m.serial).padStart(3,"0"):""}</span></span></div><div class="fsl-s">${esc(s.l)} — ${esc(s.s)}</div></div>`; }).join("")}</div></div>`;
+}
+async function _pfPendingTick(){
+  if(window.__pfBusy) return; window.__pfBusy=true; let changed=false;
+  try{
+    for(const m of _pfPending()){
+      if(!m.serial) continue;
+      const folder=_pfFolderOf(m); if(!folder) continue;
+      if(!m.folder&&!isStaffView()){ m.folder=folder; changed=true; }
+      if(!_gkUrl()) continue;
+      const ser=String(m.serial).padStart(3,"0");
+      let n=0; try{ const d=await _gk("/api/list",{folder}); (d.items||[]).forEach(x=>{ const mm=_FILING_RX.exec(x.name||""); if(mm&&mm[2]===ser) n=Math.max(n,+mm[3]); }); }
+      catch(e){ m.pendingFiling.err="The case folder is not in OneDrive online yet — trying again shortly."; continue; }
+      const name=`${m.pendingFiling.kind} Filing (${ser}-${n+1})`;
+      try{ const d=await _gkNew("/api/mkdir",{parent:folder, name}); const rel=d.folder||(folder+"/"+name);
+        _filingRec(rel,true); m.pendingFiling=Object.assign({},m.pendingFiling,{done:true, folder:rel, err:""}); changed=true;
+        toast(`Filing folder ready: ${name}`); }
+      catch(e){ m.pendingFiling.err=e.message; }
+    }
+  }finally{ window.__pfBusy=false; }
+  if(changed){ save(); try{ if(document.querySelector("#panel-home .fsec-big")) renderPhoneDefects(); }catch(e){} }
+}
+setInterval(()=>{ try{ if(window.DB&&_pfPending().length) _pfPendingTick(); }catch(e){} },20000);
+try{ Object.assign(window,{_FILING_KINDS,_pfNewCaseAsk,_pfNewCaseGo,_pfPending,_pfFolderOf,_pfState,_pfPendingHTML,_pfPendingTick}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -23288,13 +23357,13 @@ function renderPhoneDefects(){
         <span class="pd-t">${esc(x.title||"")}</span>
         <span class="pd-s">${fSteps(x.f.k)}<span class="dr-sl">${esc(x.f.l)}</span></span>
         <span class="pd-s"><span class="pf-n">${esc(x.f.sub)}</span>${x.st.tot?` <span class="tag">refiling</span>`:""}</span></button></div>`; }).join("");
-  const filingSec=`${fRows.length?`<div class="mx-box"><div class="mx-wide">${fWide}</div><div class="mx-narrow">${fNarrow}</div></div>`:`<div class="fv-empty">No filings yet. Start one with the button below.</div>`}
-    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('filing')">⚖️ Start a new filing</button></div>`;
+  const filingSec=`${_pfPendingHTML()}${fRows.length?`<div class="mx-box"><div class="mx-wide">${fWide}</div><div class="mx-narrow">${fNarrow}</div></div>`:`<div class="fv-empty">No filings yet. Start one with the button below.</div>`}
+    <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pfNewCaseAsk()">＋ New case — start its filing</button><button class="btn ghost" style="flex:1" onclick="_pickCase('filing')">⚖️ Filing in an existing case</button></div>`;
   const refilingSec=`<div class="fv-chips" style="margin:0 0 10px">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
     ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
       :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Refiling</b> → <b>Read defect list</b>."}</div>`}
     <div class="btn-row" style="margin-top:14px;gap:8px;flex-wrap:wrap"><button class="btn seal" style="flex:1" onclick="_pickCase('defects')">＋ Add a defect list</button></div>`;
-  const inProg=fRows.filter(x=>x.f.k<3).length;
+  const inProg=fRows.filter(x=>x.f.k<3).length+_pfPending().length; if(_pfPending().length) setTimeout(()=>{ try{ _pfPendingTick(); }catch(e){} },300);
   home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Filing</div>
       <div class="hint">${isStaffView()?"Prepare the paper book, then cure the registry's defects.":`Prepare the paper book, then cure the registry's defects · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
     <div class="fsec fsec-big"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_frSec('filing')"><b>Filing</b><span>${fRows.length} filing${fRows.length===1?"":"s"}${inProg?` · ${inProg} being prepared`:""}</span></button>
@@ -23332,6 +23401,7 @@ function _pickCase(action){
   window.__pcAction=action;
   openModal(action==="scan"?"Scan into which case?":action==="add"?"Add to which case?":action==="defects"?"Defect list for which case?":"Start a filing in which case?", `
     <div class="dr-head" style="margin-bottom:8px"><input class="fv-search" id="pcQ" placeholder="Search — name, number, diary/SLP no." oninput="_pickCaseList(this.value)" style="flex:1;min-width:0">${_adToggleHTML("_pickCaseList((document.getElementById('pcQ')||{}).value)")}</div>
+    ${action==="filing"?`<button class="btn seal" style="width:100%;margin:0 0 10px" onclick="_pfNewCaseAsk()">＋ New case — not yet in the app</button><div class="hint" style="margin:0 2px 6px">or pick a case already in the app:</div>`:""}
     <div id="pcList" style="max-height:55vh;overflow:auto"></div>
     <div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
   _pickCaseList(""); setTimeout(()=>{ const i=document.getElementById("pcQ"); if(i&&!("ontouchstart" in window)) i.focus(); },60);
@@ -24767,7 +24837,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0330";
+  window.APP_VERSION = "2026.10.09-0400";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
