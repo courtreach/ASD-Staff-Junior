@@ -2022,6 +2022,16 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .ac-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px} .ac-status{font-size:13px;padding-top:4px}
+  .ac-tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px} .ac-tile{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+  .ac-tile b{font-size:20px;font-family:var(--serif,inherit)} .ac-tile span{font-size:11.5px;color:var(--muted)}
+  .ac-sec{margin-bottom:16px} .ac-day{font-size:12px;font-weight:700;color:var(--muted);margin:10px 2px 5px}
+  .ac-row{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line2);padding:9px 12px;cursor:pointer;color:var(--ink);font:inherit}
+  .ac-row:first-child{border-top:0} .ac-row:hover{background:#fbf8f3} .ac-t{flex:none;font-family:var(--mono,monospace);font-size:12px;color:var(--muted);padding-top:2px;min-width:42px}
+  .ac-m{flex:1;min-width:0;font-size:13.5px} .ac-l{font-weight:600} .ac-d{display:block;font-size:12.5px;color:#5b5348;margin-top:2px;line-height:1.4}
+  .ac-run{border-top:1px solid var(--line2);padding:7px 12px} .ac-run:first-child{border-top:0} .ac-run>summary{cursor:pointer;font-size:13px}
+  .ac-ok{color:#2e7d32;font-weight:600} .ac-bad{color:#9b2c2c;font-weight:600} .ac-note{white-space:pre-wrap;font-size:12px;background:#faf7f1;border-radius:6px;padding:8px;margin:6px 0 0;max-height:240px;overflow:auto}
+  @media (max-width:640px){ .ac-tiles{grid-template-columns:repeat(3,1fr)} }
   .dd-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px} .dd-q{white-space:nowrap}
   .dd-st.s-open{background:#fbeeee;color:var(--seal)} .dd-st.s-ai{background:rgba(124,92,191,.12);color:#5b3fa0} .dd-st.s-approve{background:rgba(47,125,79,.14);color:#23633e}
   .dd-st.s-question,.dd-st.s-staff{background:rgba(183,121,31,.15);color:#8a5a12} .dd-st.s-error{background:rgba(178,58,58,.12);color:#9b2c2c}
@@ -2233,6 +2243,7 @@
   <section class="panel" id="panel-todos"></section>
   <section class="panel" id="panel-reminders"></section>
   <section class="panel" id="panel-activity"></section>
+  <section class="panel" id="panel-aiclerk"></section>
   <section class="panel" id="panel-access"></section>
   <section class="panel" id="panel-calendar"></section>
   <section class="panel" id="panel-booksoverview"></section>
@@ -19480,7 +19491,7 @@ function _flNextHTML(rec, st, fc){
   const aiN=st2=>(rec.defects||[]).filter(d=>d.ai&&d.ai.status===st2).length;
   const aiRev=aiN("review"), aiQ=aiN("question"), aiStaff=aiN("staff"), aiWait=aiN("queued")+aiN("working");
   const aiFree=(rec.defects||[]).filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
-  const aiLine=!isStaffView()&&(aiRev||aiQ||aiStaff||aiWait)?`<div class="fn-ai">✨ ${[aiRev?`<b>${aiRev} AI correction${aiRev===1?"":"s"} to approve</b>`:"", aiQ?`<b>${aiQ} question${aiQ===1?"":"s"}</b> from the AI clerk`:"", aiStaff?`${aiStaff} for staff`:"", aiWait?`${aiWait} with the AI clerk`:""].filter(Boolean).join(" · ")} ${_aiRunHTML()}</div>`:"";
+  const aiLine=!isStaffView()&&(aiRev||aiQ||aiStaff||aiWait)?`<div class="fn-ai">✨ ${[aiRev?`<b>${aiRev} AI correction${aiRev===1?"":"s"} to approve</b>`:"", aiQ?`<b>${aiQ} question${aiQ===1?"":"s"}</b> from the AI clerk`:"", aiStaff?`${aiStaff} for staff`:"", aiWait?`${aiWait} with the AI clerk`:""].filter(Boolean).join(" · ")} ${_aiRunHTML()} · <button class="link-btn" onclick="openSub('aiclerk')">AI clerk activity</button></div>`:"";
   if(blocking||(!isStaffView()&&(aiRev||aiQ))) return `<div class="fn"><div class="fn-t">2 · Deal with each defect — ${blocking} to go</div>
       <div class="fn-s">Open a defect below and attach the corrected pages, rescan, or stamp TRUE COPY${isStaffView()?", then mark it cured":" — or let the AI clerk correct the pages for you to approve"}. For a translation or an extra better copy choose <b>Add after</b> — it goes after the document as 32A, 32B…</div>${aiLine}
       <div class="fn-b">${aiFree?btn("_aiQueueAll()","✨ Cure all with AI"):""}${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
@@ -21098,6 +21109,7 @@ function _aiApprove(did){
   });
   if(d.kind==="general") d.kind="pages";
   d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()}, d.ai.mode==="check"?{verdict:"ai_used"}:{});
+  d.ai.history=(d.ai.history||[]).slice(-11).concat([{status:"approved",at:d.ai.at,by:d.ai.by,msg:d.ai.mode==="check"?"Used the AI's copy instead of the staff's":""}]);
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
 try{ Object.assign(window,{_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
@@ -21653,6 +21665,7 @@ const SUB_PAGES={
     notices:{fn:renderNotices,id:"notices",label:"Legal notices register"},
     vakalatnamas:{fn:renderVakalatnamas,id:"vakalatnamas",label:"Vakalatnama & Affidavit register"},
     activity:{fn:renderActivity,id:"activity",label:"Activity"},
+    aiclerk:{fn:renderAiClerk,id:"aiclerk",label:"AI clerk activity"},
     access:{fn:renderAccess,id:"access",label:"Access control"},
     appts:{fn:renderAppointments,id:"appts",label:"Appointments & meetings"},
     calendar:{fn:renderCalendar,id:"calendar",label:"Calendar"},
@@ -22777,6 +22790,65 @@ function _filingStage(r){
 }
 function _drSteps(k){ return `<span class="dr-steps">${_DR_STEPS.map((s,i)=>`<span class="dr-step ${i+1<k?"done":i+1===k?"now":""}" title="${s}"></span>`).join("")}</span>`; }
 function _drListDate(r){ const ds=(r.defects||[]).map(d=>d.date||"").filter(Boolean); const last=ds.sort((a,b)=>a.split("-").reverse().join("").localeCompare(b.split("-").reverse().join(""))).pop(); return last?last.replace(/-/g,"."):""; }
+/* ---------- AI clerk activity (Oct 2026) — the Head of Chamber's page only ----------
+   Everything the AI clerk did, from each defect's ai.history (shared filing records + the owner's SD
+   filings), plus the Mac's own run log (accounts/{uid}/meta/aiClerkRuns — owner-only by the rules). */
+var _acFilter="all";
+const _AC_EV={queued:"Sent to the AI clerk",working:"AI started work",review:"AI correction ready",question:"AI asked a question",
+  staff:"AI: a task for staff",error:"AI could not do it",checked:"AI checked it",approved:"Approved",rejected:"Rejected",done:"Staff task done","":"Cleared / cancelled"};
+function _acEvents(){
+  const out=[];
+  _allFilingRecs().forEach(r=>{ const title=_caseTitle(r.serial)||String(r.folder||"").split("/").slice(-2,-1)[0]||"";
+    (r.defects||[]).forEach(d=>{ const a=d.ai||{}; (a.history||[]).forEach(h=>{ if(!h||!h.at) return;
+      let lab=_AC_EV[h.status||""]||h.status;
+      if(h.status==="queued"&&a.mode==="check") lab="Sent to the AI clerk to check";
+      if(h.status==="review"&&a.mode==="check") lab="AI: not cured — made its own copy";
+      if(h.status==="checked") lab=a.verdict==="kept"?"Kept the staff's cure":"AI checked it: cured";
+      out.push({t:new Date(h.at), at:h.at, st:h.status||"", lab, msg:h.msg||"", by:h.by||"", r, d, title, cur:a.status||""}); }); }); });
+  return out.filter(e=>!isNaN(e.t)).sort((a,b)=>b.t-a.t);
+}
+function _acNeeds(){
+  const xs=[]; _allFilingRecs().forEach(r=>(r.defects||[]).forEach(d=>{ const s=(d.ai||{}).status; if(s==="review"||s==="question"||s==="error"||s==="staff") xs.push({r,d,s}); })); return xs;
+}
+function _acGo(folder,did){ _openFiling(folder,"defects");
+  (async()=>{ for(let i=0;i<80;i++){ await new Promise(r=>setTimeout(r,100)); if(document.getElementById("dd_"+did)) break; } try{ _ddOpen(did); }catch(e){} })(); }
+function renderAiClerk(){
+  const panel=document.getElementById("panel-aiclerk"); if(!panel) return;
+  if(isStaffView()){ panel.innerHTML=`<div class="fv-empty">Not available.</div>`; return; }
+  const ev=_acEvents(), needs=_acNeeds();
+  const cnt=st=>{ let n=0; _allFilingRecs().forEach(r=>(r.defects||[]).forEach(d=>{ if((d.ai||{}).status===st) n++; })); return n; };
+  const today=new Date().toDateString();
+  const tiles=[["Waiting",cnt("queued")],["Working",cnt("working")],["To approve",cnt("review")],["Questions",cnt("question")],["For staff",cnt("staff")],["Done today",ev.filter(e=>e.t.toDateString()===today&&/^(approved|checked|done)$/.test(e.st)).length]];
+  const short=d=>{ const t=_flSentence(d.text); return t.length>90?t.slice(0,88)+"…":t; };
+  const fno=r=>String(r.serial).padStart(3,"0")+"-"+r.n;
+  const nd=needs.length?`<div class="ac-sec"><div class="dg-h">Needs you <b>${needs.length}</b></div><div class="dl">${needs.map(x=>`<button class="ac-row" onclick="_acGo(${_fvQuote(x.r.folder)},'${x.d.id}')">
+      <span class="dd-st s-${x.s==="review"?"approve":x.s}">${{review:"To approve",question:"Question",error:"Failed",staff:"For staff"}[x.s]}</span>
+      <span class="ac-m"><b>${esc(_caseTitle(x.r.serial)||"")}</b> <span class="hint">· ${esc(x.r.kind||"")} ${fno(x.r)} · defect ${x.d.no}</span><span class="ac-d">${esc(short(x.d))}</span></span><span class="pf-go">›</span></button>`).join("")}</div></div>`:"";
+  const filt={all:()=>true, needs:e=>/^(review|question|staff|error)$/.test(e.st), cures:e=>!/check/i.test(e.lab), checks:e=>/check|cured|kept/i.test(e.lab)};
+  const xs=ev.filter(filt[_acFilter]||filt.all).slice(0,300);
+  const byDay={}; xs.forEach(e=>{ const k=_localISO(e.t); (byDay[k]=byDay[k]||[]).push(e); });
+  const chip=(f,l)=>`<button class="fv-chip ${_acFilter===f?"on":""}" onclick="_acFilter='${f}';renderAiClerk()">${l}</button>`;
+  const tl=Object.keys(byDay).sort().reverse().map(k=>`<div class="ac-day">${k===_localISO()?"Today":esc(fmtDate(k))}</div><div class="dl">${byDay[k].map(e=>`<button class="ac-row" onclick="_acGo(${_fvQuote(e.r.folder)},'${e.d.id}')">
+      <span class="ac-t">${e.t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>
+      <span class="ac-m"><span class="ac-l">${esc(e.lab)}</span> <span class="hint">· ${esc(e.title)} · defect ${e.d.no}${e.by?" · "+esc(e.by):""}</span>${e.msg?`<span class="ac-d">${esc(e.msg.length>220?e.msg.slice(0,218)+"…":e.msg)}</span>`:""}</span><span class="pf-go">›</span></button>`).join("")}</div>`).join("");
+  panel.innerHTML=`<div class="ac-head"><div><div class="hello" style="margin-bottom:2px">AI clerk activity</div>
+      <div class="hint">What the AI clerk on your Mac has done, newest first. Only you can see this page.</div></div>
+      <div class="ac-status">${_aiRunHTML()}</div></div>
+    <div class="ac-tiles">${tiles.map(([l,n])=>`<div class="ac-tile"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
+    ${nd}
+    <div class="ac-sec"><div class="dg-h">Timeline</div><div class="fv-chips" style="margin:4px 0 8px">${chip("all","All")}${chip("needs","Needs you")}${chip("cures","Cures")}${chip("checks","Checks of staff cures")}</div>
+      ${tl||`<div class="fv-empty">Nothing yet — press ✨ Cure with AI on a defect, or ✨ Check with AI on a staff cure.</div>`}</div>
+    <div class="ac-sec"><details class="dr-wait" id="acRuns" ontoggle="if(this.open)_acLoadRuns()"><summary>Runs on the Mac (start, finish, Claude's closing note)</summary><div id="acRunsBox" class="hint" style="padding:8px 2px">Loading…</div></details></div>`;
+}
+async function _acLoadRuns(){
+  const box=document.getElementById("acRunsBox"); if(!box) return;
+  try{
+    const d=(window.FB&&FB.getOwnMeta)?await FB.getOwnMeta("aiClerkRuns"):null; const runs=((d&&d.runs)||[]).slice().reverse();
+    if(!runs.length){ box.textContent="No runs recorded yet (the Mac records each run from now on)."; return; }
+    box.innerHTML=`<div class="dl">${runs.map(r=>{ const s=new Date(r.start), e=new Date(r.end); const mins=Math.max(0,Math.round((e-s)/6000)/10);
+      return `<details class="ac-run"><summary><span class="ac-t">${esc(fmtDate(_localISO(s)))} ${s.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span> <span class="${r.ok?"ac-ok":"ac-bad"}">${r.ok?"✓ finished":"⚠ "+esc(r.error||"problem")}</span> <span class="hint">· ${mins} min</span></summary><pre class="ac-note">${esc(r.note||"(no closing note)")}</pre></details>`; }).join("")}</div>`;
+  }catch(e){ box.textContent="Could not load the runs: "+e.message; }
+}
 function renderPhoneDefects(){
   const home=document.getElementById("panel-home"); if(!home) return;
   const ad=_adOnly();
@@ -22803,7 +22875,7 @@ function renderPhoneDefects(){
       <div class="pd-acts"><button onclick="${open(r,"stages")}">Stages</button><button onclick="${open(r,"defects")}">Defects</button><button onclick="${open(r,"check")}">Check</button></div></div>`; }).join("");
   const wait=waiting.length?`<details class="dr-wait"><summary>${waiting.length} filing${waiting.length===1?"":"s"} without a defect list yet</summary>${waiting.map(x=>`<button class="pf-row" onclick="${open(x.r,"stages")}"><span class="pf-no">${fno(x.r)}</span><span class="pf-mid"><span class="pf-t">${esc(x.title||"")}</span><span class="pf-s">${esc(x.r.kind||"")}</span></span><span class="pf-go">›</span></button>`).join("")}</details>`:"";
   home.innerHTML=`<div class="dr-head"><div><div class="hello" style="margin-bottom:2px">Defects register</div>
-      <div class="hint">Filings whose registry defect list has been read, and how far the curing has got.</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
+      <div class="hint">Filings whose registry defect list has been read, and how far the curing has got.${isStaffView()?"":` · <button class="link-btn" onclick="openSub('aiclerk')">✨ AI clerk activity</button>`}</div></div>${_adToggleHTML("renderPhoneDefects()")}</div>
     <div class="fv-chips" style="margin:10px 0">${chip("all","All")}${chip("open","Open")}${chip("ready","Ready to refile")}${chip("done","Refiled / final")}</div>
     ${rows.length?`<div class="mx-box"><div class="mx-wide">${wide}</div><div class="mx-narrow">${narrow}</div></div>`
       :`<div class="fv-empty">${listed.length?"Nothing in this view.":"No defect lists read yet. Open a filing, tap <b>Defects</b> → <b>Read defect list</b>."}</div>`}
@@ -22916,6 +22988,7 @@ function renderMoreMenu(){
     item("openSub('calendar')",HOME_ICONS.calendar,"Calendar","Hearings &amp; appointments"),
     item("openSub('appts')",HOME_ICONS.appointment,"Appointments &amp; meetings","Case, business &amp; personal"),
     item("openSub('activity')",HOME_ICONS.documents,"Activity","Everything logged, newest first"),
+    item("openSub('aiclerk')",'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9z"/></svg>',"AI clerk activity","What the AI did on defects · runs on your Mac"),
   ];
   const registers=[
     item("openClients()",HOME_ICONS.matters,"Clients","Every client — their matters, notices &amp; dues"),
@@ -24196,6 +24269,7 @@ FB.getOwnDoc = async function(coll, id){
 FB.getStaffDir = async function(uid){ const s=await getDoc(FB.staffDirRef(uid)); return s.exists()? s.data() : null; };
 FB.putStaffDir = async function(uid, data){ await setDoc(FB.staffDirRef(uid), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
 FB.getAiPreview = async function(sd,id){ const r=sd?doc(db,"accounts",FB.uid(),"aiPreviews",id):doc(db,"chamber","main","aiPreviews",id); const s=await getDoc(r); return s.exists()?s.data():null; };
+FB.getOwnMeta = async function(id){ const b=FB._base(); if(!b) return null; const s=await getDoc(doc(db,b,"meta",id)); return s.exists()?s.data():null; };
 FB.getMeta = async function(id){ const s=await getDoc(doc(db,"chamber","main","meta",id)); return s.exists()?s.data():null; };
 FB.listenStaffDir = function(uid, cb){ return onSnapshot(FB.staffDirRef(uid), s=>cb(s.exists()?s.data():null)); };
 // owner watches the whole inbox across all staff via collectionGroup
@@ -24273,7 +24347,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0130";
+  window.APP_VERSION = "2026.10.09-0200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
