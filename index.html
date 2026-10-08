@@ -1960,6 +1960,42 @@
   .fv-isl-l{font-size:14px;font-weight:700;color:var(--ink)}
   .fv-isl-d{font-size:12px;color:var(--muted)}
   .fv-box{container-type:inline-size}
+  .fv-add{display:flex;gap:8px;flex-wrap:wrap;margin:-2px 0 12px}
+  .fv-isl.fil{border-color:var(--brass);background:#fffaf0}
+  .up-bar{height:8px;background:var(--line2);border-radius:6px;overflow:hidden}.up-bar>div{height:100%;background:var(--seal);transition:width .2s}
+  .link-btn{border:0;background:none;color:var(--seal);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0 2px}
+  .fl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fffaf0}
+  .fl-kind{font-weight:700;font-size:16px}.fl-diary{font-size:13px;color:var(--muted);margin-top:2px}.fl-tools{display:flex;gap:6px;flex-wrap:wrap}
+  .df-card{border:1px solid var(--line);border-left:4px solid var(--seal);border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:8px}
+  .df-card.cured{border-left-color:var(--green,#2e7d32);opacity:.82}.df-card.na{border-left-color:var(--line);opacity:.6}
+  .df-top{display:flex;gap:10px;align-items:flex-start}.df-no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--seal-soft);color:var(--seal);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .df-text{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.4;word-break:break-word}.df-st{flex:none;border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:12.5px;background:var(--paper2)}
+  .df-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 0 36px;font-size:12px;color:var(--muted)}
+  .df-kind{background:var(--line2);border-radius:6px;padding:1px 7px;font-weight:600;color:#5b5348}.df-kind.pages{background:#fbeeee;color:var(--seal)}.df-kind.doc{background:#fff1d6;color:#7a5200}.df-kind.new{background:#e8f1fb;color:#24527a}
+  .df-part{margin:8px 0 0 36px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px}.df-pg{color:var(--muted);font-size:12.5px}
+  .df-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.df-cure{margin-top:6px;color:var(--green,#2e7d32);font-size:13px;word-break:break-word}
+  .dpv{display:flex;flex-wrap:wrap;gap:8px;max-height:60vh;overflow:auto}.dpv-p{font-size:11px;color:var(--muted);text-align:center}.dpv-p canvas{border:1px solid var(--line);display:block}
+  @media (max-width:560px){ .df-part,.df-meta{margin-left:0} .df-card .df-acts{margin-left:0} .df-text{font-size:13.5px} }
+  .ck-row{display:flex;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:6px;font-size:14px}.ck-sev{flex:none}
+  #scOv{position:fixed;inset:0;z-index:9500;background:#1d1a17;color:#fff;display:none;flex-direction:column}
+  body.sc-lock{overflow:hidden}
+  .sc-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}
+  .sc-x{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:18px}
+  .sc-title{font-weight:600}
+  .sc-body{flex:1;overflow:auto;padding:8px 12px}
+  .sc-edit{display:flex;align-items:center;justify-content:center}
+  .sc-stage{position:relative;touch-action:none}.sc-stage canvas{display:block}.sc-stage svg{position:absolute;inset:0;touch-action:none}
+  .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+  .sc-th{background:rgba(255,255,255,.06);border-radius:10px;padding:6px;text-align:center}.sc-th img{width:100%;height:140px;object-fit:contain;background:#fff;border-radius:4px;cursor:pointer}
+  .sc-th-n{font-size:12px;margin:4px 0}.sc-th-b{display:flex;justify-content:space-between}.sc-th-b button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:6px;padding:4px 7px;font-size:13px}.sc-th-b button:disabled{opacity:.3}
+  .sc-empty{text-align:center;max-width:360px;margin:12vh auto 0}.sc-empty .hint{color:#cfc6bb}
+  .sc-warn{margin-top:10px;background:#5a4300;border-radius:10px;padding:8px 10px;font-size:13px}
+  .sc-busy{text-align:center;padding:10px;color:#f3d9a4}
+  .sc-bot{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:rgba(0,0,0,.25)}
+  .sc-bot .btn.ghost{color:#fff;border-color:rgba(255,255,255,.35);background:transparent}
+  .sc-cam{cursor:pointer}
+  .sc-sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9600}
+  .sc-sheet-in{background:var(--paper,#fff);color:var(--ink,#2a2420);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
   @container (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .fv-row.sel{border-color:var(--seal);box-shadow:0 0 0 2px var(--seal-soft)}
@@ -2735,7 +2771,8 @@ const DEFAULTS = () => ({
   cash: [],        // manual cash-book rows {id,date,particulars,type:'in'|'out',amount,mode,ref}
   docsIn: [],      // inward documents
   docsFiled: [],   // filed case records
-  filings: [],     // court filings/proceedings log {id,matterId,date,type,detail,by,createdBy,updatedBy}
+  filings: [],     // court filings/proceedings log {id,matterId,date,type,detail,by,createdBy,updatedBy}; also filing-folder records {bundle:true,folder,serial,kind,n,diaryNo,defects[]} (AD)
+  sdFilings: [],   // OWNER-ONLY filing-folder records for SD Chamber cases
   appointments: [], // SHARED case/business meetings {id,kind,matterId,title,date,time,location,createdBy,...}
   todos: [],        // SHARED things-to-do {id,text,priority,due,granted,matterId,problem,resolution,status,...}
   reminders: [],    // SHARED reminders {id,text,date,time,forWho,leadDays,status,createdBy,...}
@@ -3206,7 +3243,7 @@ function migrate(data){
   // settings: keep all existing values, add any newly-introduced defaults
   data.settings = Object.assign({}, base.settings, data.settings||{});
   // core arrays: ensure present
-  for(const k of ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","register","liveShares"]) if(!Array.isArray(data[k])) data[k]=[];
+  for(const k of ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","register","liveShares","sdFilings","filings"]) if(!Array.isArray(data[k])) data[k]=[];
   data.counters = Object.assign({}, base.counters, data.counters||{});
   // back-fill voucher counter from existing vouchers if missing
   if(!data.counters.voucher){
@@ -18937,15 +18974,16 @@ function _filesLoad(){
     if(!_gkUrl()) return f.sub?fail("Opening older folders needs Settings → Documents (OneDrive) to be connected."):fail(isStaffView()?"Files can be opened once the Head of Chamber has set up Documents.":"No paper list yet — it appears once the ASDC Helper on your Mac has run.");
     _gk("/api/list",{folder:path}).then(d=>done(_liveItemsToIndex(d.folder||path,d.items))).catch(e=>fail(e.message));
   };
-  if(!isStaffView() && !f.sub && window.FB && FB.getFolderIndex){
+  const wantLive=!!f.live; f.live=false;
+  if(!isStaffView() && !f.sub && !wantLive && window.FB && FB.getFolderIndex){
     const c=window.__folderIdx[f.serial]; if(c) done(c);
     FB.getFolderIndex(f.serial).then(fx=>{ if(fx){ window.__folderIdx[f.serial]=fx; if(!f.folder&&fx.folder) f.folder=fx.folder; done(fx); } else if(!c) live(); }).catch(()=>{ if(!c) live(); });
   } else live();
 }
-function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _filesLoad(); }
+function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _filesLoad(); }
 function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _filesLoad(); }
 const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
-const _FV_GROUP={N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
+const _FV_GROUP={fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
 function _fileKind(ext){ ext=String(ext||"").toLowerCase(); if(/^\.(docx?|rtf|odt)$/.test(ext)) return "word"; if(ext===".pdf") return "pdf"; if(/^\.(jpe?g|png|heic|gif|webp|tiff?)$/.test(ext)) return "img"; if(/^\.(xlsx?|csv)$/.test(ext)) return "xls"; return "file"; }
 const _FK={word:["W","#2b579a"],pdf:["PDF","#b3261e"],img:["IMG","#3d7a46"],xls:["X","#1d6f42"],file:["FILE","#7b746a"]};
 function _cleanDesc(desc,title){
@@ -18960,23 +18998,15 @@ function _fvRows(){
   const f=_fv, fx=f.idx||{items:[],bundles:[]};
   const title=f.title||fx.title||"";
   const files=(fx.items||[]).map(i=>Object.assign({},i,{_t:i.letter||"X", _label:_cleanDesc(i.desc||i.name,title)}));
-  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:"dir",_label:b.name}));
+  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:_FILING_RX.test(b.name)?"fil":"dir",_label:b.name}));
   return {files,dirs,title};
 }
 function _fvSetQ(v){ _fv.q=String(v||""); _fvRenderList(); }
 function _fvSetType(t){ _fv.type=t; renderFilesPage(); }
 function _fvSetSort(v){ _fv.sort=v; _fvRenderList(); }
 function _fvQuote(s){ return JSON.stringify(String(s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
-function _fvRenderList(){
-  const box=document.getElementById("fvList"); if(!box) return;
-  const f=_fv; const {files,dirs}=_fvRows();
-  const q=f.q.trim().toLowerCase();
-  const match=x=>!q||(x._label+" "+(x.num||"")+" "+x.name+" "+(x.mtime?fmtDate(x.mtime):"")).toLowerCase().indexOf(q)>=0;
-  const inType=x=>f.type==="all"||x._t===f.type||(f.type==="LS"&&(x._t==="L"||x._t==="S"));
-  let fl=files.filter(x=>inType(x)&&match(x));
-  const dl=dirs.filter(x=>(f.type==="all"||f.type==="dir")&&match(x));
-  const can=!!_gkUrl(); const base=(f.idx&&f.idx.folder)||(f.folder+(f.sub?"/"+f.sub:""));
-  const row=x=>{
+function _fvRowHTML(x,base,q,can){
+  {
     const k=can?_paperReg({path:base+"/"+x.name,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:x.num||"",mtime:x.mtime||""}):-1;
     const kind=_fileKind(x.ext); const lab=_FK[kind][0], col=_FK[kind][1];
     return `<div class="fv-row${k>=0&&k===_fv.selK?" sel":""}" ${k>=0?`data-k="${k}"`:""}>
@@ -18987,17 +19017,29 @@ function _fvRenderList(){
       </div>
       ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app"><span class="fv-l-long">Download</span><span class="fv-l-short">Save</span></button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button></div>`:""}
     </div>`;
-  };
-  const drow=x=>`<div class="fv-row"><div class="fv-ic dir">📁</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>older folder, kept as it was</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
+  }
+}
+function _fvRenderList(){
+  const box=document.getElementById("fvList"); if(!box) return;
+  const f=_fv; const {files,dirs}=_fvRows();
+  const q=f.q.trim().toLowerCase();
+  const match=x=>!q||(x._label+" "+(x.num||"")+" "+x.name+" "+(x.mtime?fmtDate(x.mtime):"")).toLowerCase().indexOf(q)>=0;
+  const inType=x=>f.type==="all"||x._t===f.type||(f.type==="LS"&&(x._t==="L"||x._t==="S"));
+  let fl=files.filter(x=>inType(x)&&match(x));
+  const dl=dirs.filter(x=>(f.type==="all"||f.type===x._t)&&match(x));
+  const can=!!_gkUrl(); const base=(f.idx&&f.idx.folder)||(f.folder+(f.sub?"/"+f.sub:""));
+  const row=x=>_fvRowHTML(x,base,q,can);
+  const drow=x=>`<div class="fv-row"><div class="fv-ic dir">${x._t==="fil"?"⚖️":"📁"}</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>${x._t==="fil"?"filing — stages 1 to 6":"older folder, kept as it was"}</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
   let h="";
   if(f.type==="all"&&!q){
     // ISLANDS: the latest few papers, then one big tile per kind of paper
     const latest=files.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))).slice(0,3);
-    const kinds=[["N","📝","Notes"],["F","📕","PDF files"],["LS","📄","Lists & Submissions"],["C","📚","Compilations"],["D","✏️","Drafts"],["X","❔","Not yet numbered"],["dir","📁","Older folders"]];
+    const kinds=[["fil","⚖️","Filings"],["N","📝","Notes"],["F","📕","PDF files"],["LS","📄","Lists & Submissions"],["C","📚","Compilations"],["D","✏️","Drafts"],["X","❔","Not yet numbered"],["dir","📁","Older folders"]];
     const tiles=kinds.map(([t,ic,lab])=>{
-      const g=t==="dir"?dirs:files.filter(x=>t==="LS"?(x._t==="L"||x._t==="S"):x._t===t);
+      const g=(t==="dir"||t==="fil")?dirs.filter(x=>x._t===t):files.filter(x=>t==="LS"?(x._t==="L"||x._t==="S"):x._t===t);
       if(!g.length) return "";
-      const last=t==="dir"?"":g.map(x=>x.mtime||"").sort().pop();
+      if(t==="fil"&&g.length===1) return `<button class="fv-isl fil" onclick="_filesSub(${_fvQuote(g[0].name)})"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${esc((_FILING_RX.exec(g[0].name)||[])[1]||"")}</span><span class="fv-isl-l">Filing ${esc(((_FILING_RX.exec(g[0].name)||[])[2]||"")+"-"+((_FILING_RX.exec(g[0].name)||[])[3]||""))}</span><span class="fv-isl-d">stages, defects, final copy</span></button>`;
+      const last=(t==="dir"||t==="fil")?"":g.map(x=>x.mtime||"").sort().pop();
       return `<button class="fv-isl" onclick="_fvSetType('${t}')"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${lab}</span>${last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">${g.reduce((a,x)=>a+(+x.count||0),0)} items</span>`}</button>`;
     }).join("");
     h=`<div class="fv-isls" style="margin-top:4px">${tiles}</div>`+(latest.length?`<div class="fv-group" style="margin-top:18px">Latest papers</div>`+latest.map(row).join(""):"");
@@ -19009,7 +19051,7 @@ function _fvRenderList(){
     h=fl.map(row).join("")+(dl.length?`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join(""):"");
   }else{
     ["N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=(f.type==="all"||f.type==="LS"?`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`:"")+g.map(row).join(""); });
-    if(dl.length) h+=`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join("");
+    ["fil","dir"].forEach(t=>{ const g=dl.filter(x=>x._t===t); if(g.length) h+=`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`+g.map(drow).join(""); });
   }
   if(!h) h=`<div class="fv-empty">${q?`Nothing matches “${esc(f.q)}”.`:"No papers of this kind."}</div>`;
   if(!can && !isStaffView() && (fl.length||dl.length)) h=`<div class="hint" style="margin-bottom:8px">To open, edit and share, finish <b>Settings → Documents (OneDrive)</b>.</div>`+h;
@@ -19021,8 +19063,8 @@ function renderFilesPage(){
   const f=_fv; const rows=_fvRows(), files=rows.files, dirs=rows.dirs, title=rows.title;
   const staff=isStaffView();
   const back=staff?`<div class="subnav"><button class="subnav-back" onclick="staffGo('matters')">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">Files</span></div>`:"";
-  const cnt=t=>t==="all"?files.length+dirs.length:(t==="dir"?dirs.length:files.filter(x=>x._t===t).length);
-  const KLAB={N:"Notes",F:"PDF files",LS:"Lists & Submissions",L:"Lists of dates",S:"Submissions",C:"Compilations",D:"Drafts",X:"Not yet numbered",dir:"Older folders"};
+  const cnt=t=>t==="all"?files.length+dirs.length:((t==="dir"||t==="fil")?dirs.filter(x=>x._t===t).length:files.filter(x=>x._t===t).length);
+  const KLAB={fil:"Filings",N:"Notes",F:"PDF files",LS:"Lists & Submissions",L:"Lists of dates",S:"Submissions",C:"Compilations",D:"Drafts",X:"Not yet numbered",dir:"Older folders"};
   const kcnt=t=>t==="LS"?cnt("L")+cnt("S"):cnt(t);
   const chips=f.type==="all"?"":`<button class="fv-chip" onclick="_fvSetType('all')">‹ All kinds</button><span class="fv-chip on" style="cursor:default">${esc(KLAB[f.type]||"")}<b>${kcnt(f.type)}</b></span>`;
   const ch=f.chamber?` <span class="tag" style="background:${f.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff;vertical-align:middle">${esc(f.chamber)}</span>`:"";
@@ -19031,9 +19073,10 @@ function renderFilesPage(){
       <div class="fv-head">
         <div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
           <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>
-        <div style="display:flex;gap:6px">${f.sub?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_filesLoad()">Refresh</button></div>
+        <div style="display:flex;gap:6px">${f.sub?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
       </div>
-      ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:`
+      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">+ Add paper</button><button class="btn ghost sm" onclick="_scanOpen({})">📷 Scan</button><button class="btn ghost sm" onclick="_newFilingAsk()">⚖️ New filing</button></div>`:""}
+      ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:_inFiling()?_filingViewHTML():`
       <div class="fv-tools">
         <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
         ${f.type==="all"?"":`<select class="fv-sort" onchange="_fvSetSort(this.value)"><option value="num" ${f.sort==="num"?"selected":""}>By number</option><option value="new" ${f.sort==="new"?"selected":""}>Newest first</option></select>`}
@@ -19041,8 +19084,1100 @@ function renderFilesPage(){
       ${chips?`<div class="fv-chips">${chips}</div>`:""}
       <div class="fv-box"><div id="fvList"></div></div>`)}
     </div>`;
-  _fvRenderList();
+  if(!_inFiling()) _fvRenderList();
 }
+const _TPL_DECL="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";
+const _TPL_CHK="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";
+
+/* ===========================================================
+   ADD PAPERS · SCANNER · FILINGS (stage sub-folders) · DEFECTS
+   -----------------------------------------------------------
+   - Add / Scan: owner and staff (staff: AD Chamber only — the gatekeeper enforces it).
+     A paper added straight into the case folder keeps its name; the ASDC Helper on the
+     Mac gives it the owner's number (N/L/S/C/F/D). Inside a filing folder the app names
+     it by stage: "<stage>.<n> <title>.<ext>".
+   - Filing folder: "<Kind> Filing (<serial>-<n>)" inside the case folder, e.g.
+     "SLP Filing (333-1)". Stages: 1 Documents · 2 Drafts · 3 Filing copy · 4 Defects ·
+     5 Cured & refiled · 6 Final copy.
+   - Filing records (defects etc.): AD → DB.filings (shared, bundle:true, no matterId so
+     they stay out of the proceedings log); SD → DB.sdFilings (owner-private).
+   - Uploads go straight from the device to Microsoft through a one-time slot the
+     gatekeeper opens; they never overwrite (OneDrive adds " 1" if a name is taken).
+   =========================================================== */
+const _FILING_RX=/^(.+?) Filing \((\d{3})-(\d+)\)$/;
+const _STAGE_RX=/^([1-6])\.(\d+) (.+)$/;
+const _STG=[
+  {n:1,l:"Documents",ic:"📎",h:"Client papers, annexures, impugned order, signed vakalatnama"},
+  {n:2,l:"Drafts",ic:"✏️",h:"Word drafts and their PDFs — revise in the same file"},
+  {n:3,l:"Filing copy",ic:"📕",h:"The compiled paper book as filed"},
+  {n:4,l:"Defects",ic:"⚠️",h:"Registry defect lists"},
+  {n:5,l:"Cured & refiled",ic:"🩹",h:"Cured pages, fresh documents, declaration, checklist"},
+  {n:6,l:"Final copy",ic:"✅",h:"Filing copy with the cured pages swapped in"}];
+const _FILING_KINDS=["SLP","SLP Crl","Counter Affidavit","Rejoinder","IA","Transfer Petition","Writ Petition","Caveat","Review Petition","Contempt Petition"];
+function _localISO(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function _safeName(s){ return String(s||"").replace(/[\/\\:*?"<>|]+/g,"-").replace(/\s+/g," ").trim().replace(/^[.\s]+/,"").slice(0,120); }
+function _extOf(n){ return ((/\.[A-Za-z0-9]{2,5}$/.exec(n||"")||[""])[0]).toLowerCase(); }
+function _baseOf(n){ return String(n||"").replace(/\.[A-Za-z0-9]{2,5}$/,""); }
+function _looksFinancial(n){ return /\b(invoice|receipt|memorandum of fees|fee memo|fee bill|salary)\b/i.test(n)||/\bINV[\/\-]\d/i.test(n)||/\bR\/\d{4}/.test(n); }
+function _caseFolderPath(){ return _fv.folder||""; }
+function _inFiling(){ const s=_fv.sub||""; return !!s && s.indexOf("/")<0 && _FILING_RX.test(s); }
+function _filingFolderRel(){ return _fv.folder+"/"+_fv.sub; }
+async function _libPdfLib(){ if(!window.PDFLib) await _qlLoadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"); if(!window.PDFLib) throw new Error("Could not load the PDF tools (offline?)."); return window.PDFLib; }
+async function _libZip(){ if(!window.JSZip) await _qlLoadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"); return window.JSZip; }
+
+// The add/scan/filing requests need the October 2026 gatekeeper; say so plainly if the old one answers.
+async function _gkNew(path, body){
+  try{ return await _gk(path, body); }
+  catch(e){ if(/Unknown request/i.test(e.message)) throw new Error(isStaffView()?"Adding papers is not switched on yet — ask the Head of Chamber to update the ASDC Gatekeeper.":"Adding papers needs the updated ASDC Gatekeeper: paste the new worker.js into Cloudflare once (gatekeeper/SETUP.md, step 'Update')."); throw e; }
+}
+/* ---------- upload (device → Microsoft, through a one-time slot) ---------- */
+async function _uploadPaper(relPath, blob, onProgress){
+  if(!blob||!blob.size) throw new Error("The file is empty.");
+  const d=await _gkNew("/api/addsession",{path:relPath});
+  const CH=320*1024*16, size=blob.size; let off=0, last=null, viaGk=false;
+  const put=async(range,part)=>{
+    if(!viaGk){ try{ return await fetch(d.uploadUrl,{method:"PUT",headers:{"Content-Range":range},body:part}); }catch(e){ viaGk=true; } }
+    // the browser could not reach Microsoft directly: send this piece through the gatekeeper instead
+    const tok=await FB.idToken();
+    return fetch(_gkUrl()+"/api/relay?u="+encodeURIComponent(d.uploadUrl),{method:"POST",headers:{"Authorization":"Bearer "+tok,"Content-Range":range},body:part});
+  };
+  while(off<size){
+    const end=Math.min(off+CH,size); let tries=0, r=null;
+    for(;;){
+      try{ r=await put(`bytes ${off}-${end-1}/${size}`,blob.slice(off,end)); }catch(e){ r=null; }
+      if(r&&(r.ok||r.status===202)) break;
+      if(++tries>=4) throw new Error("Upload to OneDrive failed"+(r?" ("+r.status+")":" — check the internet connection")+".");
+      await new Promise(z=>setTimeout(z,1500*tries));
+    }
+    off=end; onProgress&&onProgress(off,size);
+    if(r.status===200||r.status===201) last=await r.json().catch(()=>null);
+  }
+  return (last&&last.name)||relPath.split("/").pop();
+}
+function _progressModal(title, msg){ openModal(title, `<div class="hint" id="upMsg" style="margin-bottom:8px">${esc(msg||"")}</div><div class="up-bar"><div id="upBar" style="width:0%"></div></div>`); }
+function _progressSet(msg, frac){ const m=document.getElementById("upMsg"); if(m&&msg!=null) m.textContent=msg; const b=document.getElementById("upBar"); if(b&&frac!=null) b.style.width=Math.round(Math.max(0,Math.min(1,frac))*100)+"%"; }
+
+/* ---------- stage numbering inside a filing folder ---------- */
+function _stageNext(stage, names){
+  let mx=0; (names||[]).forEach(n=>{ const m=_STAGE_RX.exec(n); if(m&&+m[1]===+stage) mx=Math.max(mx,+m[2]); });
+  return mx+1;
+}
+function _currentNames(){ const fx=_fv.idx||{}; return (fx.items||[]).map(i=>i.name).concat((fx.bundles||[]).map(b=>b.name)); }
+
+/* ---------- Add paper ---------- */
+function _addPaperAsk(stage){
+  if(!_gkUrl()){ toast("Documents are not set up yet (Settings → Documents).",true); return; }
+  if(!_fv.folder){ toast("This case has no folder yet.",true); return; }
+  const fil=_inFiling(); stage=+stage||0;
+  const stageSel=fil?`<label class="fld" style="margin-top:10px">Stage</label><select class="in" id="apStage">${_STG.map(s=>`<option value="${s.n}" ${s.n===(stage||1)?"selected":""}>${s.n} · ${esc(s.l)}</option>`).join("")}</select>`:"";
+  openModal("Add paper", `
+    <div class="hint" style="margin-bottom:10px">${fil?`Into <b>${esc(_fv.sub)}</b>. The app numbers it by stage.`:`Into <b>${esc(_fv.folder.split("/").pop())}</b>. Your Mac helper gives it its number (N, L, S, C, F, D) within a few minutes.`}</div>
+    <label class="fld">File(s)</label>
+    <input class="in" type="file" id="apFile" multiple>
+    <label class="fld" style="margin-top:10px">Title <span style="color:var(--muted);font-weight:400">(optional — e.g. Signed Vakalatnama)</span></label>
+    <input class="in" id="apTitle" placeholder="Leave blank to keep the file's own name">
+    ${stageSel}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_addPaperGo()">Add</button></div>`);
+}
+async function _addPaperGo(){
+  const inp=document.getElementById("apFile"); const files=inp&&inp.files?Array.from(inp.files):[];
+  if(!files.length){ toast("Choose a file.",true); return; }
+  const title=_safeName((document.getElementById("apTitle")||{}).value||"");
+  const st=document.getElementById("apStage"); const stage=st?+st.value:0;
+  const staff=isStaffView(); const fil=_inFiling(); const base=fil?_filingFolderRel():_caseFolderPath();
+  const names=_currentNames(); const today=fmtDate(_localISO());
+  const plan=files.map((f,i)=>{
+    const ext=_extOf(f.name)||".pdf";
+    let desc=title?(files.length>1?title+" "+(i+1):title):_safeName(_baseOf(f.name))||"Paper";
+    if(title&&!/\d{2}\.\d{2}\.\d{4}/.test(desc)&&!fil) desc=desc+" - "+today;
+    let name;
+    if(fil){ const k=_stageNext(stage,names); name=`${stage}.${k} ${desc}${ext}`; names.push(name); }
+    else name=desc+ext;
+    return {f,name};
+  });
+  if(staff&&plan.some(p=>_looksFinancial(p.name))){ toast("Financial papers are for the Head of Chamber only.",true); return; }
+  _progressModal("Adding…","Starting…");
+  const done=[];
+  try{
+    for(let i=0;i<plan.length;i++){
+      const p=plan[i];
+      _progressSet(`Uploading ${p.name} (${i+1} of ${plan.length})…`,0);
+      const got=await _uploadPaper(base+"/"+p.name,p.f,(g,t)=>_progressSet(null,g/t));
+      done.push(got);
+    }
+    closeModal(); toast(done.length===1?`Added: ${done[0]}`:`${done.length} papers added.`);
+    _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message+(done.length?` (${done.length} added before the error)`:""),true); _fv.live=true; _filesLoad(); }
+}
+
+/* ---------- filing records ---------- */
+function _filingColl(chamber){ return chamber==="SD"?"sdFilings":"filings"; }
+function _filingRec(folderRel, create){
+  const m=_FILING_RX.exec(folderRel.split("/").pop()||""); if(!m) return null;
+  const ch=/^SD Chamber\//.test(folderRel)?"SD":"AD"; const coll=_filingColl(ch);
+  if(!Array.isArray(DB[coll])) DB[coll]=[];
+  let r=DB[coll].find(x=>x&&x.bundle&&x.folder===folderRel);
+  if(!r&&create){
+    const dn=_caseDiary(+m[2]);
+    r=_auditStamp({id:uid(), bundle:true, folder:folderRel, serial:+m[2], n:+m[3], kind:m[1], chamber:ch,
+      diaryNo:dn?dn.no:"", diaryYear:dn?dn.year:"", created:new Date().toISOString(), defects:[], refilings:[], index:null},true);
+    DB[coll].push(r); save();
+  }
+  return r;
+}
+function _filingTouch(r){ try{ _auditStamp(r,false); }catch(e){} save(); }
+function _caseDiary(serial){
+  const r=(DB.register||[]).find(x=>+x.serial===+serial);
+  const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+serial);
+  const all=[].concat(m&&m.diaryNo?["Diary No. "+m.diaryNo]:[], (m&&m.petitionNos)||[], (r&&r.petitionNos)||[]);
+  for(const s of all){ const mm=/diary[^0-9]*(\d{1,7})\s*(?:\/|of|-|\s)\s*(\d{4})/i.exec(String(s)); if(mm) return {no:mm[1],year:mm[2]}; }
+  return null;
+}
+function _newFilingAsk(){
+  if(!_gkUrl()||!_fv.folder){ toast("Documents are not set up for this case yet.",true); return; }
+  openModal("New filing", `
+    <div class="hint" style="margin-bottom:10px">Makes a filing folder inside <b>${esc(_fv.folder.split("/").pop())}</b> with stages 1 Documents · 2 Drafts · 3 Filing copy · 4 Defects · 5 Cured &amp; refiled · 6 Final copy.</div>
+    <label class="fld">What is being filed</label>
+    <select class="in" id="nfKind" onchange="document.getElementById('nfOtherW').style.display=this.value==='other'?'':'none'">${_FILING_KINDS.map(k=>`<option>${esc(k)}</option>`).join("")}<option value="other">Other…</option></select>
+    <div id="nfOtherW" style="display:none;margin-top:8px"><input class="in" id="nfOther" placeholder="e.g. Additional Documents"></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_newFilingGo()">Create</button></div>`);
+}
+async function _newFilingGo(){
+  let kind=(document.getElementById("nfKind")||{}).value||"SLP";
+  if(kind==="other") kind=_safeName((document.getElementById("nfOther")||{}).value||"");
+  kind=kind.replace(/[()]/g,"").trim();
+  if(!kind){ toast("Say what is being filed.",true); return; }
+  const ser=String(_fv.serial).padStart(3,"0");
+  let n=0; _currentNames().forEach(x=>{ const m=_FILING_RX.exec(x); if(m&&m[2]===ser) n=Math.max(n,+m[3]); });
+  const name=`${kind} Filing (${ser}-${n+1})`;
+  try{
+    openModal("Creating…",`<div class="hint">Making the folder ${esc(name)}…</div>`);
+    const d=await _gkNew("/api/mkdir",{parent:_fv.folder, name});
+    _filingRec(d.folder||(_fv.folder+"/"+name), true);
+    closeModal(); toast("Filing folder created.");
+    _fv.live=true; _filesSub(name);
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+
+/* ---------- one-tap Declaration / Checklist ---------- */
+function _xmlEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+async function _docFromTpl(b64, vals){
+  const JSZip=await _libZip();
+  const bin=atob(b64); const u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+  const zip=await JSZip.loadAsync(u8);
+  let x=await zip.file("word/document.xml").async("string");
+  Object.keys(vals).forEach(k=>{ x=x.split("{{"+k+"}}").join(_xmlEsc(vals[k])); });
+  zip.file("word/document.xml",x);
+  return zip.generateAsync({type:"blob",compression:"DEFLATE",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+}
+function _decChkAsk(which){
+  const rec=_inFiling()?_filingRec(_filingFolderRel(),true):null;
+  const dn=rec&&rec.diaryNo?{no:rec.diaryNo,year:rec.diaryYear}:(_caseDiary(_fv.serial)||{no:"",year:String(new Date().getFullYear())});
+  const lab=which==="chk"?"Checklist":"Declaration";
+  openModal(lab, `
+    <div class="hint" style="margin-bottom:10px">Your standard ${lab.toLowerCase()} with this diary number and today's date. Everything else stays exactly as in your format.</div>
+    <div style="display:flex;gap:8px"><div style="flex:2"><label class="fld">Diary No.</label><input class="in mono" id="dcNo" value="${esc(dn.no||"")}" inputmode="numeric"></div>
+      <div style="flex:1"><label class="fld">Year</label><input class="in mono" id="dcYr" value="${esc(dn.year||"")}" inputmode="numeric"></div></div>
+    <label class="fld" style="margin-top:8px">Date</label><input class="in" type="date" id="dcDate" value="${_localISO()}">
+    <div class="btn-row" style="margin-top:14px;flex-wrap:wrap;gap:8px"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn ghost" onclick="_decChkGo('${which}',false)">Download</button>
+      ${rec?`<button class="btn seal" onclick="_decChkGo('${which}',true)">Save in stage 5</button>`:""}</div>`);
+}
+async function _decChkGo(which, toFolder){
+  const no=((document.getElementById("dcNo")||{}).value||"").replace(/\D/g,""), yr=((document.getElementById("dcYr")||{}).value||"").replace(/\D/g,"");
+  const dt=(document.getElementById("dcDate")||{}).value||_localISO();
+  if(!no||yr.length!==4){ toast("Enter the diary number and year.",true); return; }
+  const lab=which==="chk"?"Checklist":"Declaration";
+  try{
+    const blob=await _docFromTpl(which==="chk"?_TPL_CHK:_TPL_DECL,{DIARY:no,YEAR:yr,DATE:fmtDate(dt)});
+    const rec=_inFiling()?_filingRec(_filingFolderRel(),true):null;
+    if(rec&&(rec.diaryNo!==no||rec.diaryYear!==yr)){ rec.diaryNo=no; rec.diaryYear=yr; _filingTouch(rec); }
+    if(toFolder&&rec){
+      const name=`5.${_stageNext(5,_currentNames())} ${lab} - Diary ${no}-${yr}.docx`;
+      _progressModal("Saving…","Saving "+name+"…");
+      const got=await _uploadPaper(_filingFolderRel()+"/"+name,blob,(g,t)=>_progressSet(null,g/t));
+      _defectsAutoCure(rec, which==="chk"?/CHECK ?LIST/:/DECLARATION/, got);
+      closeModal(); toast("Saved: "+got); _fv.live=true; _filesLoad();
+    }else{
+      const a=document.createElement("a"); const u=URL.createObjectURL(blob); a.href=u; a.download=`${lab} - Diary ${no}-${yr}.docx`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),60000);
+      closeModal(); toast(lab+" downloaded.");
+    }
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+
+/* ---------- sort an unnumbered paper into a stage ---------- */
+async function _sortIntoStage(name, stage){
+  stage=+stage; if(!stage) return;
+  const nn=`${stage}.${_stageNext(stage,_currentNames())} ${name.replace(/^\d+[a-z]?\.\s+/i,"")}`;
+  try{ await _gkNew("/api/rename",{path:_filingFolderRel()+"/"+name, name:nn}); toast("Moved to stage "+stage+"."); _fv.live=true; _filesLoad(); }
+  catch(e){ toast(e.message,true); }
+}
+
+/* ---------- the filing folder screen ---------- */
+function _flState(){ if(!_fv.fl||_fv.fl.sub!==_fv.sub) _fv.fl={sub:_fv.sub, stage:0, view:"stages"}; return _fv.fl; }
+function _flSet(k,v){ const s=_flState(); s[k]=v; if(k==="view"&&v!=="stages") s.stage=0; renderFilesPage(); }
+function _flItems(){
+  const fx=_fv.idx||{items:[],bundles:[]};
+  return (fx.items||[]).map(i=>{ const m=_STAGE_RX.exec(i.name);
+    return Object.assign({},i,{stage:m?+m[1]:0, sn:m?+m[2]:0, num:m?m[1]+"."+m[2]:"", _label:m?_baseOf(m[3]):_baseOf(i.name), _t:"X"}); })
+    .sort((a,b)=>(a.stage-b.stage)||(a.sn-b.sn)||a.name.localeCompare(b.name));
+}
+function _flLatest(stage, pdfOnly){ const xs=_flItems().filter(x=>x.stage===stage&&(!pdfOnly||/\.pdf$/i.test(x.name))); return xs.length?xs[xs.length-1]:null; }
+function _filingViewHTML(){
+  const st=_flState(); const rec=_filingRec(_filingFolderRel(),true);
+  const items=_flItems(); const base=_filingFolderRel(); const can=!!_gkUrl();
+  const m=_FILING_RX.exec(_fv.sub)||[];
+  const open=(rec.defects||[]).filter(d=>d.status==="open").length, tot=(rec.defects||[]).length;
+  const head=`<div class="fl-head">
+      <div><div class="fl-kind">⚖️ ${esc(m[1]||"Filing")} filing <span class="mono" style="color:var(--muted)">${esc((m[2]||"")+"-"+(m[3]||""))}</span></div>
+        <div class="fl-diary">Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"change":"add"}</button></div></div>
+      <div class="fl-tools">
+        <button class="btn ghost sm" onclick="_addPaperAsk(${st.stage||0})">+ Add</button>
+        <button class="btn ghost sm" onclick="_scanOpen({stage:${st.stage||1}})">📷 Scan</button>
+      </div></div>`;
+  const nav=`<div class="fv-chips" style="margin-top:10px">
+      <button class="fv-chip ${st.view==="stages"&&!st.stage?"on":""}" onclick="_flState().stage=0;_flSet('view','stages')">Stages</button>
+      <button class="fv-chip ${st.view==="defects"?"on":""}" onclick="_flSet('view','defects')">Defects${tot?` <b>${open}/${tot}</b>`:""}</button>
+      <button class="fv-chip ${st.view==="check"?"on":""}" onclick="_flSet('view','check')">Check before filing</button>
+      <button class="fv-chip" onclick="_decChkAsk('decl')">Declaration</button>
+      <button class="fv-chip" onclick="_decChkAsk('chk')">Checklist</button></div>`;
+  let body="";
+  if(st.view==="defects") body=_defectsHTML(rec);
+  else if(st.view==="check") body=_checkHTML(rec);
+  else if(st.stage){
+    const s=_STG.find(x=>x.n===st.stage); const xs=items.filter(x=>x.stage===st.stage);
+    body=`<div class="fv-chips"><button class="fv-chip" onclick="_flSet('stage',0)">‹ All stages</button><span class="fv-chip on" style="cursor:default">${s.ic} ${st.stage} · ${esc(s.l)} <b>${xs.length}</b></span></div>
+      <div class="hint" style="margin:2px 2px 8px">${esc(s.h)}</div>
+      ${xs.length?xs.map(x=>_fvRowHTML(x,base,"",can)).join(""):`<div class="fv-empty">Nothing in this stage yet.</div>`}
+      <div class="btn-row" style="margin-top:8px;gap:8px"><button class="btn ghost sm" onclick="_addPaperAsk(${st.stage})">+ Add to stage ${st.stage}</button><button class="btn ghost sm" onclick="_scanOpen({stage:${st.stage}})">📷 Scan into stage ${st.stage}</button></div>`;
+  }else{
+    const tiles=_STG.map(s=>{ const g=items.filter(x=>x.stage===s.n); const last=g.map(x=>x.mtime||"").sort().pop();
+      const extra=s.n===4&&tot?`<span class="fv-isl-d" style="color:${open?"var(--seal)":"var(--green,#2e7d32)"}">${open?open+" defect"+(open===1?"":"s")+" open":"all cured"}</span>`:"";
+      return `<button class="fv-isl" onclick="_flSet('stage',${s.n})"><span class="fv-isl-ic">${s.ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${s.n} · ${esc(s.l)}</span>${extra||(last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">empty</span>`)}</button>`; }).join("");
+    const loose=items.filter(x=>!x.stage);
+    const opts=_STG.map(s=>`<option value="${s.n}">${s.n} · ${esc(s.l)}</option>`).join("");
+    body=`<div class="fv-isls">${tiles}</div>`+
+      (loose.length?`<div class="fv-group" style="margin-top:18px">Not yet sorted · ${loose.length}</div><div class="hint" style="margin:0 2px 8px">Older papers without a stage number. Choose a stage to number them.</div>`+
+        loose.map(x=>{ const k=can?_paperReg({path:base+"/"+x.name,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:"",mtime:x.mtime||""}):-1;
+          return `<div class="fv-row"><div class="fv-ic" style="background:${_FK[_fileKind(x.ext)][1]}">${_FK[_fileKind(x.ext)][0]}</div>
+            <div class="fv-main" ${k>=0?`onclick="_qlShow(${k})"`:""}><div class="fv-name">${esc(x.name)}</div><div class="fv-meta"><span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div></div>
+            <div class="fv-acts"><select class="fv-sort" style="min-width:150px" onchange="_sortIntoStage(${_fvQuote(x.name)},this.value)"><option value="">Sort into…</option>${opts}</select></div></div>`; }).join(""):"");
+  }
+  return head+nav+`<div class="fv-box" style="margin-top:10px">${body}</div>`;
+}
+function _flDiaryAsk(){
+  const rec=_filingRec(_filingFolderRel(),true);
+  openModal("Diary number", `<div style="display:flex;gap:8px"><div style="flex:2"><label class="fld">Diary No.</label><input class="in mono" id="fdNo" value="${esc(rec.diaryNo||"")}" inputmode="numeric"></div>
+    <div style="flex:1"><label class="fld">Year</label><input class="in mono" id="fdYr" value="${esc(rec.diaryYear||String(new Date().getFullYear()))}" inputmode="numeric"></div></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_flDiarySave()">Save</button></div>`);
+}
+function _flDiarySave(){
+  const rec=_filingRec(_filingFolderRel(),true);
+  rec.diaryNo=((document.getElementById("fdNo")||{}).value||"").replace(/\D/g,""); rec.diaryYear=((document.getElementById("fdYr")||{}).value||"").replace(/\D/g,"");
+  _filingTouch(rec); closeModal(); renderFilesPage();
+}
+
+/* ---------- SCANNER: camera photo → page edges found → straightened → cleaned → one PDF ---------- */
+var _sc=null;
+function _scanOpen(opt){
+  if(!_gkUrl()){ toast("Documents are not set up yet (Settings → Documents).",true); return; }
+  if(!_fv.folder){ toast("Open a case's files first.",true); return; }
+  _sc={opt:opt||{}, pages:[], edit:null, busy:""};
+  let ov=document.getElementById("scOv");
+  if(!ov){ ov=document.createElement("div"); ov.id="scOv"; document.body.appendChild(ov); }
+  ov.style.display="flex"; document.body.classList.add("sc-lock");
+  _scRender();
+}
+function _scClose(force){
+  if(!force&&_sc&&_sc.pages.length&&!confirm("Discard the scanned pages?")) return;
+  const ov=document.getElementById("scOv"); if(ov){ ov.style.display="none"; ov.innerHTML=""; }
+  document.body.classList.remove("sc-lock"); _sc=null;
+}
+function _scRender(){
+  const ov=document.getElementById("scOv"); if(!ov||!_sc) return;
+  const fil=_inFiling(); const st=+_sc.opt.stage||1;
+  if(_sc.edit){ _scRenderEditor(ov); return; }
+  const thumbs=_sc.pages.map((p,i)=>`<div class="sc-th">
+      <img src="${p.thumb}" alt="" onclick="_scEditPage(${i})">
+      <div class="sc-th-n">${i+1}${p.warn.length?` <span title="${esc(p.warn.join(", "))}">⚠️</span>`:""}</div>
+      <div class="sc-th-b"><button onclick="_scMove(${i},-1)" ${i?"":"disabled"}>‹</button><button onclick="_scRot(${i})">⟳</button><button onclick="_scDel(${i})">🗑</button><button onclick="_scMove(${i},1)" ${i<_sc.pages.length-1?"":"disabled"}>›</button></div></div>`).join("");
+  const warns=_sc.pages.map((p,i)=>p.warn.length?`Page ${i+1}: ${p.warn.join(", ")}`:"").filter(Boolean);
+  ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_scClose()">✕</button><div class="sc-title">Scan${_sc.pages.length?` · ${_sc.pages.length} page${_sc.pages.length===1?"":"s"}`:""}</div><div style="width:40px"></div></div>
+    <div class="sc-body">
+      ${_sc.busy?`<div class="sc-busy">${esc(_sc.busy)}</div>`:""}
+      ${_sc.pages.length?`<div class="sc-grid">${thumbs}</div><div class="hint" style="text-align:center;margin:6px 0 0">Tap a page to adjust its corners · ‹ › to reorder</div>`:
+        `<div class="sc-empty"><div style="font-size:46px">📄</div><div style="font-weight:600;margin:6px 0 4px">Photograph each page</div><div class="hint">Lay the page on a darker surface in good light and fill the frame. The app finds the edges, straightens and cleans the page.</div></div>`}
+      ${warns.length?`<div class="sc-warn">⚠️ ${warns.map(esc).join("<br>")} — retake if it is hard to read.</div>`:""}
+    </div>
+    <div class="sc-bot">
+      <label class="btn seal sc-cam">📷 ${_sc.pages.length?"Add page":"Take photo"}<input type="file" accept="image/*" capture="environment" onchange="_scPicked(this)" hidden></label>
+      <label class="btn ghost">🖼 Photos<input type="file" accept="image/*" multiple onchange="_scPicked(this)" hidden></label>
+      ${_sc.pages.length?`<button class="btn seal" onclick="_scSaveAsk()">Save PDF ›</button>`:""}
+    </div>
+    ${_sc.saving?`<div class="sc-sheet"><div class="sc-sheet-in">
+      <h3 style="margin:0 0 10px">Save ${_sc.pages.length} page${_sc.pages.length===1?"":"s"} as PDF</h3>
+      <label class="fld">Title</label><input class="in" id="scTitle" value="${esc(_sc.opt.title||"")}" placeholder="e.g. Signed Vakalatnama">
+      ${fil?`<label class="fld" style="margin-top:10px">Stage</label><select class="in" id="scStage">${_STG.map(s=>`<option value="${s.n}" ${s.n===st?"selected":""}>${s.n} · ${esc(s.l)}</option>`).join("")}</select>`:
+        `<div class="hint" style="margin-top:8px">Saved in <b>${esc(_fv.folder.split("/").pop())}</b>; your Mac helper numbers it.</div>`}
+      <div id="scProg" class="hint" style="margin-top:10px"></div>
+      <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="_sc.saving=false;_scRender()">Back</button><button class="btn seal" id="scGo" onclick="_scSaveGo()">Save</button></div>
+    </div></div>`:""}`;
+}
+async function _scPicked(inp){
+  const files=inp&&inp.files?Array.from(inp.files):[]; inp.value="";
+  if(!files.length||!_sc) return;
+  for(let i=0;i<files.length;i++){
+    _sc.busy=`Reading photo ${i+1} of ${files.length}…`; _scRender();
+    try{
+      const src=await _scLoad(files[i]);
+      const quad=_scDetect(src);
+      const pg={file:files[i], quad, rot:0, mode:"bw", w:src.width, h:src.height};
+      if(files.length===1){ _sc.busy=""; _sc.edit={pg, src, idx:-1}; _scRender(); return; }
+      await _scFinish(pg, src); _sc.pages.push(pg);
+    }catch(e){ toast(e.message||"Could not read that photo.",true); }
+  }
+  _sc.busy=""; _scRender();
+}
+async function _scLoad(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=new Image();
+    await new Promise((res,rej)=>{ img.onload=res; img.onerror=()=>rej(new Error("Could not read that photo (HEIC from a computer? Use JPEG).")); img.src=url; });
+    const s=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(img.naturalWidth*s)); c.height=Math.max(1,Math.round(img.naturalHeight*s));
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height); return c;
+  }finally{ setTimeout(()=>URL.revokeObjectURL(url),1000); }
+}
+// Page edges: the largest bright area (the paper) against a darker surface → its four extreme corners.
+function _scDetect(c){
+  const W=c.width,H=c.height, s=Math.min(1,320/Math.max(W,H)), w=Math.max(8,Math.round(W*s)), h=Math.max(8,Math.round(H*s));
+  const t=document.createElement("canvas"); t.width=w; t.height=h; const g=t.getContext("2d"); g.drawImage(c,0,0,w,h);
+  const d=g.getImageData(0,0,w,h).data, N=w*h, gray=new Uint8Array(N), hist=new Uint32Array(256);
+  for(let i=0;i<N;i++){ const v=(d[i*4]*0.299+d[i*4+1]*0.587+d[i*4+2]*0.114)|0; gray[i]=v; hist[v]++; }
+  let sum=0; for(let v=0;v<256;v++) sum+=v*hist[v];
+  let sumB=0,wB=0,max=-1,th=128;
+  for(let v=0;v<256;v++){ wB+=hist[v]; if(!wB) continue; const wF=N-wB; if(!wF) break; sumB+=v*hist[v]; const mB=sumB/wB, mF=(sum-sumB)/wF, b=wB*wF*(mB-mF)*(mB-mF); if(b>max){ max=b; th=v; } }
+  const lab=new Int32Array(N), q=new Int32Array(N); let best=0,bestId=0,id=0;
+  for(let i=0;i<N;i++){
+    if(lab[i]||gray[i]<=th) continue; id++; let qh=0,qt=0,cnt=0; q[qt++]=i; lab[i]=id;
+    while(qh<qt){ const p=q[qh++]; cnt++; const x=p%w, y=(p/w)|0;
+      if(x>0&&!lab[p-1]&&gray[p-1]>th){ lab[p-1]=id; q[qt++]=p-1; }
+      if(x<w-1&&!lab[p+1]&&gray[p+1]>th){ lab[p+1]=id; q[qt++]=p+1; }
+      if(y>0&&!lab[p-w]&&gray[p-w]>th){ lab[p-w]=id; q[qt++]=p-w; }
+      if(y<h-1&&!lab[p+w]&&gray[p+w]>th){ lab[p+w]=id; q[qt++]=p+w; } }
+    if(cnt>best){ best=cnt; bestId=id; }
+  }
+  const full=[[0.01,0.01],[0.99,0.01],[0.99,0.99],[0.01,0.99]];
+  if(best<N*0.12) return full;
+  let tl=[0,0,1e9],tr=[0,0,-1e9],br=[0,0,-1e9],bl=[0,0,1e9];
+  for(let i=0;i<N;i++){ if(lab[i]!==bestId) continue; const x=i%w, y=(i/w)|0, a=x+y, b=x-y;
+    if(a<tl[2]) tl=[x,y,a]; if(a>br[2]) br=[x,y,a]; if(b>tr[2]) tr=[x,y,b]; if(b<bl[2]) bl=[x,y,b]; }
+  const area=Math.abs((tr[0]-tl[0])*(bl[1]-tl[1]))||0;
+  if(area<N*0.1) return full;
+  return [tl,tr,br,bl].map(p=>[Math.min(1,Math.max(0,(p[0]+0.5)/w)),Math.min(1,Math.max(0,(p[1]+0.5)/h))]);
+}
+function _sq2quad(P){
+  const [x0,y0]=P[0],[x1,y1]=P[1],[x2,y2]=P[2],[x3,y3]=P[3];
+  const dx1=x1-x2, dx2=x3-x2, dx3=x0-x1+x2-x3, dy1=y1-y2, dy2=y3-y2, dy3=y0-y1+y2-y3;
+  if(Math.abs(dx3)<1e-9&&Math.abs(dy3)<1e-9) return {a:x1-x0,b:x3-x0,c:x0,d:y1-y0,e:y3-y0,f:y0,g:0,h:0};
+  const den=dx1*dy2-dx2*dy1, g=(dx3*dy2-dx2*dy3)/den, h=(dx1*dy3-dx3*dy1)/den;
+  return {a:x1-x0+g*x1,b:x3-x0+h*x3,c:x0,d:y1-y0+g*y1,e:y3-y0+h*y3,f:y0,g,h};
+}
+function _scWarp(src, quad){
+  const W=src.width,H=src.height, P=quad.map(p=>[p[0]*W,p[1]*H]), dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  let ow=Math.max(dist(P[0],P[1]),dist(P[3],P[2])), oh=Math.max(dist(P[0],P[3]),dist(P[1],P[2]));
+  const sc=Math.min(1,2000/Math.max(ow,oh)); ow=Math.max(40,Math.round(ow*sc)); oh=Math.max(40,Math.round(oh*sc));
+  const sd=src.getContext("2d").getImageData(0,0,W,H).data, T=_sq2quad(P), out=new ImageData(ow,oh), od=out.data;
+  for(let j=0;j<oh;j++){ const v=(j+0.5)/oh;
+    for(let i=0;i<ow;i++){ const u=(i+0.5)/ow, den=T.g*u+T.h*v+1;
+      let x=(T.a*u+T.b*v+T.c)/den-0.5, y=(T.d*u+T.e*v+T.f)/den-0.5;
+      if(x<0) x=0; if(y<0) y=0; if(x>W-1.001) x=W-1.001; if(y>H-1.001) y=H-1.001;
+      const x0=x|0, y0=y|0, fx=x-x0, fy=y-y0, i00=(y0*W+x0)*4, i10=i00+4, i01=i00+W*4, i11=i01+4, o=(j*ow+i)*4;
+      od[o]=(sd[i00]*(1-fx)+sd[i10]*fx)*(1-fy)+(sd[i01]*(1-fx)+sd[i11]*fx)*fy;
+      od[o+1]=(sd[i00+1]*(1-fx)+sd[i10+1]*fx)*(1-fy)+(sd[i01+1]*(1-fx)+sd[i11+1]*fx)*fy;
+      od[o+2]=(sd[i00+2]*(1-fx)+sd[i10+2]*fx)*(1-fy)+(sd[i01+2]*(1-fx)+sd[i11+2]*fx)*fy;
+      od[o+3]=255; } }
+  return out;
+}
+// Clean-up: divide out the paper's own brightness (removes shadows), then stretch the contrast.
+function _scEnhance(im, mode){
+  const w=im.width,h=im.height,d=im.data,S=16,bw=Math.ceil(w/S),bh=Math.ceil(h/S); let bg=new Float32Array(bw*bh);
+  let tot=0;
+  for(let by=0;by<bh;by++) for(let bx=0;bx<bw;bx++){ let mx=0;
+    for(let y=by*S;y<Math.min(h,(by+1)*S);y+=2) for(let x=bx*S;x<Math.min(w,(bx+1)*S);x+=2){ const k=(y*w+x)*4, l=d[k]*0.299+d[k+1]*0.587+d[k+2]*0.114; if(l>mx) mx=l; }
+    bg[by*bw+bx]=mx; tot+=mx; }
+  const meanBg=tot/(bw*bh);
+  for(let pass=0;pass<2;pass++){ const nb=new Float32Array(bw*bh);
+    for(let y=0;y<bh;y++) for(let x=0;x<bw;x++){ let s=0,n=0; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if(xx>=0&&yy>=0&&xx<bw&&yy<bh){ s+=bg[yy*bw+xx]; n++; } } nb[y*bw+x]=s/n; }
+    bg=nb; }
+  const at=(x,y)=>{ const gx=Math.min(bw-1.001,Math.max(0,x/S-0.5)), gy=Math.min(bh-1.001,Math.max(0,y/S-0.5)), x0=gx|0,y0=gy|0,fx=gx-x0,fy=gy-y0, x1=Math.min(bw-1,x0+1), y1=Math.min(bh-1,y0+1);
+    return (bg[y0*bw+x0]*(1-fx)+bg[y0*bw+x1]*fx)*(1-fy)+(bg[y1*bw+x0]*(1-fx)+bg[y1*bw+x1]*fx)*fy; };
+  let lumSum=0;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const k=(y*w+x)*4, b=Math.max(40,at(x,y)), f=255/b;
+    if(mode==="bw"){ const l=(d[k]*0.299+d[k+1]*0.587+d[k+2]*0.114)*f; let v=(l-70)*255/165; v=v<0?0:v>255?255:v; d[k]=d[k+1]=d[k+2]=v; lumSum+=v; }
+    else{ for(let c=0;c<3;c++){ let v=(d[k+c]*f-18)*1.08; d[k+c]=v<0?0:v>255?255:v; } lumSum+=d[k]; } }
+  return {meanBg, meanOut:lumSum/(w*h)};
+}
+function _scRotate(c, rot){
+  rot=((rot%4)+4)%4; if(!rot) return c;
+  const o=document.createElement("canvas"); o.width=rot%2?c.height:c.width; o.height=rot%2?c.width:c.height;
+  const g=o.getContext("2d"); g.translate(o.width/2,o.height/2); g.rotate(rot*Math.PI/2); g.drawImage(c,-c.width/2,-c.height/2); return o;
+}
+async function _scFinish(pg, src){
+  src=src||await _scLoad(pg.file);
+  const im=_scWarp(src,pg.quad), q=_scEnhance(im,pg.mode);
+  let c=document.createElement("canvas"); c.width=im.width; c.height=im.height; c.getContext("2d").putImageData(im,0,0);
+  c=_scRotate(c,pg.rot);
+  pg.warn=[]; if(q.meanBg<95) pg.warn.push("taken in poor light");
+  if(_scSharp(c)<9) pg.warn.push("may be blurred");
+  pg.jpeg=await new Promise(r=>c.toBlob(r,"image/jpeg",pg.mode==="bw"?0.62:0.72));
+  pg.pw=c.width; pg.ph=c.height;
+  const t=document.createElement("canvas"), ts=180/Math.max(c.width,c.height); t.width=Math.round(c.width*ts); t.height=Math.round(c.height*ts);
+  t.getContext("2d").drawImage(c,0,0,t.width,t.height); pg.thumb=t.toDataURL("image/jpeg",0.7);
+}
+function _scSharp(c){   // mean absolute Laplacian on a small copy: low = soft/blurred
+  const s=Math.min(1,600/Math.max(c.width,c.height)), w=Math.round(c.width*s), h=Math.round(c.height*s);
+  const t=document.createElement("canvas"); t.width=w; t.height=h; const g=t.getContext("2d"); g.drawImage(c,0,0,w,h);
+  const d=g.getImageData(0,0,w,h).data; let sum=0,n=0;
+  for(let y=1;y<h-1;y+=2) for(let x=1;x<w-1;x+=2){ const k=(y*w+x)*4, L=v=>d[v];
+    const lap=4*L(k)-L(k-4)-L(k+4)-L(k-w*4)-L(k+w*4); sum+=Math.abs(lap); n++; }
+  return n?sum/n:99;
+}
+function _scEditPage(i){ const pg=_sc.pages[i]; if(!pg) return; _sc.busy="Opening…"; _scRender(); _scLoad(pg.file).then(src=>{ _sc.busy=""; _sc.edit={pg:Object.assign({},pg,{quad:pg.quad.map(p=>p.slice())}), src, idx:i}; _scRender(); }).catch(e=>{ _sc.busy=""; toast(e.message,true); _scRender(); }); }
+function _scRenderEditor(ov){
+  const e=_sc.edit, pg=e.pg;
+  ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_sc.edit=null;_scRender()">‹</button><div class="sc-title">Drag the corners to the page edges</div><div style="width:40px"></div></div>
+    <div class="sc-body sc-edit"><div class="sc-stage" id="scStage"><canvas id="scCan"></canvas><svg id="scSvg"></svg></div></div>
+    <div class="sc-bot">
+      <button class="btn ghost" onclick="_scEdWhole()">Whole photo</button>
+      <button class="btn ghost" onclick="_sc.edit.pg.rot=(_sc.edit.pg.rot+1)%4;toast('Turned — shows after you use the page')">⟳ Turn</button>
+      <button class="btn ghost" id="scMode" onclick="_sc.edit.pg.mode=_sc.edit.pg.mode==='bw'?'color':'bw';this.textContent=_sc.edit.pg.mode==='bw'?'B&amp;W':'Colour'">${pg.mode==="bw"?"B&amp;W":"Colour"}</button>
+      <button class="btn seal" onclick="_scEdUse()">Use page ›</button>
+    </div>`;
+  const can=document.getElementById("scCan"), stage=document.getElementById("scStage");
+  const avW=Math.min(window.innerWidth-24,900), avH=window.innerHeight-170, s=Math.min(avW/e.src.width, avH/e.src.height);
+  can.width=Math.round(e.src.width*s); can.height=Math.round(e.src.height*s); can.getContext("2d").drawImage(e.src,0,0,can.width,can.height);
+  stage.style.width=can.width+"px"; stage.style.height=can.height+"px";
+  _scDrawQuad();
+  const svg=document.getElementById("scSvg"); let drag=-1;
+  const pos=ev=>{ const r=can.getBoundingClientRect(); return [Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(ev.clientY-r.top)/r.height))]; };
+  svg.addEventListener("pointerdown",ev=>{ const p=pos(ev); let bi=-1,bd=1e9; pg.quad.forEach((q,i)=>{ const dd=Math.hypot((q[0]-p[0])*can.width,(q[1]-p[1])*can.height); if(dd<bd){bd=dd;bi=i;} }); if(bd<60){ drag=bi; svg.setPointerCapture(ev.pointerId); ev.preventDefault(); } });
+  svg.addEventListener("pointermove",ev=>{ if(drag<0) return; pg.quad[drag]=pos(ev); _scDrawQuad(); ev.preventDefault(); });
+  const up=()=>{ drag=-1; }; svg.addEventListener("pointerup",up); svg.addEventListener("pointercancel",up);
+}
+function _scDrawQuad(){
+  const svg=document.getElementById("scSvg"), can=document.getElementById("scCan"); if(!svg||!can||!_sc.edit) return;
+  const q=_sc.edit.pg.quad.map(p=>[p[0]*can.width,p[1]*can.height]);
+  svg.setAttribute("width",can.width); svg.setAttribute("height",can.height); svg.setAttribute("viewBox",`0 0 ${can.width} ${can.height}`);
+  svg.innerHTML=`<polygon points="${q.map(p=>p.join(",")).join(" ")}" fill="rgba(107,31,31,.12)" stroke="#c0392b" stroke-width="2"/>`+q.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="13" fill="rgba(255,255,255,.85)" stroke="#c0392b" stroke-width="3"/>`).join("");
+}
+function _scEdWhole(){ _sc.edit.pg.quad=[[0,0],[1,0],[1,1],[0,1]]; _scDrawQuad(); }
+async function _scEdUse(){
+  const e=_sc.edit; _sc.busy="Straightening and cleaning…"; _sc.edit=null; _scRender();
+  await new Promise(r=>setTimeout(r,30));
+  try{ await _scFinish(e.pg,e.src); if(e.idx>=0) _sc.pages[e.idx]=e.pg; else _sc.pages.push(e.pg); }
+  catch(err){ toast(err.message||"Could not process the page.",true); }
+  _sc.busy=""; _scRender();
+}
+function _scMove(i,d){ const j=i+d; if(j<0||j>=_sc.pages.length) return; const t=_sc.pages[i]; _sc.pages[i]=_sc.pages[j]; _sc.pages[j]=t; _scRender(); }
+function _scDel(i){ _sc.pages.splice(i,1); _scRender(); }
+async function _scRot(i){ const pg=_sc.pages[i]; pg.rot=(pg.rot+1)%4; _sc.busy="Turning…"; _scRender(); try{ await _scFinish(pg); }catch(e){} _sc.busy=""; _scRender(); }
+function _scSaveAsk(){ _sc.saving=true; _scRender(); setTimeout(()=>{ const t=document.getElementById("scTitle"); if(t&&!t.value) t.focus(); },50); }
+async function _scBuildPdf(pages){
+  const {PDFDocument}=await _libPdfLib(); const doc=await PDFDocument.create();
+  for(const p of pages){
+    const img=await doc.embedJpg(new Uint8Array(await p.jpeg.arrayBuffer()));
+    const land=p.pw>p.ph, PW=land?841.89:595.28, PH=land?595.28:841.89, s=Math.min(PW/p.pw,PH/p.ph), w=p.pw*s, h=p.ph*s;
+    const page=doc.addPage([PW,PH]); page.drawImage(img,{x:(PW-w)/2,y:(PH-h)/2,width:w,height:h});
+  }
+  return new Blob([await doc.save()],{type:"application/pdf"});
+}
+async function _scSaveGo(){
+  const title=_safeName((document.getElementById("scTitle")||{}).value||"");
+  if(!title){ toast("Give the scan a title.",true); return; }
+  const prog=m=>{ const el=document.getElementById("scProg"); if(el) el.textContent=m; };
+  const btn=document.getElementById("scGo"); if(btn) btn.disabled=true;
+  try{
+    prog("Making the PDF…");
+    const pdf=await _scBuildPdf(_sc.pages);
+    const fil=_inFiling(); const st=fil?+((document.getElementById("scStage")||{}).value||1):0;
+    const name=fil?`${st}.${_stageNext(st,_currentNames())} ${title}.pdf`:`${title} - ${fmtDate(_localISO())}.pdf`;
+    if(isStaffView()&&_looksFinancial(name)){ toast("Financial papers are for the Head of Chamber only.",true); if(btn) btn.disabled=false; return; }
+    const base=fil?_filingFolderRel():_fv.folder;
+    const got=await _uploadPaper(base+"/"+name,pdf,(g,t)=>prog(`Uploading — ${Math.round(g*100/t)}% of ${_fmtSize(t)}`));
+    const cb=_sc.opt.onDone; _scClose(true);
+    toast("Saved: "+got); if(typeof cb==="function"){ try{ cb(got); }catch(e){} }
+    _fv.live=true; _filesLoad();
+  }catch(e){ prog(""); if(btn) btn.disabled=false; toast(e.message,true); }
+}
+
+/* ---------- DEFECTS: read the registry's list, find the pages, cure, build the refiling & final copy ---------- */
+var _flCtx=null;   // the loaded filing copy: {name, blob, doc, pages:[{w,h,items,text}], map:{label:idx}, labelOf:[]}
+async function _pdfTextDoc(blob, maxPages){
+  const lib=await _qlPdfLib();
+  const doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+  const pages=[]; const n=Math.min(doc.numPages,maxPages||doc.numPages);
+  for(let i=1;i<=n;i++){
+    const p=await doc.getPage(i), vp=p.getViewport({scale:1}), tc=await p.getTextContent();
+    const items=tc.items.filter(it=>it.str&&it.str.trim()).map(it=>({s:it.str.trim(), x:it.transform[4], y:vp.height-it.transform[5], w:it.width||0}));
+    items.sort((a,b)=>(Math.abs(a.y-b.y)>3?a.y-b.y:a.x-b.x));
+    const rows=_itemRows(items);
+    pages.push({w:vp.width,h:vp.height,items,rows,text:rows.map(r=>_joinItems(r)).join("\n")});
+  }
+  return {doc,pages,numPages:doc.numPages};
+}
+// pdf.js often splits words into single letters: rebuild rows (same line) and join pieces by their real gaps.
+function _itemRows(items){
+  const rows=[]; let cur=null;
+  items.slice().sort((a,b)=>a.y-b.y||a.x-b.x).forEach(i=>{ if(!cur||Math.abs(i.y-cur.y)>4){ cur={y:i.y,items:[]}; rows.push(cur); } cur.items.push(i); });
+  rows.forEach(r=>r.items.sort((a,b)=>a.x-b.x));
+  return rows.map(r=>r.items);
+}
+function _joinItems(items){
+  let s="", end=null;
+  items.forEach(i=>{ if(end!=null){ const gap=i.x-end; if(gap>1.6) s+=" "; } s+=i.s; end=i.x+(i.w||i.s.length*5); });
+  return s.replace(/\s+/g," ").trim();
+}
+function _pageLabel(pg){
+  const rows=(pg.rows||[]).filter(r=>r[0].y<62||r[0].y>pg.h-46);
+  for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
+    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}|[A-Z])$/.test(t)) return t; }
+  return "";
+}
+async function _flLoadCtx(force){
+  const fc=_flLatest(3,true); if(!fc) throw new Error("Put the filing copy (PDF) in stage 3 first.");
+  if(_flCtx&&!force&&_flCtx.name===fc.name&&_flCtx.folder===_filingFolderRel()&&_flCtx.size===fc.size) return _flCtx;
+  const it={path:_filingFolderRel()+"/"+fc.name,name:fc.name,size:fc.size};
+  const blob=await _paperBlob(it,(g,t)=>_progressSet("Fetching the filing copy — "+(g/1048576).toFixed(1)+(t?" of "+(t/1048576).toFixed(1):"")+" MB…",t?g/t:null));
+  _progressSet("Reading the filing copy…",null);
+  const td=await _pdfTextDoc(blob);
+  const labelOf=td.pages.map(_pageLabel), map={};
+  labelOf.forEach((l,i)=>{ if(l&&!(l in map)) map[l]=i; });
+  _flCtx={name:fc.name, size:fc.size, folder:_filingFolderRel(), blob, doc:td.doc, pages:td.pages, map, labelOf, n:td.numPages};
+  return _flCtx;
+}
+/* paper-book labels → PDF page indices. "p6-7" means PDF pages 6–7. */
+function _expandLabels(str){
+  const out=[];
+  String(str||"").split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(tok=>{
+    const m=/^(p\s*)?([A-Z]{0,2}\d{0,3})\s*(?:-|–|to)\s*(p\s*)?([A-Z]{0,2}\d{0,3})$/i.exec(tok);
+    if(m&&m[2]&&m[4]){
+      const pdf=!!(m[1]||m[3]); const a=m[2].toUpperCase(), b=m[4].toUpperCase();
+      if(pdf||(/^\d+$/.test(a)&&/^\d+$/.test(b))){ for(let k=+a;k<=+b&&k-(+a)<400;k++) out.push(pdf?"p"+k:String(k)); return; }
+      const ma=/^([A-Z]+)(\d+)$/.exec(a), mb=/^([A-Z]+)(\d+)$/.exec(b);
+      if(ma&&mb&&ma[1]===mb[1]){ for(let k=+ma[2];k<=+mb[2]&&k-(+ma[2])<400;k++) out.push(ma[1]+k); return; }
+      if(/^[A-Z]$/.test(a)&&/^[A-Z]$/.test(b)){ for(let c=a.charCodeAt(0);c<=b.charCodeAt(0);c++) out.push(String.fromCharCode(c)); return; }
+      out.push(a,b); return;
+    }
+    const p=/^p\s*(\d+)$/i.exec(tok); if(p){ out.push("p"+p[1]); return; }
+    out.push(tok.toUpperCase());
+  });
+  return out;
+}
+function _findPagesByText(ctx, rx, span){
+  for(let i=0;i<ctx.pages.length;i++) if(rx.test(ctx.pages[i].text)){
+    const r=[i]; let e=i; while(span&&e+1<ctx.pages.length&&r.length<span&&!ctx.labelOf[e+1]){ e++; r.push(e); } return r; }
+  return [];
+}
+function _resolvePart(part, ctx){
+  const toks=_expandLabels(part.pages); const idx=[]; const miss=[];
+  toks.forEach(t=>{ if(/^p\d+$/.test(t)){ const k=+t.slice(1)-1; if(k>=0&&k<ctx.n) idx.push(k); else miss.push(t); }
+    else if(t in ctx.map) idx.push(ctx.map[t]); else miss.push(t); });
+  if(miss.length&&!idx.length){   // front pages often carry no printed number — find them by their heading
+    let f=[];
+    if(part.key==="cover") f=_findPagesByText(ctx,/PAPER\s*[-–—]?\s*BOOK/i,1);
+    else if(part.key==="proforma") f=_findPagesByText(ctx,/PRO\s*-?\s*FORMA\s+FOR\s+FIRST\s+LISTING/i,3);
+    else if(part.key==="index") f=_findPagesByText(ctx,/\bINDEX\b[\s\S]*Particulars/i,3);
+    if(f.length) return {idx:f, miss:[], guessed:true};
+  }
+  return {idx:Array.from(new Set(idx)).sort((a,b)=>a-b), miss, guessed:false};
+}
+function _rangeText(idx){
+  if(!idx||!idx.length) return "";
+  const out=[]; let s=idx[0], p=idx[0];
+  for(let i=1;i<=idx.length;i++){ const v=idx[i]; if(v===p+1){ p=v; continue; } out.push(s===p?String(s+1):(s+1)+"–"+(p+1)); s=p=v; }
+  return out.join(", ");
+}
+/* the paper book's own index: entry no. · particulars · pages (column positions from the header) */
+function _parseIndex(td){
+  for(let pi=0;pi<Math.min(td.pages.length,10);pi++){
+    const pg=td.pages[pi];
+    const hdr=pg.rows.find(r=>/\bINDEX\b/i.test(_joinItems(r)))||null;
+    const hPartRow=pg.rows.find(r=>r.some(i=>/^Particulars/i.test(i.s)));
+    if(!hdr||!hPartRow) continue;
+    const hPart=hPartRow.find(i=>/^Particulars/i.test(i.s));
+    const all=pg.items;
+    const p1=all.find(i=>/^Part-?\s*1/i.test(i.s))||all.find(i=>/^Page$/i.test(i.s)); if(!p1) continue;
+    const p2=all.find(i=>/^Part-?\s*2/i.test(i.s)), rem=all.find(i=>/^Remarks/i.test(i.s));
+    const labX=hPart.x-6, pgX=p1.x-14, pgEnd=p2?p2.x-6:(rem?rem.x-6:pg.w);
+    const entries=[]; let cur=null, last=0, stop=false;
+    for(let pj=pi;pj<Math.min(td.pages.length,pi+4)&&!stop;pj++){
+      const P=td.pages[pj]; let seen=false;
+      for(const row of P.rows){
+        if(pj===pi&&row[0].y<=hPart.y+30) continue;
+        const numT=_joinItems(row.filter(i=>i.x<labX)), labT=_joinItems(row.filter(i=>i.x>=labX&&i.x<pgX)), pgT=_joinItems(row.filter(i=>i.x>=pgX&&i.x<pgEnd)).replace(/\s+/g,"");
+        if(pj>pi&&/^IN THE (HON|SUPREME|HIGH)/i.test(_joinItems(row))){ stop=true; break; }
+        const m=/^(\d{1,3})\.?$/.exec(numT.replace(/\s+/g,""));
+        if(m){ const no=+m[1]; if(no<=last){ stop=true; break; } last=no; seen=true; cur={no,label:labT,pages:pgT}; entries.push(cur); continue; }
+        if(!cur) continue;
+        if(labT) cur.label+=(cur.label?" ":"")+labT;
+        if(pgT&&!cur.pages) cur.pages=pgT;
+      }
+      if(pj>pi&&!seen) break;
+    }
+    return entries.filter(e=>e.label).map(e=>Object.assign(e,{label:e.label.replace(/\s+/g," ").trim()}));
+  }
+  return [];
+}
+const _DEF_TARGETS=[
+  {key:"cover",rx:/COVER\s*PAGE/,ix:/cover page/i,label:"Cover page"},
+  {key:"proforma",rx:/LISTING\s*P[EOR]+\s*-?\s*FORMA|PRO\s*-?\s*FORMA|PERFORMA/,ix:/listing\s*pro\s*-?\s*forma/i,label:"Listing proforma"},
+  {key:"synopsis",rx:/SYNOPSIS|LIST OF DATES|\bLOD\b/,ix:/synopsis|list of dates/i,label:"Synopsis & list of dates"},
+  {key:"ia_cc",rx:/I\.?A\.? FOR C\.?C\b|CERTIFIED COPY/,ix:/certified copy/i,label:"Application — exemption from certified copy",ia:true},
+  {key:"ia_ot",rx:/I\.?A\.? FOR O\.?T\b|OFFICIAL TRANSLATION/,ix:/\bO\.\s?T\.|official translation/i,label:"Application — exemption from official translation",ia:true},
+  {key:"ia_cod",rx:/CONDONATION|I\.?A\.? FOR C\.?O\.?D|\bDELAY\b/,ix:/condon/i,label:"Application — condonation of delay",ia:true},
+  {key:"impugned",rx:/JUDGE?MENTS?\b|\bI\/O\b|IMPUGNED/,ix:/impugned/i,label:"Impugned judgment"},
+  {key:"vakalat",rx:/\bV\/A\b|VAKALAT/,ix:/vakalat/i,label:"Vakalatnama",whole:true},
+  {key:"memo",rx:/MEMO OF PARTIES/,ix:/memo of parties/i,label:"Memo of parties"},
+  {key:"fmemo",rx:/FILING MEMO|FILING INDEX/,ix:/filing memo|filing index/i,label:"Filing memo"},
+  {key:"slp",rx:/\bS\.?L\.?P\b|\bPETITION\b|\bAFFIDAVIT\b/,ix:/special leave petition|petition along with|writ petition|transfer petition/i,label:"Petition with affidavit"},
+  {key:"index",rx:/\bINDEX\b/,ix:/^index/i,label:"Index"}];
+function _classifyDefect(text){
+  const T=" "+String(text||"").toUpperCase().replace(/\s+/g," ")+" ";
+  const flags={better:/BETTER COPY|LEGIBLE|DIM|BLUR/.test(T), truecopy:/TRUE COPY/.test(T)};
+  if(/NOT A DEFECT|WILL BE CHECKED|INTIMATED LATER/.test(T)) return {kind:"note",parts:[],flags};
+  if(/CHECK ?LIST|DECLARATION/.test(T)){
+    const parts=[]; if(/CHECK ?LIST/.test(T)) parts.push({key:"chk",label:"Checklist"}); if(/DECLARATION/.test(T)) parts.push({key:"decl",label:"Declaration"});
+    return {kind:"new",parts,flags};
+  }
+  if(/\bFEES?\b|COURT FEE|DEFICIT/.test(T)) return {kind:"general",parts:[],flags};
+  const parts=[];
+  const am=/ANNEXURES?\s*(.*)$/.exec(T);
+  if(am){ const rx=/(?:P|R)\s*-?\s*(\d+)((?:\s*(?:,|AND|&)\s*\d+(?![\d\/]))*)/g; let m; const seen=new Set();
+    while((m=rx.exec(am[1]))){ [m[1]].concat((m[2]||"").match(/\d+/g)||[]).forEach(n=>{ if(!seen.has(n)){ seen.add(n); parts.push({key:"annex",label:"Annexure P-"+n,ix:new RegExp("ANNEXURE\\s*P\\s*-?\\s*"+n+"\\b","i")}); } }); } }
+  let ia=false;
+  _DEF_TARGETS.forEach(t=>{ if(!t.rx.test(T)) return;
+    if(t.ia) ia=true;
+    if((t.key==="impugned"||t.key==="slp")&&(ia||parts.length)) return;
+    if(t.key==="slp"&&parts.some(p=>p.key==="vakalat"||p.key==="cover"||p.key==="proforma")) return;
+    parts.push({key:t.key,label:t.label,ix:t.ix,whole:!!t.whole}); });
+  const kind=parts.some(p=>p.whole)?"doc":(parts.length?"pages":"general");
+  return {kind,parts,flags};
+}
+function _parseDefectList(td){
+  let cols=null; const rows=[]; let cur=null;
+  td.pages.forEach(pg=>{
+    const sno=pg.items.find(i=>/^S\.?\s?No\.?$/i.test(i.s)), rem=pg.items.find(i=>/^Remarks$/i.test(i.s));
+    if(sno&&rem){ const def=pg.items.find(i=>/^Default$/i.test(i.s)&&Math.abs(i.y-sno.y)<12); const dt=pg.items.filter(i=>/^(Notification|Date)$/i.test(i.s)&&i.x>rem.x).sort((a,b)=>a.x-b.x)[0];
+      cols={sno:sno.x, def:def?def.x:sno.x+40, rem:rem.x, date:dt?dt.x:rem.x+170, top:sno.y}; }
+    if(!cols) return;
+    pg.items.forEach(i=>{
+      if(sno&&i.y<=Math.max(sno.y,rem.y)+12) return;
+      if(i.x<cols.def-4){ if(/^\d{1,3}$/.test(i.s)){ cur={no:+i.s, rule:"", text:"", date:""}; rows.push(cur); } else if(cur&&/[A-Za-z]{4,}/.test(i.s)) cur.end=true; return; }
+      if(!cur||cur.end) return;
+      if(i.x<cols.rem-4) cur.rule+=(cur.rule?" ":"")+i.s;
+      else if(i.x<cols.date-4) cur.text+=(cur.text?" ":"")+i.s;
+      else if(!cur.date&&/^\d{2}-\d{2}-\d{4}$/.test(i.s)) cur.date=i.s;
+    });
+  });
+  return rows.filter(r=>r.text);
+}
+function _defFromText(no, text, rule, date, index){
+  const c=_classifyDefect(text);
+  const parts=c.parts.map(p=>{ const part={id:uid(), key:p.key, label:p.label, pages:"", cure:null, whole:!!p.whole};
+    const e=p.ix&&(index||[]).find(x=>p.ix.test(x.label)); if(e&&e.pages) part.pages=e.pages;
+    if(!part.pages&&p.key==="cover") part.pages="cover"; return part; });
+  return {id:uid(), no, text:String(text||"").trim(), rule:String(rule||"").trim(), date:date||"", kind:c.kind, flags:c.flags, parts, status:"open", note:""};
+}
+function _defectsAutoCure(rec, rx, file){
+  if(!rec) return; let hit=false;
+  (rec.defects||[]).forEach(d=>{ if(d.kind!=="new") return; d.parts.forEach(p=>{ if(rx.test(p.label.toUpperCase())&&!p.cure){ p.cure={file,pages:"all",how:"made"}; hit=true; } }); _defCheckDone(d); });
+  if(hit) _filingTouch(rec);
+}
+function _defCheckDone(d){ if(d.status==="na") return; if((d.kind==="pages"||d.kind==="doc"||d.kind==="new")&&d.parts.length) d.status=d.parts.every(p=>p.cure)?"cured":"open"; }
+
+/* ---------- defects screen ---------- */
+function _defectsHTML(rec){
+  const ds=(rec.defects||[]).slice().sort((a,b)=>a.no-b.no);
+  const kindLab={pages:"Pages",doc:"Whole document",new:"New documents",general:"General",note:"For information"};
+  const stLab={open:"Open",cured:"Cured",na:"Not needed"};
+  const cards=ds.map(d=>{
+    const parts=d.parts.map(p=>{
+      const res=_flCtx&&_flCtx.folder===_filingFolderRel()&&p.pages?_resolvePart(p,_flCtx):null;
+      const where=d.kind==="new"?"":`<span class="df-pg">${p.pages?("pp. "+esc(p.pages)):"pages not found"}${res&&res.idx.length?` · PDF ${esc(_rangeText(res.idx))}${res.guessed?" (found by heading)":""}`:""}${res&&res.miss.length&&!res.idx.length?` · <b style="color:var(--seal)">not found in the filing copy</b>`:""}</span>
+        <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">pages</button>${res&&res.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}`;
+      const cure=p.cure?`<div class="df-cure">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>`:
+        (d.kind==="new"?`<div class="df-acts"><button class="btn ghost sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`:
+        `<div class="df-acts"><button class="btn ghost sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach cured ${p.whole?"document":"pages"}</button>
+          <button class="btn ghost sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>
+          ${(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole?`<button class="btn ghost sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`:""}</div>`);
+      return `<div class="df-part"><div><b>${esc(p.label)}</b> ${where}</div>${cure}</div>`; }).join("");
+    const simple=(d.kind==="general"||d.kind==="note")?`<div class="df-acts">${d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Done"}</button>`:""}</div>`:"";
+    return `<div class="df-card ${d.status}">
+      <div class="df-top"><span class="df-no">${d.no}</span><div class="df-text">${esc(d.text)}</div>
+        <select class="df-st" onchange="_defSet('${d.id}',this.value)">${["open","cured","na"].map(s=>`<option value="${s}" ${d.status===s?"selected":""}>${stLab[s]}</option>`).join("")}</select></div>
+      <div class="df-meta"><span class="df-kind ${d.kind}">${kindLab[d.kind]||d.kind}</span>${d.flags&&d.flags.better?`<span class="df-kind">better copy</span>`:""}${d.flags&&d.flags.truecopy?`<span class="df-kind">true copy</span>`:""}${d.date?`<span>${esc(d.date)}</span>`:""}
+        <button class="link-btn" onclick="_defEditAsk('${d.id}')">edit</button></div>
+      ${parts}${simple}</div>`; }).join("");
+  const nCure=ds.reduce((n,d)=>n+d.parts.filter(p=>p.cure&&(d.kind==="pages"||d.kind==="doc")).length,0);
+  return `<div class="btn-row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <button class="btn seal sm" onclick="_defReadAsk()">Read defect list</button>
+      <button class="btn ghost sm" onclick="_defAddAsk()">+ Add by hand</button>
+      ${ds.length?`<button class="btn ghost sm" onclick="_defMapPages()">Find pages in filing copy</button>`:""}
+      ${nCure?`<button class="btn ghost sm" onclick="_buildRefilingAsk()">Build cured pages PDF</button><button class="btn ghost sm" onclick="_buildFinalAsk()">Build final copy</button>`:""}</div>
+    ${ds.length?cards:`<div class="fv-empty">No defects yet. Save the registry's defect list (PDF) in stage 4 or pick it from this device, then tap <b>Read defect list</b>.</div>`}`;
+}
+function _flRec(){ return _filingRec(_filingFolderRel(),true); }
+function _defFind(did,pid){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); const p=d&&pid?d.parts.find(x=>x.id===pid):null; return {rec,d,p}; }
+function _defSet(did, st){ const {rec,d}=_defFind(did); if(!d) return; d.status=st; _filingTouch(rec); renderFilesPage(); }
+function _defUncure(did,pid){ const {rec,d,p}=_defFind(did,pid); if(!p) return; p.cure=null; d.status=d.status==="na"?"na":"open"; _filingTouch(rec); renderFilesPage(); }
+function _defReadAsk(){
+  const lists=_flItems().filter(x=>x.stage===4&&/\.pdf$/i.test(x.name));
+  openModal("Read defect list", `
+    <div class="hint" style="margin-bottom:10px">The registry's defect page as a PDF (print or save the Defects page of the case on the Supreme Court site).</div>
+    ${lists.length?`<label class="fld">Already in stage 4</label>${lists.map(x=>`<button class="btn ghost" style="width:100%;margin-bottom:6px;text-align:left" onclick="_defReadGo(${_fvQuote(x.name)})">📄 ${esc(x.name)}</button>`).join("")}`:""}
+    <label class="fld" style="margin-top:8px">${lists.length?"Or a new one from this device":"From this device"}</label>
+    <input class="in" type="file" id="dlFile" accept="application/pdf,.pdf">
+    <div class="hint" style="margin-top:6px">A new list is saved in stage 4 as well.</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defReadGo('')">Read</button></div>`);
+}
+async function _defReadGo(existing){
+  const rec=_flRec(); let blob=null, name=existing;
+  try{
+    if(!existing){
+      const f=(document.getElementById("dlFile")||{}).files; if(!f||!f[0]){ toast("Choose the defect list PDF.",true); return; }
+      blob=f[0]; _progressModal("Reading…","Saving the defect list in stage 4…");
+      name=await _uploadPaper(_filingFolderRel()+"/"+`4.${_stageNext(4,_currentNames())} Defect List - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet(null,g/t));
+    }else{
+      _progressModal("Reading…","Fetching "+existing+"…");
+      const x=_flItems().find(i=>i.name===existing);
+      blob=await _paperBlob({path:_filingFolderRel()+"/"+existing,name:existing,size:x?x.size:0});
+    }
+    _progressSet("Reading the defects…",0.5);
+    const rows=_parseDefectList(await _pdfTextDoc(blob,12));
+    if(!rows.length){ closeModal(); toast("No defects could be read from that PDF — add them by hand.",true); _fv.live=true; _filesLoad(); return; }
+    let index=rec.index||[];
+    try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){}
+    const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
+    const fresh=rows.map(r=>Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name}));
+    const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.no===d.no&&f.text===d.text));
+    rec.defects=keep.concat(fresh); _filingTouch(rec);
+    closeModal(); toast(`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
+    _fv.live=true; _flState().view="defects"; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _defAddAsk(){
+  openModal("Add a defect", `<label class="fld">Registry's remark</label><textarea class="in" id="daText" rows="3" placeholder="e.g. ANNEXURE P-3 BETTER COPY"></textarea>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAddGo()">Add</button></div>`);
+}
+function _defAddGo(){
+  const t=((document.getElementById("daText")||{}).value||"").trim(); if(!t){ toast("Type the remark.",true); return; }
+  const rec=_flRec(); rec.defects=rec.defects||[];
+  const no=rec.defects.length?Math.max(...rec.defects.map(d=>+d.no||0))+1:1;
+  rec.defects.push(Object.assign(_defFromText(no,t,"",fmtDate(_localISO()).replace(/\./g,"-"),rec.index||[]),{manual:true}));
+  _filingTouch(rec); closeModal(); renderFilesPage();
+}
+function _defEditAsk(did){
+  const {d}=_defFind(did); if(!d) return;
+  openModal("Edit defect "+d.no, `<label class="fld">Registry's remark</label><textarea class="in" id="deText" rows="3">${esc(d.text)}</textarea>
+    <label class="fld" style="margin-top:8px">Note</label><input class="in" id="deNote" value="${esc(d.note||"")}" placeholder="e.g. fee paid on 27.05.2026">
+    <div class="hint" style="margin-top:6px">Changing the remark re-reads which documents it is about.</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" style="color:var(--seal)" onclick="_defDelete('${d.id}')">Delete</button><span style="flex:1"></span><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defEditSave('${d.id}')">Save</button></div>`);
+}
+function _defEditSave(did){
+  const {rec,d}=_defFind(did); if(!d) return;
+  const t=((document.getElementById("deText")||{}).value||"").trim(); d.note=((document.getElementById("deNote")||{}).value||"").trim();
+  if(t&&t!==d.text){ const nd=_defFromText(d.no,t,d.rule,d.date,rec.index||[]); d.text=t; d.kind=nd.kind; d.flags=nd.flags;
+    d.parts=nd.parts.map(p=>{ const old=d.parts.find(o=>o.key===p.key&&o.label===p.label); return old||p; }); _defCheckDone(d); }
+  _filingTouch(rec); closeModal(); renderFilesPage();
+}
+function _defDelete(did){ const rec=_flRec(); if(!confirm("Delete this defect from the list?")) return; rec.defects=(rec.defects||[]).filter(x=>x.id!==did); _filingTouch(rec); closeModal(); renderFilesPage(); }
+function _defPagesAsk(did,pid){
+  const {d,p}=_defFind(did,pid); if(!p) return;
+  openModal(p.label, `<label class="fld">Pages in the paper book</label><input class="in mono" id="dpPages" value="${esc(p.pages||"")}" placeholder="e.g. 38-44 · A1-A2 · 62">
+    <div class="hint" style="margin-top:6px">Use the page numbers printed on the paper book. Where a page has no printed number, use the PDF page with a p, e.g. <b>p6-p7</b>.</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defPagesSave('${did}','${pid}')">Save</button></div>`);
+}
+function _defPagesSave(did,pid){ const {rec,p}=_defFind(did,pid); if(!p) return; p.pages=((document.getElementById("dpPages")||{}).value||"").trim(); _filingTouch(rec); closeModal(); renderFilesPage(); }
+async function _defMapPages(){
+  const rec=_flRec();
+  _progressModal("Finding pages…","Fetching the filing copy…");
+  try{
+    const ctx=await _flLoadCtx(true); const index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name;
+    let found=0;
+    (rec.defects||[]).forEach(d=>d.parts.forEach(p=>{ if(p.pages) return; const t=_DEF_TARGETS.find(x=>x.key===p.key);
+      const ix=p.key==="annex"?new RegExp("ANNEXURE\\s*P\\s*-?\\s*"+(/\d+/.exec(p.label)||[""])[0]+"\\b","i"):(t&&t.ix);
+      const e=ix&&index.find(x=>ix.test(x.label)); if(e&&e.pages){ p.pages=e.pages; found++; } }));
+    _filingTouch(rec); closeModal();
+    toast(index.length?`Index read (${index.length} entries)${found?` · ${found} page range${found===1?"":"s"} filled`:""}.`:"The filing copy's index could not be read — enter pages by hand.",!index.length);
+    renderFilesPage();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+async function _defPreview(did,pid){
+  const {p}=_defFind(did,pid); if(!p||!_flCtx) return;
+  const res=_resolvePart(p,_flCtx); if(!res.idx.length) return;
+  openModal(p.label+" — PDF "+_rangeText(res.idx), `<div id="dpvBox" class="dpv">Loading…</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+  const box=document.getElementById("dpvBox"); box.innerHTML="";
+  for(const i of res.idx.slice(0,12)){
+    const pg=await _flCtx.doc.getPage(i+1); const vp=pg.getViewport({scale:0.42}); const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height;
+    await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+    const w=document.createElement("div"); w.className="dpv-p"; w.appendChild(c); const l=document.createElement("div"); l.textContent="PDF "+(i+1)+(_flCtx.labelOf[i]?" · page "+_flCtx.labelOf[i]:""); w.appendChild(l); box.appendChild(w);
+  }
+}
+function _defAttachAsk(did,pid){
+  const {p}=_defFind(did,pid); if(!p) return;
+  const pdfs=_flItems().filter(x=>(x.stage===2||x.stage===5||x.stage===1)&&/\.pdf$/i.test(x.name));
+  openModal("Cured "+(p.whole?"document":"pages")+" — "+p.label, `
+    <div class="hint" style="margin-bottom:10px">A PDF of the corrected ${p.whole?"document":"pages"}. Word files: save as PDF first.</div>
+    ${pdfs.length?`<label class="fld">Already in this filing</label><select class="in" id="caPick"><option value="">—</option>${pdfs.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("")}</select>`:""}
+    <label class="fld" style="margin-top:8px">${pdfs.length?"Or from this device (saved in stage 5)":"From this device (saved in stage 5)"}</label>
+    <input class="in" type="file" id="caFile" accept="application/pdf,.pdf">
+    <label class="fld" style="margin-top:8px">Which pages of that PDF <span style="color:var(--muted);font-weight:400">(blank = all)</span></label>
+    <input class="in mono" id="caPages" placeholder="e.g. 2-3">
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Attach</button></div>`);
+}
+async function _defAttachGo(did,pid){
+  const {rec,d,p}=_defFind(did,pid); if(!p) return;
+  const pick=(document.getElementById("caPick")||{}).value||""; const f=(document.getElementById("caFile")||{}).files;
+  const pages=((document.getElementById("caPages")||{}).value||"").trim()||"all";
+  if(pages!=="all"&&!/^\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*$/.test(pages)){ toast("Pages like 2-3 or 1,4.",true); return; }
+  let file=pick;
+  try{
+    if(!file){ if(!f||!f[0]){ toast("Choose a PDF.",true); return; }
+      if(!/\.pdf$/i.test(f[0].name)){ toast("It must be a PDF.",true); return; }
+      _progressModal("Saving…","Saving in stage 5…");
+      file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Cured - ${_safeName(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
+    p.cure={file,pages,how:"attach"}; _defCheckDone(d); _filingTouch(rec); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _defRescan(did,pid){
+  const {p}=_defFind(did,pid); if(!p) return;
+  _scanOpen({stage:5, title:(p.whole?"Fresh ":"Better copy - ")+p.label, onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan"}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
+}
+/* TRUE COPY stamp: a line to sign on, with TRUE COPY under it, on each chosen page (no saved signature). */
+async function _defTrueCopy(did,pid){
+  const {rec,d,p}=_defFind(did,pid); if(!p) return;
+  _progressModal("True copy…","Fetching the filing copy…");
+  try{
+    const ctx=await _flLoadCtx(); const res=_resolvePart(p,ctx); if(!res.idx.length) throw new Error("Set this part's pages first.");
+    _progressSet("Stamping "+res.idx.length+" page"+(res.idx.length===1?"":"s")+"…",0.6);
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const src=await PDFDocument.load(new Uint8Array(await ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const bold=await out.embedFont(StandardFonts.HelveticaBold);
+    const pages=await out.copyPages(src,res.idx);
+    for(let k=0;k<pages.length;k++){ const pg=pages[k]; out.addPage(pg); const {width:W,height:H}=pg.getSize();
+      let sp=await _blankSpot(ctx.doc,res.idx[k],W,H,150,64);   // emptiest place: 45pt to sign in, then the line and TRUE COPY
+      if(sp.ink==null||sp.ink>0.002){   // no clean room on this page: shrink the page 10% (top stays put) to open a strip at the bottom
+        pg.scaleContent(0.9,0.9); pg.translateContent(W*0.05/0.9,H*0.1/0.9); sp={x:W-168,y:12}; }
+      const x=sp.x, y=sp.y;
+      pg.drawLine({start:{x:x+5,y:y+20},end:{x:x+145,y:y+20},thickness:0.8,color:rgb(0,0,0)});
+      const tw=bold.widthOfTextAtSize("TRUE COPY",12); pg.drawText("TRUE COPY",{x:x+75-tw/2,y:y+5,size:12,font:bold,color:rgb(0,0,0)}); }
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _progressSet("Saving in stage 5…",0.85);
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy - ${_safeName(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
+    p.cure={file:name,pages:"all",how:"stamp"}; _defCheckDone(d); _filingTouch(rec);
+    closeModal(); _blobReady(blob,name,"Sign above TRUE COPY on each page. If you sign on paper, scan it back with Rescan; if you sign in a PDF app, keep the same file name.");
+    _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+// Where on the page is there room for a stamp? Tries the corners and picks the emptiest.
+async function _blankSpot(doc, idx, W, H, bw, bh){
+  const dflt={x:W-bw-18,y:16};
+  try{
+    const pg=await doc.getPage(idx+1), sc=0.5, vp=pg.getViewport({scale:sc});
+    const c=document.createElement("canvas"); c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
+    const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); await pg.render({canvasContext:g,viewport:vp,intent:"print"}).promise;
+    const cw=c.width, ch=c.height, d=g.getImageData(0,0,cw,ch).data;
+    const I=new Uint32Array((cw+1)*(ch+1));   // integral image of "ink" pixels
+    for(let y=0;y<ch;y++){ let row=0; for(let x=0;x<cw;x++){ const k=(y*cw+x)*4; row+=(d[k]+d[k+1]+d[k+2]<600)?1:0; I[(y+1)*(cw+1)+x+1]=I[y*(cw+1)+x+1]+row; } }
+    const ink=(x0,y0,x1,y1)=>I[y1*(cw+1)+x1]-I[y0*(cw+1)+x1]-I[y1*(cw+1)+x0]+I[y0*(cw+1)+x0];
+    const fx=cw/W, fy=ch/H, m=8; let best=dflt, bestV=1e9;
+    for(let y=14;y<=H-bh-30;y+=10) for(let x=14;x<=W-bw-14;x+=10){
+      const x0=Math.max(0,Math.floor((x-m)*fx)), x1=Math.min(cw,Math.ceil((x+bw+m)*fx)), y0=Math.max(0,Math.floor((H-y-bh-m)*fy)), y1=Math.min(ch,Math.ceil((H-y+m)*fy));
+      const area=(x1-x0)*(y1-y0); if(area<=0) continue;
+      const v=ink(x0,y0,x1,y1)/area + 0.02*(y/H) + 0.01*(1-x/W);   // emptiest; then lower; then further right
+      if(v<bestV){ bestV=v; best={x,y,ink:ink(x0,y0,x1,y1)/area}; } }
+    return best;
+  }catch(e){ return dflt; }
+}
+function _blobReady(blob,name,note){
+  window.__readyBlob={blob,name};
+  openModal("Ready", `<div style="font-weight:600;margin-bottom:4px">${esc(name)}</div><div class="hint" style="margin-bottom:12px">${esc(note||"Saved in the filing folder.")}</div>
+    <div class="btn-row" style="gap:8px"><button class="btn seal" style="flex:1" onclick="_blobOpenIn(window.open('about:blank','_blank'),window.__readyBlob.blob,window.__readyBlob.name)">Open</button>
+    <button class="btn ghost" style="flex:1" onclick="(function(){const u=URL.createObjectURL(window.__readyBlob.blob),a=document.createElement('a');a.href=u;a.download=window.__readyBlob.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);})()">Download</button>
+    <button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+}
+/* the cured pieces, in paper-book order */
+async function _curedPieces(rec, ctx){
+  const pieces=[]; const warn=[];
+  (rec.defects||[]).forEach(d=>{ if(d.status==="na"||!(d.kind==="pages"||d.kind==="doc")) return;
+    d.parts.forEach(p=>{ if(!p.cure) return; const r=_resolvePart(p,ctx);
+      if(!r.idx.length){ warn.push(p.label+": pages not found in the filing copy"); return; }
+      pieces.push({d,p,idx:r.idx,start:r.idx[0],end:r.idx[r.idx.length-1]}); }); });
+  pieces.sort((a,b)=>a.start-b.start);
+  for(let i=1;i<pieces.length;i++) if(pieces[i].start<=pieces[i-1].end){ warn.push(pieces[i].p.label+" overlaps "+pieces[i-1].p.label+" — left out"); pieces.splice(i,1); i--; }
+  return {pieces,warn};
+}
+async function _loadCure(PDFDocument, p, cache){
+  const name=p.cure.file;
+  if(!cache[name]){ const x=_flItems().find(i=>i.name===name);
+    if(!x) throw new Error(`"${name}" is no longer in the filing folder.`);
+    const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size});
+    cache[name]=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true}); }
+  const doc=cache[name]; const n=doc.getPageCount();
+  let idx=[]; if(!p.cure.pages||p.cure.pages==="all") idx=Array.from({length:n},(_,i)=>i);
+  else String(p.cure.pages).split(",").forEach(t=>{ const m=/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(t); if(m){ for(let k=+m[1];k<=+(m[2]||m[1]);k++) if(k>=1&&k<=n) idx.push(k-1); } });
+  if(!idx.length) throw new Error(`No pages to use from "${name}".`);
+  return {doc,idx};
+}
+function _stampLabel(pg, label, font, rgb){
+  const {width:W,height:H}=pg.getSize(); const tw=font.widthOfTextAtSize(label,13);
+  pg.drawRectangle({x:W/2-tw/2-8,y:H-40,width:tw+16,height:22,color:rgb(1,1,1)});
+  pg.drawText(label,{x:W/2-tw/2,y:H-34,size:13,font,color:rgb(0,0,0)});
+}
+function _buildAsk(kind){
+  const rec=_flRec();
+  openModal(kind==="final"?"Build final copy":"Build cured pages PDF", `
+    <div class="hint" style="margin-bottom:10px">${kind==="final"?"Takes the filing copy in stage 3 and swaps in every cured part. Saved in stage 6.":"Only the cured pages and fresh documents, in paper-book order — the PDF you refile. Saved in stage 5."}</div>
+    <label style="display:flex;gap:8px;align-items:flex-start;font-size:14px"><input type="checkbox" id="bdNum" checked style="margin-top:3px"> <span>Put the original page numbers on the cured pages <span class="hint">(only where the number of pages is unchanged)</span></span></label>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_buildGo('${kind}')">Build</button></div>`);
+}
+function _buildRefilingAsk(){ _buildAsk("refile"); }
+function _buildFinalAsk(){ _buildAsk("final"); }
+async function _buildGo(kind){
+  const num=!!(document.getElementById("bdNum")||{}).checked; const rec=_flRec();
+  _progressModal("Building…","Fetching the filing copy…");
+  try{
+    const ctx=await _flLoadCtx();
+    const {pieces,warn}=await _curedPieces(rec,ctx);
+    if(!pieces.length) throw new Error("Nothing cured yet that has pages to file.");
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const out=await PDFDocument.create(); const font=await out.embedFont(StandardFonts.TimesRomanBold); const cache={};
+    const addCure=async pc=>{
+      if(pc.p.cure.how==="stamp"&&kind==="refile"){ }
+      const {doc,idx}=await _loadCure(PDFDocument,pc.p,cache); const cp=await out.copyPages(doc,idx);
+      const same=cp.length===pc.idx.length;
+      cp.forEach((pg,i)=>{ out.addPage(pg); const lab=same?ctx.labelOf[pc.idx[i]]:""; if(num&&lab&&pc.p.cure.how!=="stamp") _stampLabel(pg,lab,font,rgb); });
+      if(!same) warn.push(`${pc.p.label}: ${cp.length} page${cp.length===1?"":"s"} replace ${pc.idx.length}`);
+    };
+    if(kind==="refile"){
+      for(let i=0;i<pieces.length;i++){ _progressSet(`Adding ${pieces[i].p.label}…`,(i+1)/(pieces.length+1)); await addCure(pieces[i]); }
+    }else{
+      _progressSet("Opening the filing copy…",0.2);
+      const src=await PDFDocument.load(new Uint8Array(await ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+      const total=src.getPageCount(); const keep=[]; let i=0, k=0;
+      const plan=[]; while(i<total){ const pc=pieces[k]; if(pc&&i===pc.start){ plan.push({pc}); i=pc.end+1; k++; } else { plan.push({src:i}); keep.push(i); i++; } }
+      const copied=await out.copyPages(src,keep); let c=0;
+      for(let j=0;j<plan.length;j++){ if(plan[j].pc){ _progressSet(`Swapping in ${plan[j].pc.p.label}…`,0.3+0.6*j/plan.length); await addCure(plan[j].pc); } else out.addPage(copied[c++]); }
+    }
+    _progressSet("Saving…",0.92);
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    const stage=kind==="final"?6:5;
+    const rnd=(rec.refilings||[]).length+1;
+    const nm=kind==="final"?`6.${_stageNext(6,_currentNames())} Final Copy - ${fmtDate(_localISO())}.pdf`:`5.${_stageNext(5,_currentNames())} Cured Pages - Refiling ${rnd} - ${fmtDate(_localISO())}.pdf`;
+    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage "+stage+" — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
+    if(kind==="final"){ rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name}]); } else rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name}]);
+    _filingTouch(rec); closeModal();
+    _blobReady(blob,name,(warn.length?"Check: "+warn.join(" · ")+". ":"")+`Saved in stage ${stage}.`);
+    _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+
+/* ---------- CHECK BEFORE FILING: likely registry defects, found in the filing copy itself ---------- */
+function _checkHTML(rec){
+  const st=_flState(); const c=st.check;
+  const fc=_flLatest(3,true);
+  if(!fc) return `<div class="fv-empty">Put the filing copy (PDF) in stage 3, then check it here before filing.</div>`;
+  const head=`<div class="hint" style="margin-bottom:10px">Reads <b>${esc(fc.name)}</b> and flags what the registry usually marks: blank proforma columns, interim relief missing on the cover, dates and years that don't match, true copy not marked, blank case numbers, poor scans. It is a helper, not a guarantee.</div>`;
+  if(!c||c.file!==fc.name) return head+`<button class="btn seal" onclick="_checkRun()">Check the filing copy</button>`;
+  if(c.running) return head+`<div class="fv-empty">${esc(c.running)}</div>`;
+  const sev={high:"🔴",med:"🟠",info:"🔵"};
+  const rows=c.results.map(r=>`<div class="ck-row"><span class="ck-sev">${sev[r.sev]||"•"}</span><div><div>${esc(r.text)}</div>${r.where?`<div class="hint">${esc(r.where)}</div>`:""}</div></div>`).join("");
+  return head+`<div class="btn-row" style="margin-bottom:10px"><button class="btn ghost sm" onclick="_checkRun()">Check again</button></div>`+
+    (c.results.length?rows:`<div class="fv-empty">Nothing found. ✓</div>`)+
+    `<div class="hint" style="margin-top:10px">Always check by eye: advocate welfare stamp on the vakalatnama, client's name below the signature, court fee.</div>`;
+}
+function _pgWhere(ctx,i){ const l=ctx.labelOf[i]; return "PDF page "+(i+1)+(l?" · paper-book page "+l:""); }
+async function _checkRun(){
+  const st=_flState(); const fc=_flLatest(3,true); if(!fc) return;
+  st.check={file:fc.name, running:"Fetching the filing copy…", results:[]}; renderFilesPage();
+  const R=[]; const add=(sev,text,where)=>R.push({sev,text,where:where||""});
+  try{
+    const ctx=await _flLoadCtx();
+    st.check.running="Reading "+ctx.n+" pages…"; renderFilesPage();
+    const P=ctx.pages, T=P.map(p=>p.text), ALL=T.join("\n");
+    const find=rx=>{ for(let i=0;i<T.length;i++) if(rx.test(T[i])) return i; return -1; };
+    // 1. Cover page vs interim relief
+    const cover=find(/PAPER\s*[-–—]?\s*BOOK/i);
+    if(/PRAYER\s+FOR\s+INTERIM\s+RELIEF|INTERIM\s+RELIEF/i.test(ALL.replace(T[cover]||"",""))&&cover>=0&&!/INTERIM\s+RELIEF/i.test(T[cover]))
+      add("high","The petition prays for interim relief, but the cover page does not say \"with prayer for interim relief\".",_pgWhere(ctx,cover));
+    // 2. Listing proforma: blank columns, unticked Yes/No, an Act that appears nowhere else
+    const pf=find(/PRO\s*-?\s*FORMA\s+FOR\s+FIRST\s+LISTING/i);
+    if(pf>=0){
+      const pfIdx=[pf]; if(pf+1<P.length&&!ctx.labelOf[pf+1]) pfIdx.push(pf+1);
+      const lines=[]; pfIdx.forEach(i=>_textLines(P[i]).forEach(l=>lines.push({l,i})));
+      lines.forEach(({l,i},n)=>{ const nx=(lines[n+1]||{}).l||"";
+        if(/:\s*$/.test(l)&&!/^\s*(DATED|IN THE MATTER|THE CASE PERTAINS)|tick|check the correct box/i.test(l)&&l.length<160&&(/^\s*(\d+\.\s*)?\(?[a-z]\)?[.)]\s/i.test(l)||!/^\s*(\(?[a-z]\)?[.)]|\[)/i.test(nx)))
+          add("high","Listing proforma: blank column — "+l.replace(/\s+/g," ").trim()+" (fill Yes/No or N/A)",_pgWhere(ctx,i)); });
+      lines.forEach(({l,i})=>{ if(/\[\s*\]\s*Yes\s*\[\s*\]\s*No/i.test(l)) add("high","Listing proforma: Yes/No not ticked — "+l.replace(/\s+/g," ").trim(),_pgWhere(ctx,i)); });
+      const act=/State\s+Act:\s*\(Title\)\s*(.+?)(?:\s*\[|$)/i.exec(lines.map(x=>x.l).join("\n"));
+      if(act&&!/^N\.?\/?A\.?$/i.test(act[1].trim())){ const name=act[1].trim().replace(/,?\s*\d{4}.*$/,""); const rest=T.filter((_,i)=>pfIdx.indexOf(i)<0).join(" ");
+        if(name.length>6&&rest.toLowerCase().indexOf(name.toLowerCase().slice(0,Math.min(25,name.length)))<0) add("high",`Listing proforma names "${act[1].trim()}", which appears nowhere else in the paper book — possibly left over from another case.`,_pgWhere(ctx,pf)); }
+    }else add("med","No listing proforma found (heading \"PRO FORMA FOR FIRST LISTING\").");
+    // 3. Dates: impugned order date vs every other "impugned … dated"
+    const cov=T[cover]||T[0]||"";
+    const md=/IMPUGNED[^.]{0,60}?DATED\s*(\d{2}\.\d{2}\.\d{4})/i.exec(cov)||/IMPUGNED[^.]{0,80}?DATED\s*(\d{2}\.\d{2}\.\d{4})/i.exec(ALL);
+    if(md){ const main=md[1]; const seen=new Set();
+      T.forEach((t,i)=>{ const rx=/IMPUGNED[^.]{0,90}?(?:ORDER|JUDGE?MENT)[^.]{0,40}?DATED\s*(\d{2}\.\d{2}\.\d{4})/gi; let m;
+        while((m=rx.exec(t))){ if(m[1]!==main&&!seen.has(i+m[1])){ seen.add(i+m[1]); const times=ALL.split(m[1]).length-1;
+          if(times<=2) add("high",`Impugned order dated ${m[1]} here, but ${main} on the cover.`,_pgWhere(ctx,i)); } } }); }
+    // 4. Years: "of 2025" next to I.A./SLP when the filing year is different
+    const fy=(/(?:PETITION|SLP)[^\n]{0,60}?(?:NO\.?)?\s*(?:_+\s*)?OF\s*(20\d\d)/i.exec(cov)||[])[1];
+    if(fy){ T.forEach((t,i)=>{ const rx=/I\.\s?A\.\s*No\.?\s*_*\s*of\s*(20\d\d)/gi; let m; while((m=rx.exec(t))){ if(m[1]!==fy) add("med",`"I.A. No. __ of ${m[1]}" — the petition is of ${fy}.`,_pgWhere(ctx,i)); } }); }
+    // 5. Common misspellings
+    const typos=[[/PETITNOER/i,"PETITIONER"],[/PETITONER/i,"PETITIONER"],[/RESPONDNET/i,"RESPONDENT"],[/JUDGEMNT|JUDMENT/i,"JUDGMENT"],[/HON['’]?BEL\b/i,"HON'BLE"],[/IMPUNGED/i,"IMPUGNED"],[/AFFIDAIVT|AFIDAVIT/i,"AFFIDAVIT"]];
+    T.forEach((t,i)=>typos.forEach(([rx,ok])=>{ const m=rx.exec(t); if(m) add("info",`Spelling: "${m[0]}" (${ok}).`,_pgWhere(ctx,i)); }));
+    // 6. Petitioner's gender vs "him/his"
+    const fem=/\b(W\/o|D\/o|Smt\.?|Mrs\.?|Ms\.?|wife)\b/.test(T.slice(-3).join(" ")+" "+cov);
+    const firstAnn=(()=>{ for(let i=0;i<T.length;i++) if(/^\s*ANNEXURE\s*[-–]?\s*P\s*[-–]?\s*1\b/i.test(T[i])||/^\s*\d{0,3}\s*ANNEXURE\s*[-–]?\s*P\s*[-–]?\s*1\b/i.test(T[i])) return i; return T.length; })();
+    if(fem) T.slice(0,firstAnn).forEach((t,i)=>{ const m=/Petitioner[^.]{0,110}?\b(by him|his own|he has|he is)\b/i.exec(t); if(m) add("med",`The petitioner appears to be a woman, but the text says "${m[1]}".`,_pgWhere(ctx,i)); });
+    // 7. Impugned order marked TRUE COPY?
+    const ixs=_parseIndex(ctx); const imp=ixs.find(e=>/impugned/i.test(e.label)&&e.pages);
+    if(imp){ const r=_resolvePart({key:"impugned",pages:imp.pages},ctx);
+      if(r.idx.length&&!r.idx.some(i=>/TRUE\s+COPY/i.test(T[i]))) add("med","Impugned judgment is not marked TRUE COPY (or the stamp is part of a scan). Use Defects → Stamp TRUE COPY.",`paper-book pages ${imp.pages}`); }
+    // 8. Blank case numbers on text pages: "I.A. No.  of", "C.R.P. No.  OF"
+    T.forEach((t,i)=>{ if(i===cover) return; const m=/\b(I\.\s?A\.|C\.R\.P\.?(?:\s*\(\w+\))?|W\.P\.|S\.A\.|C\.A\.)\s*No\.?\s{1,}(?:of|OF)\s*20\d\d/.exec(t);
+      if(m&&ctx.labelOf[i]&&!/^[A-Z]$/.test(ctx.labelOf[i])&&i>(pf>=0?pf+3:5)) add("info",`Case number left blank: "${m[0]}" (fine for our own new applications; check annexures).`,_pgWhere(ctx,i)); });
+    // 9. Scanned pages: dim, small, or photographed with background/fingers
+    st.check.running="Looking at scanned pages…"; renderFilesPage();
+    const bad={dim:[],photo:[],small:[]};
+    for(let i=0;i<ctx.n;i++){
+      if((T[i]||"").length>120) continue;
+      try{ const q=await _pageQuality(ctx.doc,i); if(q.dim) bad.dim.push(i); if(q.photo) bad.photo.push(i); }catch(e){}
+    }
+    const docOf=i=>{ const e=ixs.find(x=>x.pages&&_resolvePart({key:"",pages:x.pages},ctx).idx.indexOf(i)>=0); return e?e.label.replace(/:.*$/,"").slice(0,40):"Other pages"; };
+    const grp=(xs,txt)=>{ if(!xs.length) return; const by={}; xs.forEach(i=>{ const k=docOf(i); (by[k]=by[k]||[]).push(i); });
+      Object.keys(by).forEach(k=>add("med",`${k}: ${txt} — ${by[k].length} page${by[k].length===1?"":"s"}.`,"PDF pages "+_rangeText(by[k])+_labelsOf(ctx,by[k]))); };
+    grp(bad.photo,"Looks photographed rather than scanned (dark edges, background or fingers) — registry may ask for a better copy");
+    grp(bad.dim,"Faint or dark scan");
+    const seenR=new Set(); st.check={file:fc.name, results:R.filter(r=>{ const k=r.text+"|"+r.where; if(seenR.has(k)) return false; seenR.add(k); return true; })};
+  }catch(e){ st.check={file:fc.name, results:[{sev:"high",text:"Could not check: "+e.message}]}; }
+  renderFilesPage();
+}
+function _labelsOf(ctx,xs){ const ls=xs.map(i=>ctx.labelOf[i]).filter(Boolean); return ls.length?" · paper-book "+(ls.length>6?ls.slice(0,3).join(", ")+" … "+ls[ls.length-1]:ls.join(", ")):""; }
+function _textLines(pg){ return (pg.rows||[]).map(r=>_joinItems(r)); }
+async function _pageQuality(doc,i){
+  const pg=await doc.getPage(i+1); const vp=pg.getViewport({scale:0.22}); const c=document.createElement("canvas"); c.width=Math.ceil(vp.width); c.height=Math.ceil(vp.height);
+  const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height);
+  await pg.render({canvasContext:g,viewport:vp,intent:"print"}).promise;
+  const d=g.getImageData(0,0,c.width,c.height).data, w=c.width, h=c.height; let edge=0,en=0,sum=0;
+  const bw=Math.max(2,Math.round(w*0.05)), bh=Math.max(2,Math.round(h*0.04));
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const k=(y*w+x)*4, l=d[k]*0.299+d[k+1]*0.587+d[k+2]*0.114; sum+=l;
+    if(x<bw||x>=w-bw||y<bh||y>=h-bh){ en++; if(l<150) edge++; } }
+  const mean=sum/(w*h);
+  return {dim:mean<175, photo:edge/en>0.04, mean, edge:edge/en};
+}
+
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -21778,7 +22913,7 @@ const FB = {
   // reached the cloud, so a logout (manual or the idle auto sign-out) wiped localStorage and
   // destroyed them permanently while everything else restored from the cloud. They are
   // owner-private, so they route to accounts/{uid}/… and need NO Firestore rules change.
-  COLLECTIONS: ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","advances","staff","trash","filings","appointments","todos","activity","staffRoster","salaryAdvances","salarySlips","refStatements","notices","reminders","vakalatnamas","register","liveShares"],
+  COLLECTIONS: ["matters","receipts","expenses","cash","docsIn","docsFiled","invoices","advances","staff","trash","filings","appointments","todos","activity","staffRoster","salaryAdvances","salarySlips","refStatements","notices","reminders","vakalatnamas","register","liveShares","sdFilings"],
   // SHARED collections live in a common chamber space both owner & staff use.
   // OWNER-ONLY collections (receipts, invoices, salary*) live in the owner's private account.
   // "vakalatnamas" is SHARED so staff can prepare one and it lands in the chamber's
@@ -21786,7 +22921,7 @@ const FB = {
   // device could never write there). REQUIRES 'vakalatnamas' in isSharedCollection()
   // in the Firestore rules — until those are published, writes are permission-denied.
   SHARED: ["matters","expenses","cash","docsIn","docsFiled","advances","staff","trash","filings","appointments","todos","activity","vakalatnamas"],
-  OWNER_ONLY: ["receipts","invoices","staffRoster","salaryAdvances","salarySlips","register","liveShares"],  // register = the chamber case register (both chambers; SD Chamber is owner-only)
+  OWNER_ONLY: ["receipts","invoices","staffRoster","salaryAdvances","salarySlips","register","liveShares","sdFilings"],  // sdFilings = SD Chamber filing records (defects etc.) — owner only  // register = the chamber case register (both chambers; SD Chamber is owner-only)
   CHAMBER_BASE: "chamber/main",
   role: "owner",   // set by bridge: 'owner' or 'staff'
   activeCollections(){ return this.role==="staff" ? this.SHARED.slice() : this.COLLECTIONS.slice(); },
@@ -21963,7 +23098,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.07-1300";
+  window.APP_VERSION = "2026.10.08-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
