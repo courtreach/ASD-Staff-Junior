@@ -5720,7 +5720,7 @@ function _printBoth(inv, rec){
   printReceipt(rec, {noPrint:true});
   const recHTML=area.innerHTML;
   area.innerHTML=invHTML+recHTML;
-  setTimeout(()=>_printAs(_docPrintTitle("invoice", inv)+" and Receipt "+safeName(String(rec.no||"").replace(/[\/\\]/g,"-"))), 160);
+  setTimeout(()=>_printAs(_docPrintTitle("invoice", inv)+" and Receipt "+safeName(String(rec.no||"").replace(/[\/\\]/g,"-")), _docCtx("both",inv,{rec2:rec,matterId:inv.matterId||rec.matterId})), 160);
 }
 
 /* ---------- build printable receipt ---------- */
@@ -6307,7 +6307,10 @@ function _tplSizePagedForPrint(){
     });
   }catch(e){}
 }
-function _printAs(title){
+function _printAs(title, ctx){
+  // Case documents: snapshot what was rendered and, once the print dialog is done,
+  // save a PDF copy in the case folder (see SAVE TO THE CASE FOLDER).
+  try{ if(ctx&&ctx.matterId){ const snap=(document.getElementById("receiptArea")||{}).innerHTML||""; if(snap) setTimeout(()=>{ try{ _docToCase(ctx,snap); }catch(e){} },700); } }catch(e){}
   _tplTableizeForPrint();
   _tplReserveForPrint();
   // On mobile / installed PWA, window.print() is unreliable (iOS Safari blocks or
@@ -6903,7 +6906,7 @@ function printReceipt(rec, opts){
      </div>
      ${_tplFoot(s)}
    </div>`;
-  if(!opts.noPrint) setTimeout(()=>_printAs(_docPrintTitle("receipt", rec)), 150);
+  if(!opts.noPrint) setTimeout(()=>_printAs(_docPrintTitle("receipt", rec), _docCtx("receipt",rec)), 150);
 }
 
 
@@ -7621,7 +7624,7 @@ function printAffidavit(v, opts){
   </div>`;
   _affFitOnePage(area);
   if(opts.noPrint) return;
-  _printAs("Affidavit"+(depName?(" — "+depName.replace(/[\/\\]/g,"-")):""));
+  _printAs("Affidavit"+(depName?(" — "+depName.replace(/[\/\\]/g,"-")):""), _docCtx("aff",v,{dep:depName}));
 }
 // Keep the affidavit on ONE page. Long party names or a long deponent address change
 // how the paragraphs wrap, so measure the laid-out document at the true print width and,
@@ -7661,7 +7664,7 @@ function _vkPrintWithAffidavit(v, bw){
   printAffidavit(v,{noPrint:true, bw:bw});
   const affHTML=area.innerHTML;
   area.innerHTML=vakHTML+affHTML;
-  setTimeout(()=>_printAs("Vakalatnama & Affidavit"+(v.partyA?(" — "+String(v.partyA).replace(/[\/\\]/g,"-")):"")),160);
+  setTimeout(()=>_printAs("Vakalatnama & Affidavit"+(v.partyA?(" — "+String(v.partyA).replace(/[\/\\]/g,"-")):""), _docCtx("vakaff",v)),160);
 }
 // Asked every time a vakalatnama is generated: also produce an affidavit, and if so
 // in whose name — chosen from the executants just entered on the vakalatnama.
@@ -7774,7 +7777,7 @@ function printVakalatnama(v, opts){
   </div>`;
   _vkFitOnePage(area);
   if(opts.noPrint) return;
-  _printAs("Vakalatnama"+(v.partyA?(" — "+v.partyA.replace(/[\/\\]/g,"-")):""));
+  _printAs("Vakalatnama"+(v.partyA?(" — "+v.partyA.replace(/[\/\\]/g,"-")):""), _docCtx("vak",v));
 }
 // Keep the vakalatnama itself on ONE page where it can be. How much room the document
 // needs depends on how long the executants' names are (they change how the opening
@@ -8260,6 +8263,8 @@ function _rememberFolder(kind, url){
 // Reusable "save this document to the cloud" block. Renders into a modal after
 // a document is generated. kind: receipt|invoice|voucher|salary. obj: the record.
 function _cloudSaveBlock(kind, obj, matterId, printExpr){
+  const _caseBtn=(/^(invoice|receipt|voucher)$/.test(kind))?_docSaveBtnHTML(kind,obj,matterId):"";
+  if(_caseBtn) return _caseBtn;
   const folder=_docFolderUrl(kind, matterId);
   const where=_docFolderLabel(kind, matterId);
   const existing=obj.cloudUrl||"";
@@ -8548,8 +8553,8 @@ function printVoucher(expenseId, opts){
   openModal("Expense voucher "+(e.voucherNo||""), `
     <div class="hint" style="margin-bottom:12px">Voucher for ${esc(e.head||"expense")} — <b>${fmtINR(e.amount)}</b>. Pick <b>Save as PDF</b> in the dialog and choose your OneDrive folder to file it directly.</div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn seal" onclick="setTimeout(()=>_printAs('Expense Voucher ${esc(String(e.voucherNo||'').replace(/[\/\\\\]/g,'-'))}'),150);">Save / Print — Colour</button>
-      <button class="btn" onclick="setTimeout(()=>{printVoucher('${e.id}',{bw:true,noPrint:true}); _printAs('Expense Voucher ${esc(String(e.voucherNo||'').replace(/[\/\\\\]/g,'-'))}');},60);">Save / Print — B&amp;W friendly</button>
+      <button class="btn seal" onclick="setTimeout(()=>_printAs('Expense Voucher ${esc(String(e.voucherNo||'').replace(/[\/\\\\]/g,'-'))}', _docCtx('voucher',(DB.expenses||[]).find(x=>x.id==='${e.id}'))),150);">Save / Print — Colour</button>
+      <button class="btn" onclick="setTimeout(()=>{printVoucher('${e.id}',{bw:true,noPrint:true}); _printAs('Expense Voucher ${esc(String(e.voucherNo||'').replace(/[\/\\\\]/g,'-'))}', _docCtx('voucher',(DB.expenses||[]).find(x=>x.id==='${e.id}')));},60);">Save / Print — B&amp;W friendly</button>
     </div>
     <div style="border-top:1px solid var(--line);margin:16px 0 12px"></div>
     <div style="font-size:12.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--seal);margin-bottom:8px">Cloud copy</div>
@@ -10474,7 +10479,7 @@ function printInvoice(inv, opts){
      </div>
      ${_tplFoot(s)}
    </div>`;
-  if(!opts.noPrint) setTimeout(()=>_printAs(_docPrintTitle("invoice", inv)),150);
+  if(!opts.noPrint) setTimeout(()=>_printAs(_docPrintTitle("invoice", inv), _docCtx("invoice",inv)),150);
 }
 
 /* ===========================================================
@@ -13486,7 +13491,7 @@ function printStatement(matterId){
     </div>
     ${_tplFoot(s)}
   </div>`;
-  setTimeout(()=>_printAs("Statement "+String(m.code||"").replace(/[\/\\]/g,"-")), 150);
+  setTimeout(()=>_printAs("Statement "+String(m.code||"").replace(/[\/\\]/g,"-"), _docCtx("statement",{},{matterId:m.id})), 150);
 }
 function _matterFeeStrip(m){
   if(!m) return "";
@@ -18959,6 +18964,8 @@ function setSecDocuments(s){
     <input class="in mono" id="stGatekeeper" value="${esc(s.gatekeeperUrl||"")}" placeholder="https://asdc-gatekeeper.<name>.workers.dev">
     <div style="margin:10px 0" id="gkStatus"></div>
     <div class="btn-row" style="flex-wrap:wrap"><button class="btn ghost sm" onclick="_gkConnect()">Connect OneDrive</button><button class="btn ghost sm" onclick="_gkStatus()">Check connection</button></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;cursor:pointer"><input type="checkbox" style="margin-top:3px" ${s.autoCaseSave!==false?"checked":""} onchange="DB.settings.autoCaseSave=this.checked;save();toast(this.checked?'Case documents will be saved in their case folders.':'Saving to case folders is off.')">
+      <span><b>Save case documents in the case folder</b><br><span class="hint">Invoices, receipts, vakalatnamas, affidavits, expense vouchers and statements made for a case are saved there as PDFs when you print or save them, named like your files and numbered by your Mac helper. A revised document replaces its earlier copy.</span></span></label>
   </div>
   <div class="card"><h2>Shared live</h2><div class="hint" style="margin-bottom:6px">Files you shared so the receiver's edits change your file. Stop any of them here.</div>
     ${ls.length?`<div class="lrows">${ls.map(row).join("")}</div>`:`<div class="empty" style="padding:12px">Nothing shared live.</div>`}</div>`;
@@ -19157,9 +19164,10 @@ async function _gkNew(path, body){
   catch(e){ if(/Unknown request/i.test(e.message)) throw new Error(isStaffView()?"Adding papers is not switched on yet — ask the Head of Chamber to update the ASDC Gatekeeper.":"Adding papers needs the updated ASDC Gatekeeper: paste the new worker.js into Cloudflare once (gatekeeper/SETUP.md, step 'Update')."); throw e; }
 }
 /* ---------- upload (device → Microsoft, through a one-time slot) ---------- */
-async function _uploadPaper(relPath, blob, onProgress){
+async function _uploadPaper(relPath, blob, onProgress, opts){
   if(!blob||!blob.size) throw new Error("The file is empty.");
-  const d=await _gkNew("/api/addsession",{path:relPath});
+  opts=opts||{};
+  const d=opts.owner&&!isStaffView()?await _gk("/api/uploadsession",{path:relPath}):await _gkNew("/api/addsession",{path:relPath, replace:!!opts.replace});
   const CH=320*1024*16, size=blob.size; let off=0, last=null, viaGk=false;
   const put=async(range,part)=>{
     if(!viaGk){ try{ return await fetch(d.uploadUrl,{method:"PUT",headers:{"Content-Range":range},body:part}); }catch(e){ viaGk=true; } }
@@ -20204,6 +20212,137 @@ async function _pageQuality(doc,i){
   return {dim:mean<175, photo:edge/en>0.04, mean, edge:edge/en};
 }
 
+/* ===========================================================
+   SAVE TO THE CASE FOLDER (Oct 2026) — every document made in the app for a case
+   (invoice, receipt, vakalatnama & affidavit, expense voucher, statement) is also
+   saved as a PDF in that case's folder, named like the owner's own files
+   ("Invoice INV-2026-27-025 dated 26.09.2026.pdf"); the ASDC Helper then numbers it
+   (F379.3 …). A revised document REPLACES its earlier copy (rule 34) — never a second
+   file. Settings → Documents has the on/off switch (DB.settings.autoCaseSave, default on).
+   Owner uploads use /api/uploadsession; staff use /api/addsession (AD Chamber only,
+   never financial papers — the gatekeeper enforces it).
+   =========================================================== */
+function _docFileNo(no){ return String(no||"").replace(/[\/\\–—]/g,"-").replace(/[:*?"<>|]/g,"").trim(); }
+function _docDateDots(iso){ try{ return fmtDate(iso||todayISO()); }catch(e){ return ""; } }
+function _docShort(s,n){ s=String(s||"").replace(/[\/\\:*?"<>|]+/g,"-").replace(/\s+/g," ").trim(); return s.length>(n||45)?s.slice(0,(n||45)).replace(/\s+\S*$/,"")+"…":s; }
+function _docCaseFolder(matterId){
+  const m=matterId?matterById(matterId):null; if(!m) return "";
+  if(m.folder) return m.folder;
+  const r=(DB.register||[]).find(x=>m.serial&&+x.serial===+m.serial); return (r&&r.folder)||"";
+}
+function _docHash(s){ let h=2166136261>>>0; s=String(s||""); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h.toString(36)+":"+s.length; }
+// Context builders — what each document is, which case, which record, what to call the file.
+function _docCtx(kind, rec, extra){
+  rec=rec||{}; const x=extra||{};
+  const base={
+    invoice: ()=>`Invoice ${_docFileNo(rec.no)} dated ${_docDateDots(rec.date)}`,
+    receipt: ()=>`Receipt ${_docFileNo(rec.no)} dated ${_docDateDots(rec.date)}`,
+    both:    ()=>`Invoice ${_docFileNo(rec.no)} and Receipt ${_docFileNo(x.rec2&&x.rec2.no)} dated ${_docDateDots(rec.date)}`,
+    vak:     ()=>`Vakalatnama - ${_docShort(rec.partyA)} dated ${_docDateDots(rec.date)}`,
+    vakaff:  ()=>`Vakalatnama & Affidavit - ${_docShort(rec.partyA)} dated ${_docDateDots(rec.date)}`,
+    aff:     ()=>`Affidavit - ${_docShort(x.dep||rec.partyA)} dated ${_docDateDots(rec.date)}`,
+    voucher: ()=>`Expense Voucher ${_docFileNo(rec.voucherNo)} dated ${_docDateDots(rec.date)}`,
+    statement:()=>`Statement of Account dated ${_docDateDots(todayISO())}`
+  }[kind];
+  const coll={invoice:"invoices",receipt:"receipts",both:"invoices",vak:"vakalatnamas",vakaff:"vakalatnamas",aff:"vakalatnamas",voucher:"expenses"}[kind]||"";
+  const slot={vak:"vak",vakaff:"vak",aff:"aff",both:"both"}[kind]||"doc";   // a vakalatnama record can have its vakalatnama and its affidavit as separate files
+  return {kind, matterId:x.matterId||rec.matterId||"", coll, id:rec.id||"", slot, name:base?base():"Document"};
+}
+async function _docPdfLibs(){
+  if(!window.html2canvas) await _qlLoadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+  if(!(window.jspdf&&window.jspdf.jsPDF)) await _qlLoadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  if(!window.html2canvas||!(window.jspdf&&window.jspdf.jsPDF)) throw new Error("Could not load the PDF maker (offline?).");
+}
+// The rendered document → an A4 PDF (each page captured as it looks on screen).
+async function _docHtmlToPdf(html){
+  await _docPdfLibs();
+  const box=document.createElement("div");
+  box.style.cssText="position:fixed;left:0;top:0;z-index:-5;pointer-events:none;background:#fff;width:auto";
+  box.innerHTML=html; document.body.appendChild(box);
+  try{
+    try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
+    await Promise.all([...box.querySelectorAll("img")].map(i=>i.complete?0:new Promise(r=>{ i.onload=i.onerror=r; })));
+    // Vakalatnama, affidavit and instructions print fluid inside their own page margins
+    // (1.25in left, 0.7in right, 0.875in top, 0.94in bottom → 607 × 949px of text per A4
+    // page): lay them out at that width and place each page-full inside those margins, so
+    // the copy matches the printed pages rather than the 720px on-screen preview.
+    const MM=25.4/96, isSheet=el=>el.matches&&el.matches(".vak-doc,.aff-doc,.instr-page");
+    [...box.children].forEach(el=>{ if(isSheet(el)){ el.style.width="607px"; el.style.margin="0"; el.style.boxShadow="none"; } });
+    const pages=[...box.children].filter(el=>el.offsetHeight>20&&el.offsetWidth>20);
+    if(!pages.length) throw new Error("Nothing to save.");
+    const pdf=new window.jspdf.jsPDF({unit:"mm",format:"a4",compress:true}); let first=true;
+    const put=(c,y,h,x0,y0,wmm)=>{ const s=document.createElement("canvas"); s.width=c.width; s.height=h;
+      const g=s.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,s.width,s.height); g.drawImage(c,0,y,c.width,h,0,0,c.width,h);
+      if(!first) pdf.addPage(); first=false;
+      pdf.addImage(s.toDataURL("image/jpeg",0.88),"JPEG",x0,y0,wmm,h*wmm/c.width,undefined,"FAST"); };
+    for(const el of pages){
+      const c=await window.html2canvas(el,{scale:2,backgroundColor:"#ffffff",useCORS:true,logging:false});
+      if(isSheet(el)){
+        const step=Math.round(949*c.width/607);
+        for(let y=0;y<c.height-4;y+=step) put(c,y,Math.min(step,c.height-y),120*MM,84*MM,607*MM);
+      }else{
+        const pageH=Math.round(c.width*297/210);
+        for(let y=0;y<c.height-4;y+=pageH) put(c,y,Math.min(pageH,c.height-y),0,0,210);
+      }
+    }
+    return pdf.output("blob");
+  }finally{ box.remove(); }
+}
+function _docAutoOn(){ const s=DB.settings||{}; return s.autoCaseSave!==false; }
+// Save (or replace) the PDF in the case folder. force = the explicit button (ignores the switch).
+async function _docToCase(ctx, html, force){
+  if(!ctx||!ctx.matterId||!html) return;
+  if(!force&&!_docAutoOn()) return;
+  const folder=_docCaseFolder(ctx.matterId);
+  if(!folder){ if(force) toast("This case has no folder in the Master Cases Folder yet.",true); return; }
+  if(!_gkUrl()){ if(force) toast("Documents are not set up yet (Settings → Documents).",true); return; }
+  const staff=isStaffView();
+  if(staff&&!/^AD Chamber\//.test(folder)) return;
+  if(staff&&/^(invoice|receipt|both)$/.test(ctx.kind)) return;
+  const rec=ctx.coll&&ctx.id?(DB[ctx.coll]||[]).find(x=>x&&x.id===ctx.id):null;
+  const sig=_docHash(html);
+  const prev=rec&&rec.caseFiles&&rec.caseFiles[ctx.slot];
+  if(prev&&prev.sig===sig&&prev.folder===folder&&!force) return;            // same document, already in the folder
+  try{
+    toast("Saving a copy in the case folder…");
+    const blob=await _docHtmlToPdf(html);
+    const listing=await _gk("/api/list",{folder}).catch(()=>({items:[]}));
+    const names=(listing.items||[]).filter(i=>!i.isFolder).map(i=>i.name);
+    const findBase=b=>names.find(n=>n===b||n.endsWith(" - "+b));
+    let base=_safeName(ctx.name)+".pdf", target="";
+    if(prev&&prev.folder===folder&&findBase(prev.base)){ base=prev.base; target=findBase(prev.base); }            // revised: replace the earlier copy
+    else if(!rec&&findBase(base)){ target=findBase(base); }                                                         // e.g. today's statement again
+    else { let k=2; const stem=base.replace(/\.pdf$/,""); while(findBase(base)) base=`${stem} (${k++}).pdf`; target=base; }  // a different document of the same name
+    const path=folder+"/"+target;
+    if(staff) await _uploadPaper(path,blob,null,{replace:true});
+    else await _uploadPaper(path,blob,null,{owner:true});
+    if(rec){ rec.caseFiles=Object.assign({},rec.caseFiles||{}); rec.caseFiles[ctx.slot]={base,sig,folder,at:new Date().toISOString()}; save(); }
+    toast(`Saved in ${folder.split("/").pop()}${target===base?" — your Mac helper will number it":" (replaced the earlier copy)"}.`);
+  }catch(e){ toast("Could not save to the case folder: "+e.message,true); }
+}
+// The "Save to case folder" button in the save dialogs.
+async function _docSaveNow(kind, id){
+  const area=document.getElementById("receiptArea"); if(!area) return;
+  let ctx=null;
+  if(kind==="invoice"){ const r=(DB.invoices||[]).find(x=>x.id===id); if(!r) return; printInvoice(r,{noPrint:true}); ctx=_docCtx("invoice",r); }
+  else if(kind==="receipt"){ const r=(DB.receipts||[]).find(x=>x.id===id); if(!r) return; printReceipt(r,{noPrint:true}); ctx=_docCtx("receipt",r); }
+  else if(kind==="voucher"){ const r=(DB.expenses||[]).find(x=>x.id===id); if(!r) return; printVoucher(id,{noPrint:true}); ctx=_docCtx("voucher",r); }
+  if(!ctx) return;
+  closeModal();
+  await _docToCase(ctx, area.innerHTML, true);
+}
+function _docSaveBtnHTML(kind, obj, matterId){
+  const folder=matterId?_docCaseFolder(matterId):"";
+  if(!folder||!_gkUrl()) return "";
+  const prev=obj&&obj.caseFiles&&obj.caseFiles.doc;
+  return `<button class="btn seal" style="width:100%;margin:2px 0 10px" onclick="_docSaveNow('${kind}','${esc(obj.id)}')">📁 Save to case folder</button>
+    <div class="hint" style="margin:-4px 0 12px">${esc(folder.split("/").pop())}${prev?` · last saved ${esc(fmtDate(String(prev.at).slice(0,10)))} — saving again replaces that copy`:" · named and numbered automatically"}</div>`;
+}
+
+
+// These functions are reached from on-screen buttons and from code outside this block —
+// async functions and constants declared inside a block are NOT global, so export them.
+try{ Object.assign(window,{_addPaperGo,_blankSpot,_buildGo,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildAsk,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -23333,7 +23472,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-1300";
+  window.APP_VERSION = "2026.10.08-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
