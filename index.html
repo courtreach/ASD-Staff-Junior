@@ -20100,7 +20100,7 @@ function _defCheckDone(d){ if(d.status==="na") return; if((d.kind==="pages"||d.k
 function _flRec(){ return _filingRec(_filingFolderRel(),true); }
 function _defFind(did,pid){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); const p=d&&pid?d.parts.find(x=>x.id===pid):null; return {rec,d,p}; }
 function _defSet(did, st){ const {rec,d}=_defFind(did); if(!d) return; d.status=st; _filingTouch(rec); renderFilesPage(); }
-function _defUncure(did,pid){ const {rec,d,p}=_defFind(did,pid); if(!p) return; p.cure=null; d.status=d.status==="na"?"na":"open"; _filingTouch(rec); renderFilesPage(); }
+function _defUncure(did,pid){ const {rec,d,p}=_defFind(did,pid); if(!p) return; p.cure=null; if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; } d.status=d.status==="na"?"na":"open"; _filingTouch(rec); renderFilesPage(); }
 function _defReadAsk(){
   const lists=_flItems().filter(x=>x.stage===4&&/\.pdf$/i.test(x.name));
   openModal("Read defect list", `
@@ -20186,11 +20186,30 @@ async function _defPreview(did,pid){
   }
 }
 /* TRUE COPY stamp: a line to sign on, with TRUE COPY under it, on each chosen page (no saved signature). */
-async function _defTrueCopy(did,pid){
+function _defTrueCopy(did,pid){
+  const {p}=_defFind(did,pid); if(!p) return;
+  let last="last"; try{ last=localStorage.getItem("asdc_tc_which")||"last"; }catch(e){}
+  const r=(v,l,h)=>`<label class="co-opt"><input type="radio" name="tcW" value="${v}" ${last===v?"checked":""}> ${l}${h?` <span class="hint">${h}</span>`:""}</label>`;
+  openModal("Stamp TRUE COPY", `<div class="hint" style="margin-bottom:8px">${esc(p.label)}${p.pagesOrig||p.pages?` · paper-book pages ${esc(p.pagesOrig||p.pages)}`:""}. A line to sign on with TRUE COPY under it — you sign by hand.</div>
+    ${r("last","Last page only")}${r("first","First page only")}${r("all","Every page")}${r("these","Only these pages:")}
+    <input class="in" id="tcThese" placeholder="printed page numbers, e.g. 1, 8" style="margin-top:4px" oninput="document.querySelector('input[name=tcW][value=these]').checked=true">
+    <div class="hint" style="margin-top:8px">Only the stamped pages are refiled; they replace the same pages of the filing copy.</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defTrueCopyGo('${did}','${pid}')">Stamp</button></div>`);
+}
+async function _defTrueCopyGo(did,pid){
   const {rec,d,p}=_defFind(did,pid); if(!p) return;
+  const which=((document.querySelector('input[name="tcW"]:checked')||{}).value)||"last", these=((document.getElementById("tcThese")||{}).value||"").trim();
+  if(which==="these"&&!these){ toast("Type the page numbers to stamp.",true); return; }
+  try{ localStorage.setItem("asdc_tc_which",which); }catch(e){}
   _progressModal("True copy…","Fetching the filing copy…");
   try{
-    const ctx=await _flLoadCtx(); const res=_resolvePart(p,ctx); if(!res.idx.length) throw new Error("Set this part's pages first.");
+    const ctx=await _flLoadCtx(); const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},ctx); if(!all.idx.length) throw new Error("Set this part's pages first.");
+    let idx=all.idx;
+    if(which==="last") idx=[all.idx[all.idx.length-1]];
+    else if(which==="first") idx=[all.idx[0]];
+    else if(which==="these"){ const want=new Set(_expandLabels(these)); idx=all.idx.filter(i=>want.has(ctx.labelOf[i])||want.has("p"+(i+1)));
+      if(!idx.length) throw new Error(`None of the pages "${these}" are in ${p.label} (${p.pagesOrig||p.pages}).`); }
+    const res={idx};
     _progressSet("Stamping "+res.idx.length+" page"+(res.idx.length===1?"":"s")+"…",0.6);
     const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
     const src=await PDFDocument.load(new Uint8Array(await ctx.blob.arrayBuffer()),{ignoreEncryption:true});
@@ -20206,8 +20225,10 @@ async function _defTrueCopy(did,pid){
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     _progressSet("Saving in stage 5…",0.85);
     const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy - ${_safeName(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
+    if(idx.length<all.idx.length){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=idx.map(i=>ctx.labelOf[i]||("p"+(i+1))).join(", "); }   // only these pages are refiled
+    else if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; }
     p.cure={file:name,pages:"all",how:"stamp"}; _defCheckDone(d); _filingTouch(rec);
-    closeModal(); _blobReady(blob,name,"Sign above TRUE COPY on each page. If you sign on paper, scan it back with Rescan; if you sign in a PDF app, keep the same file name.");
+    closeModal(); _blobReady(blob,name,(idx.length===1?"Sign above TRUE COPY on the page.":"Sign above TRUE COPY on each page.")+" If you sign on paper, scan it back with Rescan; if you sign in a PDF app, keep the same file name.");
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
@@ -20223,7 +20244,7 @@ async function _blankSpot(doc, idx, W, H, bw, bh){
     for(let y=0;y<ch;y++){ let row=0; for(let x=0;x<cw;x++){ const k=(y*cw+x)*4; row+=(d[k]+d[k+1]+d[k+2]<600)?1:0; I[(y+1)*(cw+1)+x+1]=I[y*(cw+1)+x+1]+row; } }
     const ink=(x0,y0,x1,y1)=>I[y1*(cw+1)+x1]-I[y0*(cw+1)+x1]-I[y1*(cw+1)+x0]+I[y0*(cw+1)+x0];
     const fx=cw/W, fy=ch/H, m=8; let best=dflt, bestV=1e9;
-    for(let y=14;y<=H-bh-30;y+=10) for(let x=14;x<=W-bw-14;x+=10){
+    for(let y=14;y<=Math.min(H-bh-30,H*0.45-bh);y+=10) for(let x=14;x<=W-bw-14;x+=10){   // lower part of the page only
       const x0=Math.max(0,Math.floor((x-m)*fx)), x1=Math.min(cw,Math.ceil((x+bw+m)*fx)), y0=Math.max(0,Math.floor((H-y-bh-m)*fy)), y1=Math.min(ch,Math.ceil((H-y+m)*fy));
       const area=(x1-x0)*(y1-y0); if(area<=0) continue;
       const v=ink(x0,y0,x1,y1)/area + 0.02*(y/H) + 0.01*(1-x/W);   // emptiest; then lower; then further right
@@ -20938,7 +20959,7 @@ function _aiApprove(did){
   items.forEach(it=>{
     let p=it.partId&&d.parts.find(x=>x.id===it.partId);
     if(!p){ p={id:uid(), key:"ai", label:it.label||"Corrected pages", pages:it.replaces||"", cure:null, whole:false}; d.parts.push(p); }
-    else if(it.replaces&&it.mode!=="add") p.pages=it.replaces;      // only the corrected pages are refiled
+    else if(it.replaces&&it.mode!=="add"&&it.replaces!==p.pages){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=it.replaces; }      // only the corrected pages are refiled
     p.cure={file:it.file, pages:"all", how:"ai", mode:it.mode==="add"?"add":"replace"};
   });
   if(d.kind==="general") d.kind="pages";
@@ -20971,7 +20992,7 @@ async function _aiCompare(did, k){
     }
   }catch(e){ box.textContent="Could not load: "+e.message; }
 }
-try{ Object.assign(window,{_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
+try{ Object.assign(window,{_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
@@ -24143,7 +24164,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.08-2400";
+  window.APP_VERSION = "2026.10.09-0015";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
