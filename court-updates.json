@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T10:14:27.997123Z",
+  "generated_at": "2026-10-08T10:32:17.204804Z",
   "window": [
     "2026-10-08",
     "2026-10-09",
@@ -56,7 +56,7 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 1,
+      "match_count": 2,
       "matches": [
         {
           "for_date": "2026-10-09",
@@ -77,6 +77,26 @@
           "petitioner": "DILIP S GHUMARE",
           "respondent": "HIGH COURT OF JUDICATURE AT BOMBAY AND ORS.",
           "text": "32 SLP(Crl) No. 17504/2026 DILIP S GHUMARE Versus HIGH COURT OF JUDICATURE AT BOMBAY AND ORS."
+        },
+        {
+          "for_date": "2026-10-09",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "5",
+          "item": "39",
+          "coram": "HON'BLE MR. JUSTICE PAMIDIGHANTAM SRI NARASIMHA; HON'BLE MR. JUSTICE ALOK ARADHE",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "Diary No. 21869-2026",
+          "petitioner": "THE STATE OF GOA AND ORS.",
+          "respondent": "TRINITAS ESTATE INDIA LLP",
+          "text": "39 Diary No. 21869-2026 THE STATE OF GOA AND ORS. Versus TRINITAS ESTATE INDIA LLP"
         }
       ]
     },
@@ -369,6 +389,6 @@
       ]
     }
   },
-  "match_count": 13,
+  "match_count": 14,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
