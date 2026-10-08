@@ -2029,7 +2029,7 @@
   .dd.s-approve .dd-no{background:rgba(47,125,79,.14);color:#23633e} .dd.s-question .dd-no,.dd.s-staff .dd-no{background:rgba(183,121,31,.15);color:#8a5a12} .dd.s-ai .dd-no{background:rgba(124,92,191,.12);color:#5b3fa0}
   .dg{margin-bottom:14px} .dg-h{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:2px 2px 6px} .dg-h b{color:var(--ink)}
   .dg-done>summary{cursor:pointer;list-style:none} .dg-done>summary::-webkit-details-marker{display:none}
-  .dg-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 2px 10px} .dg-c{font-size:12px;background:var(--line2);border:0;border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+  .dg-check{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;background:rgba(124,92,191,.07);border:1px solid rgba(124,92,191,.25);border-radius:8px;padding:6px 10px;margin:0 0 10px} .dg-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 2px 10px} .dg-c{font-size:12px;background:var(--line2);border:0;border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--ink)}
   .dd-reg{background:#faf7f1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;margin:4px 0 8px;font-size:13.5px;line-height:1.45}
   .dd-reg-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
   .ai-lbl{display:block;font-size:12.5px;font-weight:600;margin:4px 0 4px} .ai-in{min-height:66px;width:100%} .ai-yours{font-size:12.5px;margin:3px 0 6px} .ai-run-w{align-self:center;font-size:12px}
@@ -19480,9 +19480,9 @@ function _flNextHTML(rec, st, fc){
   const aiN=st2=>(rec.defects||[]).filter(d=>d.ai&&d.ai.status===st2).length;
   const aiRev=aiN("review"), aiQ=aiN("question"), aiStaff=aiN("staff"), aiWait=aiN("queued")+aiN("working");
   const aiFree=(rec.defects||[]).filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
-  const aiLine=(aiRev||aiQ||aiStaff||aiWait)?`<div class="fn-ai">✨ ${[aiRev?`<b>${aiRev} AI correction${aiRev===1?"":"s"} to approve</b>`:"", aiQ?`<b>${aiQ} question${aiQ===1?"":"s"}</b> from the AI clerk`:"", aiStaff?`${aiStaff} for staff`:"", aiWait?`${aiWait} with the AI clerk`:""].filter(Boolean).join(" · ")} ${_aiRunHTML()}</div>`:"";
-  if(blocking||aiRev||aiQ) return `<div class="fn"><div class="fn-t">2 · Deal with each defect — ${blocking} to go</div>
-      <div class="fn-s">Open a defect below and attach the corrected pages, rescan, or stamp TRUE COPY — or let the AI clerk correct the pages for you to approve. For a translation or an extra better copy choose <b>Add after</b> — it goes after the document as 32A, 32B…</div>${aiLine}
+  const aiLine=!isStaffView()&&(aiRev||aiQ||aiStaff||aiWait)?`<div class="fn-ai">✨ ${[aiRev?`<b>${aiRev} AI correction${aiRev===1?"":"s"} to approve</b>`:"", aiQ?`<b>${aiQ} question${aiQ===1?"":"s"}</b> from the AI clerk`:"", aiStaff?`${aiStaff} for staff`:"", aiWait?`${aiWait} with the AI clerk`:""].filter(Boolean).join(" · ")} ${_aiRunHTML()}</div>`:"";
+  if(blocking||(!isStaffView()&&(aiRev||aiQ))) return `<div class="fn"><div class="fn-t">2 · Deal with each defect — ${blocking} to go</div>
+      <div class="fn-s">Open a defect below and attach the corrected pages, rescan, or stamp TRUE COPY${isStaffView()?", then mark it cured":" — or let the AI clerk correct the pages for you to approve"}. For a translation or an extra better copy choose <b>Add after</b> — it goes after the document as 32A, 32B…</div>${aiLine}
       <div class="fn-b">${aiFree?btn("_aiQueueAll()","✨ Cure all with AI"):""}${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
   const refs=rec.refilings||[], last=refs[refs.length-1];
   if(!refs.length) return `<div class="fn"><div class="fn-t">3 · Collate the defect pages</div>
@@ -19548,9 +19548,14 @@ function _flPapersHTML(rec, fc){
    Grouped by what is needed: Needs your attention · To do · With the AI clerk · Done.
    Each row: number · remark · one status pill · one obvious button. Open a row for the registry's
    remark, the AI clerk (instructions typed right there), the pages, and "do it yourself" options. */
-function _defState(d){ if(d.status==="na") return "na"; if(d.status==="cured") return "cured";
-  const a=(d.ai||{}).status; if(a==="review") return "approve"; if(a==="question") return "question"; if(a==="staff") return "staff";
-  if(a==="queued"||a==="working") return "ai"; if(a==="error") return "error"; return "open"; }
+function _defState(d){ if(d.status==="na") return "na";
+  const a=(d.ai||{}).status;
+  if(!isStaffView()){   // staff never see the AI clerk (owner's decision, Oct 2026) — they cure by hand
+    if(a==="review") return "approve"; if(a==="question") return "question"; if(a==="error") return "error";
+    if(a==="queued"||a==="working") return "ai"; if(a==="staff"&&d.status!=="cured") return "staff"; }
+  return d.status==="cured"?"cured":"open"; }
+function _staffCured(d){ return d.status==="cured"&&(d.parts||[]).some(p=>p.cure&&p.cure.file&&p.cure.how!=="ai"); }
+function _aiCanCheck(d){ const st=(d.ai||{}).status; return !isStaffView()&&_staffCured(d)&&(!st||st==="checked"||st==="rejected"||st==="error"); }
 const _DS_LAB={open:"To do",ai:"With AI",approve:"To approve",question:"Question",staff:"For staff",error:"AI failed",cured:"Cured",na:"Not needed"};
 window.__aiDraft=window.__aiDraft||{};
 function _ddOpen(did, focus){ _flState().openD=did; renderFilesPage();
@@ -19558,7 +19563,8 @@ function _ddOpen(did, focus){ _flState().openD=did; renderFilesPage();
     if(focus){ const t=document.getElementById("aiIn_"+did)||document.getElementById("aiAns_"+did); if(t) t.focus({preventScroll:true}); } },60); }
 function _ddQuick(d){
   const s=_defState(d), b=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm dd-q" onclick="event.preventDefault();event.stopPropagation();${on}">${l}</button>`;
-  if(s==="open") return d.kind==="new"?b(`_ddOpen('${d.id}')`,"Make"):_aiCan(d)?b(`_ddOpen('${d.id}',true)`,"✨ Cure with AI","seal"):"";
+  if(s==="open") return d.kind==="new"?b(`_ddOpen('${d.id}')`,"Make"):_aiCan(d)?b(`_ddOpen('${d.id}',true)`,"✨ Cure with AI","seal"):(isStaffView()&&d.kind!=="note"?b(`_ddOpen('${d.id}')`,"Cure","seal"):"");
+  if(s==="cured"&&_aiCanCheck(d)&&!(d.ai&&d.ai.status==="checked")) return b(`_ddOpen('${d.id}',true)`,"✨ Check with AI");
   if(s==="approve") return b(`_aiCompare('${d.id}')`,"Review","seal");
   if(s==="question") return b(`_ddOpen('${d.id}',true)`,"Answer","seal");
   if(s==="staff") return b(`_aiStaffDone('${d.id}')`,"Done");
@@ -19575,12 +19581,12 @@ function _defectsHTML(rec){
     const s=_defState(d);
     const subs=d.parts.filter(p=>d.kind!=="new").map(p=>`${esc(p.label)}${p.pages&&p.pages!=="cover"?` · pp. ${esc(p.pages)}`:""}`).join(" · ");
     const tags=[d.flags&&d.flags.better?"better copy":"", d.flags&&d.flags.truecopy?"true copy":"", d.kind==="general"?"general":"", d.kind==="note"?"for information":"", d.kind==="new"?"new documents":"", d.kind==="doc"?"fresh document":""].filter(Boolean);
-    const aiOn=_aiCan(d)||(d.ai&&d.ai.status);
+    const aiOn=!isStaffView()&&(_aiCan(d)||(d.ai&&d.ai.status));
     const parts=d.parts.map(p=>{
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
@@ -19609,7 +19615,8 @@ function _defectsHTML(rec){
     return openG?`<div class="dg" id="dg_${gi}"><div class="dg-h">${l} <b>${xs.length}</b></div>${inner}</div>`
       :`<details class="dg dg-done" id="dg_${gi}"><summary class="dg-h">${l} <b>${xs.length}</b> <span class="hint">— tap to show</span></summary>${inner}</details>`; }).join("");
   const mapNote=_flFC()&&cur.some(d=>d.parts.some(p=>!p.pages&&d.kind!=="new"))?`<div class="hint" style="margin:0 2px 8px">Some pages are not matched yet — <button class="link-btn" onclick="_defMapPages()">find pages in the filing copy</button>.</div>`:"";
-  return `<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
+  const toCheck=isStaffView()?0:cur.filter(d=>_aiCanCheck(d)&&(d.ai||{}).status!=="checked").length;
+  return `${toCheck?`<div class="dg-check">✨ ${toCheck} staff cure${toCheck===1?"":"s"} not yet checked <button class="btn ghost sm" onclick="_aiQueueCheckAll()">Check ${toCheck===1?"it":"all"} with AI</button></div>`:""}<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
       <span><button class="link-btn" onclick="_defAddAsk()">+ add by hand</button> · <button class="link-btn" onclick="_defReadAsk()">read another list</button></span></div>
     <div class="dg-chips">${chips}</div>${mapNote}${body}
     ${old.length?`<details class="dr-wait" style="margin-top:12px"><summary>Earlier defect lists · ${old.length} defect${old.length===1?"":"s"}</summary><div class="dl">${old.sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no).map(row).join("")}</div></details>`:""}`;
@@ -20915,9 +20922,9 @@ function _refBackGo(){
    DEFECT_CLERK.md) picks it up, corrects exact copies of the filed pages (no Word round-trip), and writes
    ai.status="review" with a proposal; nothing is attached until someone approves it here. */
 const _AI_LAB={queued:"Waiting for the AI clerk",working:"AI clerk is working on it",review:"AI correction ready for approval",
-  question:"The AI clerk has a question",staff:"For staff to do",error:"The AI clerk could not do this",approved:"AI correction approved",rejected:"AI correction rejected",done:"Done by staff"};
+  question:"The AI clerk has a question",checked:"Checked by the AI clerk",staff:"For staff to do",error:"The AI clerk could not do this",approved:"AI correction approved",rejected:"AI correction rejected",done:"Done by staff"};
 function _aiWho(){ return isStaffView()?((window.__staff&&window.__staff.profile&&window.__staff.profile.name)||"Staff"):headLabel(); }
-function _aiCan(d){ return !!d&&d.status==="open"&&d.kind!=="note"&&d.kind!=="new"; }
+function _aiCan(d){ return !isStaffView()&&!!d&&d.status==="open"&&d.kind!=="note"&&d.kind!=="new"; }
 // "AI clerk last checked …" — chamber/main/meta/aiClerk {lastRun}, written by the Mac. Filled in place (no re-render).
 function _aiRunText(){ const m=window.__aiRun||{}; const hb=m.heartbeat?new Date(m.heartbeat):null;
   const tm=t=>(new Date().toDateString()===t.toDateString()?"today":fmtDate(_localISO(t)))+" at "+t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
@@ -20930,16 +20937,24 @@ function _aiRunHTML(){
     Promise.resolve().then(async()=>{ try{ if(window.FB&&FB.getMeta){ window.__aiRun=await FB.getMeta("aiClerk"); document.querySelectorAll(".ai-run").forEach(e=>e.textContent=_aiRunText()); } }catch(e){} }); }
   return `<span class="hint ai-run">${esc(_aiRunText())}</span>`;
 }
-function _aiTag(d){ const a=d.ai; if(!a||!a.status||a.status==="rejected") return "";
+function _aiTag(d){ const a=d.ai; if(isStaffView()||!a||!a.status||a.status==="rejected") return "";
   const short={queued:"AI · waiting",working:"AI · working",review:"AI · for approval",question:"AI · question",staff:"for staff",error:"AI · failed",approved:"AI · approved",done:"staff · done"}[a.status]||"";
   return short?`<i class="ai-t ${a.status}">${short}</i>`:""; }
 function _aiBlockHTML(d){
+  if(isStaffView()) return "";
   const a=d.ai||{}; const st=a.status||"";
   const btn=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm" onclick="${on}">${l}</button>`;
   const draft=id=>esc(window.__aiDraft[id]!=null?window.__aiDraft[id]:(a.instruction||""));
   const box=(lbl)=>`<label class="ai-lbl" for="aiIn_${d.id}">${lbl}</label>
       <textarea class="in ai-in" id="aiIn_${d.id}" rows="3" oninput="window.__aiDraft['${d.id}']=this.value" placeholder="Tell the AI what this defect needs — e.g. “Put TRUE COPY on the last page only” · “The correct date is 04.03.2026” · “Answer every proforma column with No”">${draft(d.id)}</textarea>`;
-  if(!st||st==="rejected"||st==="error"){
+  if(_aiCanCheck(d)&&st!=="queued"&&st!=="working"){
+    const done=st==="checked"?`<div class="ai-s">${a.verdict==="kept"?"You kept the staff's cure"+(a.by?" ("+esc(a.by)+")":"")+".":"✓ The AI clerk found it cured"+(a.msg?": "+esc(a.msg):".")}</div>`:"";
+    return `<div class="ai-b ${st==="checked"?"ok":""}"><div class="ai-h">✨ ${st==="checked"?"Checked by the AI clerk":"Check the staff's cure with AI"}${st==="checked"&&a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>${done}
+      ${box(st==="checked"?"Check again — anything particular to look for? (optional)":"Anything particular to look for? (optional)")}
+      <div class="dp-a">${btn(`_aiQueueCheck('${d.id}')`,st==="checked"?"Check again":"✨ Check with AI",st==="checked"?"ghost":"seal")}<span class="ai-run-w">${_aiRunHTML()}</span></div>
+      <div class="ai-s" style="margin-top:6px">The AI reads the staff's pages against the registry's remark. If it is not fully cured, it makes a corrected copy for you — you can use it or keep the staff's cure.</div></div>`;
+  }
+  if(!st||st==="rejected"||st==="error"||st==="checked"){
     if(!_aiCan(d)) return "";
     return `<div class="ai-b ${st==="error"?"error":""}"><div class="ai-h">✨ AI clerk${st==="error"?" — could not do it last time":st==="rejected"?" — last attempt rejected":""}</div>
       ${st==="error"&&a.msg?`<div class="ai-s">${esc(a.msg)}</div>`:""}
@@ -20956,6 +20971,13 @@ function _aiBlockHTML(d){
       <div class="dp-a">${btn(`_aiAnswer('${d.id}')`,"Send answer","seal")}${btn(`_aiCancel('${d.id}')`,"I'll do it myself")}</div></div>`;
   if(st==="staff") return `<div class="ai-b staff">${head}<div class="ai-q">${esc(a.msg||"")}</div>${yours}
       <div class="dp-a">${btn(`_aiStaffDone('${d.id}')`,"Done","seal")}${btn(`_aiEditInstr('${d.id}')`,"Give the AI new instructions")}${btn(`_aiCancel('${d.id}')`,"Clear")}</div></div>`;
+  if(st==="review"&&a.mode==="check"){
+    const P=a.proposal||{};
+    return `<div class="ai-b question"><div class="ai-h">✨ The AI clerk says this is not fully cured${a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>
+      <div class="ai-q">${esc(P.reason||P.summary||"")}</div>${P.reason&&P.summary&&P.summary!==P.reason?`<div class="ai-s">Its copy: ${esc(P.summary)}</div>`:""}
+      ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}
+      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — staff's vs AI's","seal")}${btn(`_aiApprove('${d.id}')`,"Use AI's copy")}${btn(`_aiKeepStaff('${d.id}')`,"Keep staff's cure")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}</div></div>`;
+  }
   if(st==="review"){
     const P=a.proposal||{}; const items=P.items||[];
     const ch=items.map(it=>(it.changes||[]).map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")).join("");
@@ -20966,9 +20988,25 @@ function _aiBlockHTML(d){
   if(st==="approved"||st==="done") return `<div class="ai-b ok">${head}${a.by?`<div class="ai-s">by ${esc(a.by)}</div>`:""}${yours}</div>`;
   return "";
 }
-function _aiQueueInline(did){
+function _aiQueueCheck(did){
+  if(isStaffView()) return;
   const v=((document.getElementById("aiIn_"+did)||{}).value||"").trim();
-  _aiSet(did,a=>{ a.status="queued"; a.instruction=v; a.msg=""; a.question=""; a.answer=""; }); delete window.__aiDraft[did];
+  _aiSet(did,a=>{ a.status="queued"; a.mode="check"; a.instruction=v; a.msg=""; a.question=""; a.answer=""; a.verdict=""; delete a.proposal; }); delete window.__aiDraft[did];
+  toast("Sent to the AI clerk to check."); renderFilesPage();
+}
+function _aiQueueCheckAll(){
+  if(isStaffView()) return; const rec=_flRec(); let n=0;
+  (rec.defects||[]).forEach(d=>{ if(_aiCanCheck(d)&&(d.ai||{}).status!=="checked"){ _aiSet(d.id,a=>{ a.status="queued"; a.mode="check"; a.instruction=""; a.msg=""; a.verdict=""; delete a.proposal; }); n++; } });
+  toast(n?`${n} staff cure${n===1?"":"s"} sent to the AI clerk to check.`:"Nothing to check."); renderFilesPage();
+}
+function _aiKeepStaff(did){
+  if(isStaffView()) return;
+  _aiSet(did,a=>{ a.status="checked"; a.verdict="kept"; a.msg=""; }); toast("Kept the staff's cure."); renderFilesPage();
+}
+function _aiQueueInline(did){
+  if(isStaffView()) return;
+  const v=((document.getElementById("aiIn_"+did)||{}).value||"").trim();
+  _aiSet(did,a=>{ a.status="queued"; a.mode="cure"; a.instruction=v; a.msg=""; a.question=""; a.answer=""; }); delete window.__aiDraft[did];
   toast("Sent to the AI clerk."); renderFilesPage();
 }
 function _aiEditInstr(did){ const {d}=_defFind(did); if(!d) return; window.__aiDraft[did]=(d.ai&&d.ai.instruction)||"";
@@ -20992,12 +21030,12 @@ async function _aiCompare(did){
   const {rec,d}=_defFind(did); const P=d&&d.ai&&d.ai.proposal; if(!P) return;
   const a=d.ai, items=P.items||[], review=a.status==="review";
   const ch=items.map(it=>(it.changes||[]).map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")).join("");
-  openModal(`Defect ${d.no} — filed vs corrected`, `
+  openModal(`Defect ${d.no} — ${a.mode==="check"?"staff's cure vs AI's copy":"filed vs corrected"}`, `
     <div class="cmp-def"><div class="dd-reg-h">Registry's remark</div><div class="cmp-rem">${esc(_flSentence(d.text))}</div>${a.instruction?`<div class="ai-yours">Your instructions: <i>${esc(a.instruction)}</i></div>`:""}</div>
-    <div class="cmp-ai"><div class="dd-reg-h">What the AI changed</div>${P.summary?`<div>${esc(P.summary)}</div>`:""}${ch?`<ul class="ai-ch">${ch}</ul>`:""}${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}</div>
+    <div class="cmp-ai"><div class="dd-reg-h">${a.mode==="check"?"Why the AI says it is not cured":"What the AI changed"}</div>${a.mode==="check"&&P.reason?`<div><b>${esc(P.reason)}</b></div>`:""}${P.summary?`<div>${esc(P.summary)}</div>`:""}${ch?`<ul class="ai-ch">${ch}</ul>`:""}${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}</div>
     <div class="hint" style="margin:6px 0">Changes are boxed in red. Tap a page to enlarge it.</div>
     <div id="aiCmp" class="ai-cmp"><div class="hint">Loading pages…</div></div>
-    <div class="btn-row cmp-foot">${review?`<button class="btn seal" onclick="_aiApprove('${did}');closeModal()">Approve &amp; attach</button><button class="btn ghost" onclick="closeModal();_aiChangeAsk('${did}')">Ask for a change</button><button class="btn ghost" onclick="closeModal();_aiReject('${did}')">Reject</button>`:""}<button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+    <div class="btn-row cmp-foot">${review&&a.mode==="check"?`<button class="btn seal" onclick="_aiApprove('${did}');closeModal()">Use AI's copy</button><button class="btn ghost" onclick="closeModal();_aiKeepStaff('${did}')">Keep staff's cure</button>`:""}${review&&a.mode!=="check"?`<button class="btn seal" onclick="_aiApprove('${did}');closeModal()">Approve &amp; attach</button><button class="btn ghost" onclick="closeModal();_aiChangeAsk('${did}')">Ask for a change</button><button class="btn ghost" onclick="closeModal();_aiReject('${did}')">Reject</button>`:""}<button class="btn ghost" onclick="closeModal()">Close</button></div>`);
   document.getElementById("modal").classList.add("m-wide");
   const box=document.getElementById("aiCmp");
   const cell=(src,label,empty)=>`<div class="ai-pg">${src?`<img src="${src}" alt="${esc(label)}" onclick="this.closest('.ai-cmp').classList.toggle('big')">`:`<div class="ai-pg-e">${esc(empty||"—")}</div>`}<div class="hint">${esc(label)}</div></div>`;
@@ -21006,7 +21044,7 @@ async function _aiCompare(did){
     if(P.previewId&&window.FB&&FB.getAiPreview){ try{ pv=await FB.getAiPreview(rec.chamber==="SD",P.previewId); }catch(e){} }
     if(pv&&pv.items){
       box.innerHTML=pv.items.map(it=>`<div class="cmp-it">${pv.items.length>1?`<div class="dd-reg-h">${esc(it.label||"")}</div>`:""}`+
-        it.pages.map(pg=>`<div class="ai-row">${cell(pg.before,"Filed · page "+pg.label,it.mode==="add"?"New page — added after the document":"")}${cell(pg.after,"Corrected"+(pg.before?" · page "+pg.label:""),"")}</div>`).join("")+`</div>`).join("");
+        it.pages.map(pg=>`<div class="ai-row">${cell(pg.before,(it.beforeTitle||"Filed")+" · page "+pg.label,it.mode==="add"?"New page — added after the document":"")}${cell(pg.after,(a.mode==="check"?"AI's copy":"Corrected")+(pg.before?" · page "+pg.label:""),"")}</div>`).join("")+`</div>`).join("");
       return;
     }
     // older proposals: build the pictures here (slower — fetches the filing copy)
@@ -21059,10 +21097,10 @@ function _aiApprove(did){
     p.cure={file:it.file, pages:"all", how:"ai", mode:it.mode==="add"?"add":"replace"};
   });
   if(d.kind==="general") d.kind="pages";
-  d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()});
+  d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()}, d.ai.mode==="check"?{verdict:"ai_used"}:{});
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
-try{ Object.assign(window,{_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
+try{ Object.assign(window,{_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
@@ -22753,7 +22791,7 @@ function renderPhoneDefects(){
   const aiB=r=>{ const ds=r.defects||[]; const rv=ds.filter(d=>d.ai&&(d.ai.status==="review"||d.ai.status==="question")).length, w=ds.filter(d=>d.ai&&(d.ai.status==="queued"||d.ai.status==="working")).length;
     const lr=(r.refilings||[]).slice(-1)[0], fin=(r.finals||[]).length;
     const ap=lr&&!lr.ok&&!lr.back&&!fin?` <span class="ai-t question">✍ ${isStaffView()?"awaiting approval":"your approval"}</span>`:"";
-    return ap+(rv?` <span class="ai-t review">✨ ${rv} to approve</span>`:w?` <span class="ai-t">✨ ${w} with AI</span>`:""); };
+    return ap+(isStaffView()?"":rv?` <span class="ai-t review">✨ ${rv} to approve</span>`:w?` <span class="ai-t">✨ ${w} with AI</span>`:""); };
   const wide=rows.length?`<div class="tbl-wrap"><table class="dr-tbl"><thead><tr><th>File</th><th>Case</th><th>Filing</th><th>Diary No.</th><th>Defect list</th><th>Open</th><th>Stage</th><th></th></tr></thead><tbody>${rows.map(x=>{ const r=x.r;
       return `<tr onclick="${open(r,"defects")}" style="cursor:pointer"><td class="mono">${fno(r)}</td><td><b>${esc(x.title||"")}</b>${r.chamber==="SD"?` <span class="tag" style="background:#3b5a7a;color:#fff">SD</span>`:""}</td><td>${esc(r.kind||"")}</td><td class="mono">${r.diaryNo?esc(r.diaryNo+"/"+r.diaryYear):"—"}</td><td>${esc(_drListDate(r)||"—")}</td><td><span class="pd-b ${x.st.open?"open":"ok"}">${x.st.open} of ${x.st.tot}</span>${aiB(r)}</td><td>${_drSteps(x.st.k)}<div class="dr-sl">${esc(x.st.l)}</div></td><td style="white-space:nowrap" onclick="event.stopPropagation()"><button class="row-act" onclick="${open(r,"defects")}">Defects</button> <button class="row-act" onclick="${open(r,"stages")}">Stages</button></td></tr>`; }).join("")}</tbody></table></div>`:"";
   const narrow=rows.map(x=>{ const r=x.r;
@@ -24235,7 +24273,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0100";
+  window.APP_VERSION = "2026.10.09-0130";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
