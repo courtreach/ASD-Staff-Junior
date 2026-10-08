@@ -2021,7 +2021,25 @@
   .ai-ch{margin:4px 0 6px 18px;padding:0;font-size:12.5px;line-height:1.5} .ai-ch s{color:#b23a3a}
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
-  .fn-ai{font-size:12.5px;margin:6px 0 2px} .fn-back{font-size:12.5px;color:#9a5b00;margin:4px 0 6px} .fn-okb{color:#23633e;font-weight:600} #modal.m-wide{max-width:min(980px,96vw);width:96vw}
+  .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .dd-r{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px} .dd-q{white-space:nowrap}
+  .dd-st.s-open{background:#fbeeee;color:var(--seal)} .dd-st.s-ai{background:rgba(124,92,191,.12);color:#5b3fa0} .dd-st.s-approve{background:rgba(47,125,79,.14);color:#23633e}
+  .dd-st.s-question,.dd-st.s-staff{background:rgba(183,121,31,.15);color:#8a5a12} .dd-st.s-error{background:rgba(178,58,58,.12);color:#9b2c2c}
+  .dd-st.s-cured{background:#e8f4ea;color:#2e7d32} .dd-st.s-na{background:var(--line2);color:#5b5348}
+  .dd.s-approve .dd-no{background:rgba(47,125,79,.14);color:#23633e} .dd.s-question .dd-no,.dd.s-staff .dd-no{background:rgba(183,121,31,.15);color:#8a5a12} .dd.s-ai .dd-no{background:rgba(124,92,191,.12);color:#5b3fa0}
+  .dg{margin-bottom:14px} .dg-h{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:2px 2px 6px} .dg-h b{color:var(--ink)}
+  .dg-done>summary{cursor:pointer;list-style:none} .dg-done>summary::-webkit-details-marker{display:none}
+  .dg-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 2px 10px} .dg-c{font-size:12px;background:var(--line2);border:0;border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+  .dd-reg{background:#faf7f1;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;margin:4px 0 8px;font-size:13.5px;line-height:1.45}
+  .dd-reg-h{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+  .ai-lbl{display:block;font-size:12.5px;font-weight:600;margin:4px 0 4px} .ai-in{min-height:66px;width:100%} .ai-yours{font-size:12.5px;margin:3px 0 6px} .ai-run-w{align-self:center;font-size:12px}
+  .dd-man{margin-top:8px} .dd-man>summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
+  .cmp-def,.cmp-ai{border:1px solid var(--line2);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13.5px;line-height:1.45} .cmp-rem{font-weight:600}
+  .cmp-def{background:#fbf3f1} .cmp-ai{background:#f3f8f4}
+  .ai-cmp img{width:100%;border:1px solid #ccc;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:zoom-in;display:block} .ai-cmp.big .ai-row{flex-direction:column} .ai-cmp.big img{cursor:zoom-out}
+  .ai-pg-e{border:1px dashed #ccc;padding:30px 8px;font-size:12px;color:var(--muted)} .cmp-it{margin-bottom:6px}
+  .cmp-foot{position:sticky;bottom:0;background:var(--paper2);padding-top:8px;margin-top:8px;flex-wrap:wrap}
+  @media (max-width:560px){ .dd>summary{flex-wrap:wrap} .dd-r{flex-direction:row;width:100%;justify-content:space-between;align-items:center;padding-left:34px} } .fn-back{font-size:12.5px;color:#9a5b00;margin:4px 0 6px} .fn-okb{color:#23633e;font-weight:600} #modal.m-wide{max-width:min(980px,96vw);width:96vw}
   .ai-cmp{max-height:70vh;overflow:auto} .ai-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start} .ai-pg{flex:1;min-width:0;text-align:center} .ai-pg canvas{max-width:100%;border:1px solid #ccc;box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .dp{border:1px solid var(--line2);border-radius:10px;padding:9px 11px;margin-top:8px;background:#fdfcfa}
   .dp-l{font-weight:700;font-size:13.5px}.dp-w{font-size:12.5px;color:var(--muted);margin-top:2px}
@@ -19526,45 +19544,74 @@ function _flPapersHTML(rec, fc){
       <div class="fv-acts"><select class="fv-sort" style="min-width:140px" onchange="_sortIntoStage(${_fvQuote(x.name)},this.value)"><option value="">Sort into…</option>${opts}</select></div></div>`).join("")+`</div></details>`:"";
   return groups+looseHTML+`<div class="btn-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="_decChkAsk('decl')">Declaration</button><button class="btn ghost sm" onclick="_decChkAsk('chk')">Checklist</button></div>`;
 }
-/* ---------- defects list: one row each, tap to open the cure options ---------- */
+/* ---------- defects list (Oct 2026 redesign, with the AI clerk) ----------
+   Grouped by what is needed: Needs your attention · To do · With the AI clerk · Done.
+   Each row: number · remark · one status pill · one obvious button. Open a row for the registry's
+   remark, the AI clerk (instructions typed right there), the pages, and "do it yourself" options. */
+function _defState(d){ if(d.status==="na") return "na"; if(d.status==="cured") return "cured";
+  const a=(d.ai||{}).status; if(a==="review") return "approve"; if(a==="question") return "question"; if(a==="staff") return "staff";
+  if(a==="queued"||a==="working") return "ai"; if(a==="error") return "error"; return "open"; }
+const _DS_LAB={open:"To do",ai:"With AI",approve:"To approve",question:"Question",staff:"For staff",error:"AI failed",cured:"Cured",na:"Not needed"};
+window.__aiDraft=window.__aiDraft||{};
+function _ddOpen(did, focus){ _flState().openD=did; renderFilesPage();
+  setTimeout(()=>{ const el=document.getElementById("dd_"+did); if(el) el.scrollIntoView({block:"start",behavior:"smooth"});
+    if(focus){ const t=document.getElementById("aiIn_"+did)||document.getElementById("aiAns_"+did); if(t) t.focus({preventScroll:true}); } },60); }
+function _ddQuick(d){
+  const s=_defState(d), b=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm dd-q" onclick="event.preventDefault();event.stopPropagation();${on}">${l}</button>`;
+  if(s==="open") return d.kind==="new"?b(`_ddOpen('${d.id}')`,"Make"):_aiCan(d)?b(`_ddOpen('${d.id}',true)`,"✨ Cure with AI","seal"):"";
+  if(s==="approve") return b(`_aiCompare('${d.id}')`,"Review","seal");
+  if(s==="question") return b(`_ddOpen('${d.id}',true)`,"Answer","seal");
+  if(s==="staff") return b(`_aiStaffDone('${d.id}')`,"Done");
+  if(s==="error") return b(`_ddOpen('${d.id}',true)`,"Retry");
+  return "";
+}
 function _defectsHTML(rec){
   const all=(rec.defects||[]).slice();
   if(!all.length) return `<div class="fv-empty">No defects yet.</div>`;
   const maxR=Math.max(...all.map(d=>d.round||1));
   const cur=all.filter(d=>(d.round||1)===maxR).sort((a,b)=>a.no-b.no), old=all.filter(d=>(d.round||1)<maxR);
-  const stLab={open:"Open",cured:"Cured",na:"Not needed"};
   const res=p=>(_flCtx&&_flCtx.folder===_filingFolderRel()&&p.pages)?_resolvePart(p,_flCtx):null;
   const row=d=>{
+    const s=_defState(d);
     const subs=d.parts.filter(p=>d.kind!=="new").map(p=>`${esc(p.label)}${p.pages&&p.pages!=="cover"?` · pp. ${esc(p.pages)}`:""}`).join(" · ");
     const tags=[d.flags&&d.flags.better?"better copy":"", d.flags&&d.flags.truecopy?"true copy":"", d.kind==="general"?"general":"", d.kind==="note"?"for information":"", d.kind==="new"?"new documents":"", d.kind==="doc"?"fresh document":""].filter(Boolean);
-    const aiT=_aiTag(d);
+    const aiOn=_aiCan(d)||(d.ai&&d.ai.status);
     const parts=d.parts.map(p=>{
       const r=res(p);
-      const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
+      const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
         const b=[];
-        if(tc) b.push(`<button class="btn seal sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`);
-        b.push(`<button class="btn ${tc||bc?"ghost":"seal"} sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach corrected ${p.whole?"document":"pages"}</button>`);
-        b.push(`<button class="btn ${bc&&!tc?"seal":"ghost"} sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>`);
-        acts=`<div class="dp-a">${b.join("")}</div>`;
+        if(tc) b.push(`<button class="btn ghost sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`);
+        b.push(`<button class="btn ghost sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach corrected ${p.whole?"document":"pages"}</button>`);
+        b.push(`<button class="btn ghost sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>`);
+        acts=aiOn?`<details class="dd-man"><summary>Do it yourself — ${tc?"stamp, ":""}attach or rescan</summary><div class="dp-a">${b.join("")}</div></details>`:`<div class="dp-a">${b.join("")}</div>`;
       }
       return `<div class="dp"><div class="dp-l">${esc(p.label)}</div>${where}${acts}</div>`; }).join("");
     const stBtns=d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
       :`<button class="btn ghost sm" onclick="_defSet('${d.id}','open')">Reopen</button>`;
-    return `<details class="dd ${d.status}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
-      <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}${aiT?`<span class="dd-s">${aiT}</span>`:""}</span><span class="dd-st ${d.status}">${stLab[d.status]||d.status}</span></summary>
-      <div class="dd-b">${d.rule?`<div class="dd-rule">Registry rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}
+    return `<details class="dd ${d.status} s-${s}" id="dd_${d.id}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
+      <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}</span>
+        <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
+      <div class="dd-b">
+        <div class="dd-reg"><div class="dd-reg-h">Registry's remark</div><div>${esc(_flSentence(d.text))}</div>${d.rule?`<div class="dd-rule">Rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}</div>
         ${_aiBlockHTML(d)}${parts}
         <div class="dd-f">${stBtns}<button class="link-btn" onclick="_defEditAsk('${d.id}')">edit remark / note</button></div></div></details>`;
   };
+  const groups=[["Needs your attention",["question","approve","staff","error"],true],["To do",["open"],true],["With the AI clerk",["ai"],true],["Done",["cured","na"],false]];
+  const cnt=k=>cur.filter(d=>k.includes(_defState(d))).length;
+  const chips=groups.map(([l,k],gi)=>cnt(k)?`<button class="dg-c" onclick="const g=document.getElementById('dg_${gi}'); if(g){ if(g.tagName==='DETAILS') g.open=true; g.scrollIntoView({block:'start',behavior:'smooth'}); }">${l} <b>${cnt(k)}</b></button>`:"").join("");
+  const body=groups.map(([l,k,openG],gi)=>{ const xs=cur.filter(d=>k.includes(_defState(d))); if(!xs.length) return "";
+    const inner=`<div class="dl">${xs.map(row).join("")}</div>`;
+    return openG?`<div class="dg" id="dg_${gi}"><div class="dg-h">${l} <b>${xs.length}</b></div>${inner}</div>`
+      :`<details class="dg dg-done" id="dg_${gi}"><summary class="dg-h">${l} <b>${xs.length}</b> <span class="hint">— tap to show</span></summary>${inner}</details>`; }).join("");
   const mapNote=_flFC()&&cur.some(d=>d.parts.some(p=>!p.pages&&d.kind!=="new"))?`<div class="hint" style="margin:0 2px 8px">Some pages are not matched yet — <button class="link-btn" onclick="_defMapPages()">find pages in the filing copy</button>.</div>`:"";
   return `<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
       <span><button class="link-btn" onclick="_defAddAsk()">+ add by hand</button> · <button class="link-btn" onclick="_defReadAsk()">read another list</button></span></div>
-    ${mapNote}<div class="dl">${cur.map(row).join("")}</div>
+    <div class="dg-chips">${chips}</div>${mapNote}${body}
     ${old.length?`<details class="dr-wait" style="margin-top:12px"><summary>Earlier defect lists · ${old.length} defect${old.length===1?"":"s"}</summary><div class="dl">${old.sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no).map(row).join("")}</div></details>`:""}`;
 }
 /* ---------- link the filing copy that is already in the case folder ---------- */
@@ -20889,55 +20936,104 @@ function _aiTag(d){ const a=d.ai; if(!a||!a.status||a.status==="rejected") retur
 function _aiBlockHTML(d){
   const a=d.ai||{}; const st=a.status||"";
   const btn=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm" onclick="${on}">${l}</button>`;
-  if(!st||st==="rejected"){
+  const draft=id=>esc(window.__aiDraft[id]!=null?window.__aiDraft[id]:(a.instruction||""));
+  const box=(lbl)=>`<label class="ai-lbl" for="aiIn_${d.id}">${lbl}</label>
+      <textarea class="in ai-in" id="aiIn_${d.id}" rows="3" oninput="window.__aiDraft['${d.id}']=this.value" placeholder="Tell the AI what this defect needs — e.g. “Put TRUE COPY on the last page only” · “The correct date is 04.03.2026” · “Answer every proforma column with No”">${draft(d.id)}</textarea>`;
+  if(!st||st==="rejected"||st==="error"){
     if(!_aiCan(d)) return "";
-    return `<div class="ai-b"><div class="ai-h">✨ AI clerk</div><div class="ai-s">Claude corrects exact copies of the filed pages — only the words that are wrong — and sends them back here for approval.${st==="rejected"?" (Last attempt was rejected.)":""}</div>
-      <div class="dp-a">${btn(`_aiQueueAsk('${d.id}')`,"Cure with AI","seal")}</div></div>`;
+    return `<div class="ai-b ${st==="error"?"error":""}"><div class="ai-h">✨ AI clerk${st==="error"?" — could not do it last time":st==="rejected"?" — last attempt rejected":""}</div>
+      ${st==="error"&&a.msg?`<div class="ai-s">${esc(a.msg)}</div>`:""}
+      ${box("Your instructions (the AI follows these first)")}
+      <div class="dp-a">${btn(`_aiQueueInline('${d.id}')`,"✨ Cure with AI","seal")}${st==="error"?btn(`_aiCancel('${d.id}')`,"Clear"):""}<span class="ai-run-w">${_aiRunHTML()}</span></div>
+      <div class="ai-s" style="margin-top:6px">Claude corrects exact copies of the filed pages — only what is wrong — and sends them back here for approval.</div></div>`;
   }
   const head=`<div class="ai-h">✨ ${esc(_AI_LAB[st]||st)}${a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>`;
-  if(st==="queued"||st==="working") return `<div class="ai-b ${st}">${head}<div class="ai-s">${st==="queued"?"The AI clerk on the Head of Chamber's Mac starts within seconds. "+_aiRunHTML():esc(a.msg||"")}${a.instruction?`<br>Your note: <i>${esc(a.instruction)}</i>`:""}</div>
-      <div class="dp-a">${st==="queued"?btn(`_aiCancel('${d.id}')`,"Cancel"):""}</div></div>`;
-  if(st==="question") return `<div class="ai-b question">${head}<div class="ai-q">${esc(a.question||a.msg||"")}</div>
-      <textarea class="in" id="aiAns_${d.id}" rows="2" placeholder="Your answer"></textarea>
+  const yours=a.instruction?`<div class="ai-yours">Your instructions: <i>${esc(a.instruction)}</i></div>`:"";
+  if(st==="queued"||st==="working") return `<div class="ai-b ${st}">${head}${yours}<div class="ai-s">${st==="queued"?"Starts within seconds on the Head of Chamber's Mac. ":esc(a.msg||"")+" "}${_aiRunHTML()}</div>
+      <div class="dp-a">${st==="queued"?btn(`_aiEditInstr('${d.id}')`,"Change instructions")+btn(`_aiCancel('${d.id}')`,"Cancel"):""}</div></div>`;
+  if(st==="question") return `<div class="ai-b question">${head}<div class="ai-q">${esc(a.question||a.msg||"")}</div>${yours}
+      <textarea class="in" id="aiAns_${d.id}" rows="2" placeholder="Your answer" oninput="window.__aiDraft['ans_${d.id}']=this.value">${esc(window.__aiDraft["ans_"+d.id]||"")}</textarea>
       <div class="dp-a">${btn(`_aiAnswer('${d.id}')`,"Send answer","seal")}${btn(`_aiCancel('${d.id}')`,"I'll do it myself")}</div></div>`;
-  if(st==="staff") return `<div class="ai-b staff">${head}<div class="ai-q">${esc(a.msg||"")}</div>
-      <div class="dp-a">${btn(`_aiStaffDone('${d.id}')`,"Done","seal")}${btn(`_aiCancel('${d.id}')`,"Clear")}</div></div>`;
-  if(st==="error") return `<div class="ai-b error">${head}<div class="ai-s">${esc(a.msg||"")}</div>
-      <div class="dp-a">${btn(`_aiQueueAsk('${d.id}')`,"Try again")}${btn(`_aiCancel('${d.id}')`,"Clear")}</div></div>`;
+  if(st==="staff") return `<div class="ai-b staff">${head}<div class="ai-q">${esc(a.msg||"")}</div>${yours}
+      <div class="dp-a">${btn(`_aiStaffDone('${d.id}')`,"Done","seal")}${btn(`_aiEditInstr('${d.id}')`,"Give the AI new instructions")}${btn(`_aiCancel('${d.id}')`,"Clear")}</div></div>`;
   if(st==="review"){
     const P=a.proposal||{}; const items=P.items||[];
-    const its=items.map((it,k)=>`<div class="ai-it"><div class="ai-it-h"><b>${esc(it.label||"Corrected pages")}</b> <span class="hint">· ${it.pages||"?"} page${it.pages===1?"":"s"}${it.replaces?` · replaces page${/[-,]/.test(it.replaces)?"s":""} ${esc(it.replaces)}`:""}${it.mode==="add"?" · added after the document":""}</span></div>
-        ${(it.changes||[]).length?`<ul class="ai-ch">${it.changes.map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")}</ul>`:""}
-        <div class="dp-a">${btn(`_aiCompare('${d.id}',${k})`,"Compare with filed page")}</div></div>`).join("");
-    return `<div class="ai-b review">${head}${P.summary?`<div class="ai-s">${esc(P.summary)}</div>`:""}
-      ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}${its}
-      <div class="dp-a">${btn(`_aiApprove('${d.id}')`,"Approve &amp; attach","seal")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}${btn(`_aiReject('${d.id}')`,"Reject")}</div></div>`;
+    const ch=items.map(it=>(it.changes||[]).map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")).join("");
+    return `<div class="ai-b review">${head}${yours}${P.summary?`<div class="ai-s">${esc(P.summary)}</div>`:""}
+      ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}${ch?`<ul class="ai-ch">${ch}</ul>`:""}
+      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — filed vs corrected","seal")}${btn(`_aiApprove('${d.id}')`,"Approve &amp; attach")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}${btn(`_aiReject('${d.id}')`,"Reject")}</div></div>`;
   }
-  if(st==="approved"||st==="done") return `<div class="ai-b ok">${head}${a.by?`<div class="ai-s">by ${esc(a.by)}</div>`:""}${a.msg&&st==="done"?`<div class="ai-s">${esc(a.msg)}</div>`:""}</div>`;
+  if(st==="approved"||st==="done") return `<div class="ai-b ok">${head}${a.by?`<div class="ai-s">by ${esc(a.by)}</div>`:""}${yours}</div>`;
   return "";
+}
+function _aiQueueInline(did){
+  const v=((document.getElementById("aiIn_"+did)||{}).value||"").trim();
+  _aiSet(did,a=>{ a.status="queued"; a.instruction=v; a.msg=""; a.question=""; a.answer=""; }); delete window.__aiDraft[did];
+  toast("Sent to the AI clerk."); renderFilesPage();
+}
+function _aiEditInstr(did){ const {d}=_defFind(did); if(!d) return; window.__aiDraft[did]=(d.ai&&d.ai.instruction)||"";
+  _aiSet(did,a=>{ a.status=""; a.msg=""; }); _ddOpen(did,true); }
+function _aiQueueAsk(did){ _ddOpen(did,true); }
+function _aiQueueAll(){
+  const rec=_flRec(); const xs=(rec.defects||[]).filter(d=>{ const st=(d.ai||{}).status; return _aiCan(d)&&(!st||st==="rejected"||st==="error"); });
+  if(!xs.length){ toast("Nothing left to send — every open defect is already with the AI clerk or done."); return; }
+  openModal("Cure all with AI", `<div class="hint" style="margin-bottom:8px">${xs.length} open defect${xs.length===1?"":"s"}: ${xs.map(d=>d.no).join(", ")}. Instructions typed in a defect stay with that defect; anything you write here is added to all of them.</div>
+    <label class="fld">Instructions for all (optional)</label><textarea class="in" id="aiAll" rows="3" placeholder="e.g. Answer every proforma column with No · The impugned order is dated 04.03.2026"></textarea>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_aiQueueAllGo()">Send ${xs.length} to the AI clerk</button></div>`);
+}
+function _aiQueueAllGo(){
+  const common=((document.getElementById("aiAll")||{}).value||"").trim(); const rec=_flRec(); let n=0;
+  (rec.defects||[]).forEach(d=>{ const st=(d.ai||{}).status; if(_aiCan(d)&&(!st||st==="rejected"||st==="error")){
+    const own=String(window.__aiDraft[d.id]!=null?window.__aiDraft[d.id]:"").trim();
+    _aiSet(d.id,a=>{ a.status="queued"; a.instruction=[own,common].filter(Boolean).join(" · "); a.msg=""; a.question=""; }); delete window.__aiDraft[d.id]; n++; } });
+  closeModal(); toast(`${n} defect${n===1?"":"s"} sent to the AI clerk.`); renderFilesPage();
+}
+async function _aiCompare(did){
+  const {rec,d}=_defFind(did); const P=d&&d.ai&&d.ai.proposal; if(!P) return;
+  const a=d.ai, items=P.items||[], review=a.status==="review";
+  const ch=items.map(it=>(it.changes||[]).map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")).join("");
+  openModal(`Defect ${d.no} — filed vs corrected`, `
+    <div class="cmp-def"><div class="dd-reg-h">Registry's remark</div><div class="cmp-rem">${esc(_flSentence(d.text))}</div>${a.instruction?`<div class="ai-yours">Your instructions: <i>${esc(a.instruction)}</i></div>`:""}</div>
+    <div class="cmp-ai"><div class="dd-reg-h">What the AI changed</div>${P.summary?`<div>${esc(P.summary)}</div>`:""}${ch?`<ul class="ai-ch">${ch}</ul>`:""}${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}</div>
+    <div class="hint" style="margin:6px 0">Changes are boxed in red. Tap a page to enlarge it.</div>
+    <div id="aiCmp" class="ai-cmp"><div class="hint">Loading pages…</div></div>
+    <div class="btn-row cmp-foot">${review?`<button class="btn seal" onclick="_aiApprove('${did}');closeModal()">Approve &amp; attach</button><button class="btn ghost" onclick="closeModal();_aiChangeAsk('${did}')">Ask for a change</button><button class="btn ghost" onclick="closeModal();_aiReject('${did}')">Reject</button>`:""}<button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+  document.getElementById("modal").classList.add("m-wide");
+  const box=document.getElementById("aiCmp");
+  const cell=(src,label,empty)=>`<div class="ai-pg">${src?`<img src="${src}" alt="${esc(label)}" onclick="this.closest('.ai-cmp').classList.toggle('big')">`:`<div class="ai-pg-e">${esc(empty||"—")}</div>`}<div class="hint">${esc(label)}</div></div>`;
+  try{
+    let pv=null;
+    if(P.previewId&&window.FB&&FB.getAiPreview){ try{ pv=await FB.getAiPreview(rec.chamber==="SD",P.previewId); }catch(e){} }
+    if(pv&&pv.items){
+      box.innerHTML=pv.items.map(it=>`<div class="cmp-it">${pv.items.length>1?`<div class="dd-reg-h">${esc(it.label||"")}</div>`:""}`+
+        it.pages.map(pg=>`<div class="ai-row">${cell(pg.before,"Filed · page "+pg.label,it.mode==="add"?"New page — added after the document":"")}${cell(pg.after,"Corrected"+(pg.before?" · page "+pg.label:""),"")}</div>`).join("")+`</div>`).join("");
+      return;
+    }
+    // older proposals: build the pictures here (slower — fetches the filing copy)
+    const lib=await _qlPdfLib(); box.innerHTML="";
+    for(const it of items){
+      const x=_flItems().find(i=>i.name===it.file);
+      const blob=await _paperBlob({path:_filingFolderRel()+"/"+it.file, name:it.file, size:x?x.size:0});
+      const cor=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+      let orig=it.fromIdx||[], ctx=null;
+      if(it.mode!=="add"){ try{ ctx=await _flLoadCtx(); if(!orig.length){ const p=it.partId&&d.parts.find(q=>q.id===it.partId); const spec=it.replaces||(p&&p.pages)||""; if(spec) orig=_resolvePart({pages:spec,key:p?p.key:""},ctx).idx; } }catch(e){} }
+      const pic=async(doc,i)=>{ const pg=await doc.getPage(i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:900/v0.width});
+        const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height; await pg.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise; return c.toDataURL("image/jpeg",0.7); };
+      let html="";
+      for(let j=0;j<Math.min(cor.numPages,8);j++){
+        const after=await pic(cor,j); const before=(ctx&&orig[j]!=null)?await pic(ctx.doc,orig[j]):"";
+        html+=`<div class="ai-row">${cell(before,"Filed"+(ctx&&orig[j]!=null?" · page "+(ctx.labelOf[orig[j]]||"PDF "+(orig[j]+1)):""),it.mode==="add"?"New page — added after the document":"")}${cell(after,"Corrected · page "+(j+1)+" of "+cor.numPages,"")}</div>`;
+      }
+      box.innerHTML+=`<div class="cmp-it">${items.length>1?`<div class="dd-reg-h">${esc(it.label||"")}</div>`:""}${html}</div>`;
+    }
+  }catch(e){ box.innerHTML=`<div class="hint">Could not load the pages: ${esc(e.message)}</div>`; }
 }
 function _aiWhen(iso){ const t=new Date(iso); if(isNaN(t)) return ""; const same=new Date().toDateString()===t.toDateString();
   return (same?"":fmtDate(_localISO?_localISO(t):t.toISOString().slice(0,10))+" ")+t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); }
 function _aiSet(did, fn){ const {rec,d}=_defFind(did); if(!d) return null; const a=Object.assign({},d.ai||{}); fn(a,d);
   a.at=new Date().toISOString(); a.by=_aiWho(); const h=(a.history||[]).slice(-11); h.push({status:a.status,at:a.at,msg:(a.msg||"").slice(0,300),by:a.by}); a.history=h;
   d.ai=a; _filingTouch(rec); return {rec,d}; }
-function _aiQueueAsk(did){
-  const {d}=_defFind(did); if(!d) return;
-  openModal("Cure with AI", `<div class="hint" style="margin-bottom:8px">${esc(_flSentence(d.text))}</div>
-    <label class="fld">Anything Claude should know? (optional)</label>
-    <textarea class="in" id="aiNote" rows="3" placeholder="e.g. the correct date is 04.03.2026 · answer every proforma column with No"></textarea>
-    <div class="hint" style="margin-top:8px">The AI clerk on the Head of Chamber's Mac starts within seconds (the Mac must be on). It corrects copies of the filed pages; nothing is attached until it is approved. ${_aiRunHTML()}</div>
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_aiQueueGo('${did}')">Send to the AI clerk</button></div>`);
-}
-function _aiQueueGo(did){
-  const note=((document.getElementById("aiNote")||{}).value||"").trim();
-  _aiSet(did,a=>{ a.status="queued"; a.instruction=note; a.msg=""; a.question=""; }); closeModal(); toast("Sent to the AI clerk."); renderFilesPage();
-}
-function _aiQueueAll(){
-  const rec=_flRec(); let n=0;
-  (rec.defects||[]).forEach(d=>{ const st=(d.ai||{}).status; if(_aiCan(d)&&(!st||st==="rejected"||st==="error")){ _aiSet(d.id,a=>{ a.status="queued"; a.instruction=""; a.msg=""; }); n++; } });
-  toast(n?`${n} defect${n===1?"":"s"} sent to the AI clerk.`:"Nothing left to send — every open defect is already with the AI clerk or done."); renderFilesPage();
-}
+function _aiQueueGo(did){ _aiQueueInline(did); }
 function _aiCancel(did){ _aiSet(did,a=>{ a.status=""; a.msg=""; a.question=""; }); renderFilesPage(); }
 function _aiAnswer(did){
   const v=((document.getElementById("aiAns_"+did)||{}).value||"").trim(); if(!v){ toast("Type the answer first.",true); return; }
@@ -20966,33 +21062,7 @@ function _aiApprove(did){
   d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()});
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
-async function _aiCompare(did, k){
-  const {d}=_defFind(did); const it=d&&d.ai&&d.ai.proposal&&(d.ai.proposal.items||[])[k]; if(!it) return;
-  openModal((it.label||"Corrected pages")+" — filed vs corrected", `<div id="aiCmp" class="ai-cmp">Loading…</div><div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Close</button></div>`);
-  document.getElementById("modal").classList.add("m-wide");
-  const box=document.getElementById("aiCmp");
-  try{
-    const lib=await _qlPdfLib();
-    const x=_flItems().find(i=>i.name===it.file);
-    const blob=await _paperBlob({path:_filingFolderRel()+"/"+it.file, name:it.file, size:x?x.size:0});
-    const cor=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
-    let orig=[]; let ctx=null;
-    try{ ctx=await _flLoadCtx(); const p=it.partId&&d.parts.find(q=>q.id===it.partId);
-      const spec=it.replaces||(p&&p.pages)||""; if(spec) orig=_resolvePart({pages:spec,key:p?p.key:""},ctx).idx; }catch(e){}
-    box.innerHTML="";
-    const W=Math.min(460,(box.clientWidth||700)/2-12);
-    const draw=async(doc,i,label)=>{ const pg=await doc.getPage(i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:W/v0.width});
-      const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height; await pg.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise;
-      const w=document.createElement("div"); w.className="ai-pg"; w.appendChild(c); const l=document.createElement("div"); l.className="hint"; l.textContent=label; w.appendChild(l); return w; };
-    for(let j=0;j<Math.min(cor.numPages,12);j++){
-      const row=document.createElement("div"); row.className="ai-row";
-      if(it.mode!=="add"&&ctx&&orig[j]!=null) row.appendChild(await draw(ctx.doc,orig[j],"Filed · PDF "+(orig[j]+1)+(ctx.labelOf[orig[j]]?" · page "+ctx.labelOf[orig[j]]:"")));
-      else{ const e=document.createElement("div"); e.className="ai-pg hint"; e.textContent=it.mode==="add"?"New page (added after the document)":"—"; row.appendChild(e); }
-      row.appendChild(await draw(cor,j,"Corrected · page "+(j+1)+" of "+cor.numPages)); box.appendChild(row);
-    }
-  }catch(e){ box.textContent="Could not load: "+e.message; }
-}
-try{ Object.assign(window,{_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
+try{ Object.assign(window,{_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
@@ -24087,6 +24157,7 @@ FB.getOwnDoc = async function(coll, id){
 };
 FB.getStaffDir = async function(uid){ const s=await getDoc(FB.staffDirRef(uid)); return s.exists()? s.data() : null; };
 FB.putStaffDir = async function(uid, data){ await setDoc(FB.staffDirRef(uid), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
+FB.getAiPreview = async function(sd,id){ const r=sd?doc(db,"accounts",FB.uid(),"aiPreviews",id):doc(db,"chamber","main","aiPreviews",id); const s=await getDoc(r); return s.exists()?s.data():null; };
 FB.getMeta = async function(id){ const s=await getDoc(doc(db,"chamber","main","meta",id)); return s.exists()?s.data():null; };
 FB.listenStaffDir = function(uid, cb){ return onSnapshot(FB.staffDirRef(uid), s=>cb(s.exists()?s.data():null)); };
 // owner watches the whole inbox across all staff via collectionGroup
@@ -24164,7 +24235,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0015";
+  window.APP_VERSION = "2026.10.09-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
