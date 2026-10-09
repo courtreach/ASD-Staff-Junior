@@ -2022,6 +2022,35 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  #peOverlay{position:fixed;inset:0;z-index:2000;background:#e9e7e3;display:none;flex-direction:column} #peOverlay.show{display:flex}
+  .pe-top{display:flex;align-items:center;gap:6px;height:52px;padding:0 10px;background:#fff;border-bottom:1px solid var(--line)}
+  .pe-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2} .pe-ttl b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pe-ttl span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pe-ib{width:34px;height:34px;border-radius:8px;border:0;background:none;font-size:17px;cursor:pointer;color:var(--ink)} .pe-ib:hover{background:var(--line2)} .pe-ib:disabled{opacity:.3;cursor:default}
+  .pe-zm{display:flex;align-items:center;font-size:12px;color:var(--muted)} .pe-zm span{min-width:40px;text-align:center} .pe-save{margin-left:6px}
+  .pe-tools{display:flex;align-items:center;gap:2px;padding:6px 10px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+  .pe-t{display:flex;align-items:center;gap:6px;border:0;background:none;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap}
+  .pe-t:hover{background:var(--line2)} .pe-t.on{background:#f2e7e4;color:var(--seal);font-weight:600} .pe-hint{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;padding-left:10px}
+  .pe-body{flex:1;min-height:0;display:flex} .pe-thumbs{width:120px;flex:none;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:#f4f2ee;border-right:1px solid var(--line)}
+  .pe-th{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)} .pe-th canvas{width:100%;height:auto}
+  .pe-main{flex:1;min-width:0;overflow:auto;padding:12px 16px 80px;display:flex;flex-direction:column;align-items:center}
+  .pe-cap{font-size:11.5px;color:var(--muted);margin:10px 0 4px} .pe-pg{position:relative;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;touch-action:pan-x pan-y}
+  .pe-pg[data-tool="white"]{cursor:crosshair;touch-action:none} .pe-pg[data-tool="add"],.pe-pg[data-tool="tick"],.pe-pg[data-tool="truecopy"],.pe-pg[data-tool="num"]{cursor:copy} .pe-pg[data-tool="text"]{cursor:text}
+  .pe-lay{position:absolute;inset:0} .pe-o{position:absolute} .pe-w{background:#fff} .pe-drag{outline:1.5px dashed var(--seal);background:rgba(255,255,255,.85)}
+  .pe-tx{font-family:"Times New Roman",Times,serif;line-height:1;white-space:nowrap;color:#000} .pe-tk{color:#000} .pe-tk svg{width:100%;height:100%}
+  .pe-tc{font-family:Helvetica,Arial,sans-serif;font-weight:700;text-align:center;color:#000} .pe-tcl{border-top:1px solid #000}
+  .pe-nm{left:0;right:0;text-align:center;font-family:"Times New Roman",Times,serif}
+  .pe-pg[data-tool="select"] .pe-o{cursor:move;outline:1px dashed transparent} .pe-pg[data-tool="select"] .pe-o:hover,.pe-o.sel{outline:1.5px dashed var(--seal)!important}
+  .pe-hl{position:absolute;border-radius:2px} .pe-pg[data-tool="text"] .pe-hl:hover{background:rgba(58,90,140,.12);outline:1px solid rgba(58,90,140,.35)}
+  .pe-x{position:absolute;width:22px;height:22px;border-radius:50%;border:0;background:var(--seal);color:#fff;font-size:12px;cursor:pointer;z-index:3}
+  .pe-in{position:absolute;z-index:4} .pe-in input{font-family:"Times New Roman",Times,serif;border:1.5px solid #3a5a8c;border-radius:3px;padding:0 2px;background:#fff;color:#000;line-height:1.15;outline:none;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .pe-mini{display:flex;align-items:center;gap:2px;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.12);width:max-content}
+  .pe-mini button{border:0;background:none;border-radius:6px;padding:4px 8px;font:inherit;font-size:12.5px;cursor:pointer} .pe-mini button:hover{background:var(--line2)} .pe-mini .ok{background:var(--seal);color:#fff}
+  .pe-fit{font-size:11.5px;padding:0 4px} .pe-fit.warn{color:#9a5b00} .pe-fit.bad{color:#b23a3a;font-weight:600}
+  .pe-pick{display:flex;flex-wrap:wrap;gap:10px} .pe-pk{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;cursor:pointer} .pe-pk canvas{border:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.08)} .pe-pk input{width:auto}
+  .dp-two{align-items:center} .dd-more{display:inline-block} .dd-more>summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none;padding:4px 8px;border-radius:8px} .dd-more>summary::-webkit-details-marker{display:none} .dd-more[open]{display:block;width:100%}
+  @media (max-width:760px){ .pe-thumbs{display:none} .pe-main{padding:8px 6px 90px} .pe-hint{display:none} .pe-zm span{display:none}
+    .pe-tools{position:fixed;left:0;right:0;bottom:0;z-index:2;border-top:1px solid var(--line);border-bottom:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));justify-content:space-between}
+    .pe-t{flex-direction:column;gap:2px;font-size:10.5px;padding:5px 6px} }
   .fsec-big{margin:12px 0 14px} .fsec-big .fsec-b{padding:13px 16px} .fsec-big .fsec-b b{font-size:16px}
   .fh-slim{padding-bottom:10px} .fh-slim .fh-meta{margin-top:6px} .fh-ref{margin-bottom:10px;padding-top:10px}
   .fsec{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px} .fsec-b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit;color:var(--ink)}
@@ -19609,15 +19638,15 @@ function _defectsHTML(rec){
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
-      else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="edit"?` <button class="link-btn" onclick="_peOpenAsk('${d.id}','${p.id}')">edit again</button>`:""}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      else if(d.kind==="new") acts=`<div class="dp-a dp-two"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button><button class="btn seal sm" onclick="_defAttachAsk('${d.id}','${p.id}')">📎 Add cured document</button></div>`;
       else{
-        const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
-        const b=[];
-        if(tc) b.push(`<button class="btn ghost sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`);
-        b.push(`<button class="btn ghost sm" onclick="_defAttachAsk('${d.id}','${p.id}')">Attach corrected ${p.whole?"document":"pages"}</button>`);
-        b.push(`<button class="btn ghost sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan</button>`);
-        acts=aiOn?`<details class="dd-man"><summary>Do it yourself — ${tc?"stamp, ":""}attach or rescan</summary><div class="dp-a">${b.join("")}</div></details>`:`<div class="dp-a">${b.join("")}</div>`;
+        const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole;
+        const more=[];
+        if(tc) more.push(`<button class="btn ghost sm" onclick="_defTrueCopy('${d.id}','${p.id}')">Stamp TRUE COPY</button>`);
+        more.push(`<button class="btn ghost sm" onclick="_defRescan('${d.id}','${p.id}')">📷 Rescan from paper</button>`);
+        acts=`<div class="dp-a dp-two"><button class="btn seal sm" onclick="_peOpenAsk('${d.id}','${p.id}')">✏️ Edit pages</button><button class="btn seal sm" onclick="_defAttachAsk('${d.id}','${p.id}')">📎 Add cured document</button>
+          <details class="dd-more"><summary>More</summary><div class="dp-a">${more.join("")}</div></details></div>`;
       }
       return `<div class="dp"><div class="dp-l">${esc(p.label)}</div>${where}${acts}</div>`; }).join("");
     const stBtns=d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
@@ -19627,7 +19656,7 @@ function _defectsHTML(rec){
         <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
       <div class="dd-b">
         <div class="dd-reg"><div class="dd-reg-h">Registry's remark</div><div>${esc(_flSentence(d.text))}</div>${d.rule?`<div class="dd-rule">Rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}</div>
-        ${_aiBlockHTML(d)}${parts}
+        ${_aiBlockHTML(d)}${parts}${!d.parts.length&&d.kind!=="note"&&d.status!=="na"?`<div class="dp"><div class="dp-l">Cure</div><div class="dp-a dp-two"><button class="btn seal sm" onclick="_defGenPart('${d.id}','edit')">✏️ Edit pages</button><button class="btn seal sm" onclick="_defGenPart('${d.id}','add')">📎 Add cured document</button></div></div>`:""}
         <div class="dd-f">${stBtns}<button class="link-btn" onclick="_defEditAsk('${d.id}')">edit remark / note</button></div></div></details>`;
   };
   const groups=[["Needs your attention",["question","approve","staff","error"],true],["To do",["open"],true],["With the AI clerk",["ai"],true],["Done",["cured","na"],false]];
@@ -20479,7 +20508,7 @@ function _defAttachAsk(did,pid){
   const {d,p}=_defFind(did,pid); if(!p) return;
   const pdfs=_flItems().filter(x=>(x.stage===2||x.stage===5||x.stage===1)&&/\.pdf$/i.test(x.name));
   const dm=p.whole?"replace":_defDefaultMode(d), a=_partAnchor(p);
-  openModal("Corrected "+(p.whole?"document":"pages")+" — "+p.label, `
+  openModal("Add cured document — "+p.label, `
     <div class="hint" style="margin-bottom:10px">A PDF of the corrected ${p.whole?"document":"pages"}${p.pages?` (paper-book ${/[-,]/.test(p.pages)?"pages":"page"} ${esc(p.pages)})`:""}. Word files: save as PDF first.</div>
     ${pdfs.length?`<label class="fld">Already in this filing</label><select class="in" id="caPick"><option value="">—</option>${pdfs.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("")}</select>`:""}
     <label class="fld" style="margin-top:8px">${pdfs.length?"Or from this device (saved in stage 5)":"From this device (saved in stage 5)"}</label>
@@ -20489,7 +20518,7 @@ function _defAttachAsk(did,pid){
     ${p.whole?"":`<label class="fld" style="margin-top:10px">How they go in</label>
     <div class="mode-r"><label><input type="radio" name="caMode" value="replace" ${dm==="replace"?"checked":""}> <span><b>Replace</b> the original pages${p.pages?" "+esc(p.pages):""}</span></label>
       <label><input type="radio" name="caMode" value="add" ${dm==="add"?"checked":""}> <span><b>Add after</b> the document — translation or additional better copy, numbered ${esc(a?a+"A, "+a+"B…":"…A, …B")}</span></label></div>`}
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Attach</button></div>`);
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Add</button></div>`);
 }
 async function _defAttachGo(did,pid){
   const {rec,d,p}=_defFind(did,pid); if(!p) return;
@@ -21507,6 +21536,233 @@ async function _filingRemoveGo(){
   catch(e){ closeModal(); toast(e.message,true); }
 }
 try{ Object.assign(window,{_canRemove,_gkTrash,_paperRemoveAsk,_paperRemoveGo,_paperReplaceAsk,_paperReplaceGo,_refsIn,_fileGone,_fileRenamedRef,_fsRemoveAsk,_fsUnlinkGo,_fsReplaceAsk,_defUncureAsk,_filingRemoveAsk,_filingRemoveGo}); }catch(e){}
+/* ================== PAGE EDITOR (Oct 2026) ==================
+   The owner: "edit the defect pages in the app and save them separately as a copy". Industry-standard, minimal:
+   a thin top bar (close · title · undo/redo · zoom · Save), one row of tools, page thumbnails on the left
+   (desktop), the pages in the middle; on a phone the tools sit at the bottom.
+   It edits COPIES of the chosen filing-copy pages in place — the wrong words are whited out and the new words
+   typed at the same spot and size in Times (the paper books are Times New Roman); nothing is retyped or reflowed.
+   Edits are kept as a list of operations, so "Edit again" reopens them; Save draws them with pdf-lib into
+   "5.N Corrected - <part>.pdf" and attaches it to the defect. The filing copy itself is never changed. */
+var _pe=null;
+const _PE_TOOLS=[["select","Select","M4 3l7 17 2-7 7-2z"],["text","Edit text","M4 7V4h16v3M9 20h6M12 4v16"],["add","Add text","M12 5v14M5 12h14"],
+  ["white","White-out","M3 5h18v14H3z"],["tick","Tick","M4 12l5 5L20 6"],["truecopy","TRUE COPY","M4 18h16M7 14h10"],["num","Page no.","M10 4L8 20M16 4l-2 16M4 9h17M3 15h17"]];
+function _peIcon(d){ return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`; }
+/* 1 · choose the pages (the defect's own pages are ticked) */
+async function _peOpenAsk(did,pid){
+  const {p}=_defFind(did,pid); if(!p) return;
+  _progressModal("Opening…","Fetching the filing copy…");
+  let ctx; try{ ctx=await _flLoadCtx(); }catch(e){ closeModal(); toast(e.message,true); return; }
+  const res=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},ctx);
+  const prev=p.cure&&p.cure.edit;
+  if(!res.idx.length&&!prev){ closeModal();
+    openModal("Not in the filing copy", `<div class="hint">“${esc(p.label)}” has no pages in the filing copy to edit${p.pages?` (pages ${esc(p.pages)} were not found)`:""}. Bring the cured document in from outside with <b>Add cured document</b>, or set its pages first.</div>
+      <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn ghost" onclick="closeModal();_defPagesAsk('${did}','${pid}')">Set pages</button><button class="btn seal" onclick="closeModal();_defAttachAsk('${did}','${pid}')">Add cured document</button></div>`); return; }
+  const lab=i=>ctx.labelOf[i]||("PDF "+(i+1));
+  const sel=prev?prev.pages:res.idx;
+  closeModal();
+  openModal("Edit pages — "+p.label, `<div class="hint" style="margin-bottom:8px">${prev?"Your earlier edits are kept. ":""}Tick the pages to edit. Only these pages are saved as the corrected copy and refiled in place of the originals.</div>
+    <div class="pe-pick">${(res.idx.length?res.idx:sel).map(i=>`<label class="pe-pk"><input type="checkbox" value="${i}" ${sel.includes(i)?"checked":""}><canvas data-i="${i}"></canvas><span>${esc(lab(i))}</span></label>`).join("")}</div>
+    <label class="fld" style="margin-top:8px">Add other pages <span style="color:var(--muted);font-weight:400">(printed numbers, e.g. 63-64)</span></label><input class="in mono" id="pePlus">
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_peOpenGo('${did}','${pid}')">Open editor</button></div>`);
+  document.getElementById("modal").classList.add("m-wide");
+  for(const c of document.querySelectorAll(".pe-pick canvas")){ try{ const pg=await ctx.doc.getPage(+c.dataset.i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:110/v0.width}); c.width=vp.width; c.height=vp.height; await pg.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise; }catch(e){} }
+}
+async function _peOpenGo(did,pid){
+  const {p}=_defFind(did,pid); const ctx=await _flLoadCtx();
+  let idx=[...document.querySelectorAll(".pe-pick input:checked")].map(x=>+x.value);
+  const plus=((document.getElementById("pePlus")||{}).value||"").trim();
+  if(plus){ const r=_resolvePart({pages:plus},ctx); if(r.miss.length&&!r.idx.length){ toast(`Pages “${plus}” are not in the filing copy.`,true); return; } idx=idx.concat(r.idx); }
+  idx=[...new Set(idx)].sort((a,b)=>a-b); if(!idx.length){ toast("Tick at least one page.",true); return; }
+  closeModal(); _peStart({did,pid,ctx,idx,prev:p.cure&&p.cure.edit,label:p.label});
+}
+/* 2 · the editor */
+function _peStart(o){
+  const prevOps=(o.prev&&JSON.stringify(o.prev.pages)===JSON.stringify(o.idx))?(o.prev.ops||[]):[];
+  _pe={did:o.did,pid:o.pid,ctx:o.ctx,idx:o.idx,label:o.label,ops:prevOps.map(x=>Object.assign({},x)),undo:[],redo:[],tool:"text",zoom:1,sel:null,dirty:false,pages:[]};
+  let ov=document.getElementById("peOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="peOverlay"; document.body.appendChild(ov); }
+  ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_peClose()" title="Close (Esc)">✕</button><div class="pe-ttl"><b>${esc(o.label)}</b><span>${o.idx.map(i=>o.ctx.labelOf[i]||("p"+(i+1))).join(", ")}</span></div>
+      <button class="pe-ib" id="peUndo" onclick="_peUndo()" title="Undo (⌘Z)">↶</button><button class="pe-ib" id="peRedo" onclick="_peRedo()" title="Redo (⇧⌘Z)">↷</button>
+      <span class="pe-zm"><button class="pe-ib" onclick="_peZoom(-1)" title="Zoom out">−</button><span id="peZv">100%</span><button class="pe-ib" onclick="_peZoom(1)" title="Zoom in">+</button></span>
+      <button class="btn seal sm pe-save" onclick="_peSave()">Save</button></div>
+    <div class="pe-tools">${_PE_TOOLS.map(([k,l,d])=>`<button class="pe-t" data-t="${k}" onclick="_peTool('${k}')" title="${l}">${_peIcon(d)}<span>${l}</span></button>`).join("")}<span class="pe-hint" id="peHint"></span></div>
+    <div class="pe-body"><div class="pe-thumbs" id="peThumbs"></div><div class="pe-main" id="peMain"></div></div>`;
+  ov.classList.add("show"); document.body.style.overflow="hidden";
+  document.addEventListener("keydown",_peKey);
+  _peTool("text"); _peRender();
+}
+const _PE_HINT={select:"Tap something you added to move or delete it",text:"Tap a line to change its words",add:"Tap where the text should go",white:"Drag over what should be hidden",tick:"Tap a box to tick it",truecopy:"Tap where the TRUE COPY line goes (you sign above it)",num:"Tap a page to write its page number at the top"};
+function _peTool(t){ if(!_pe) return; _peCommitInput(); _pe.tool=t; _pe.sel=null;
+  document.querySelectorAll(".pe-t").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); const h=document.getElementById("peHint"); if(h) h.textContent=_PE_HINT[t]||"";
+  document.querySelectorAll(".pe-pg").forEach(el=>el.dataset.tool=t); _peDrawOps(); }
+function _peZoom(d){ if(!_pe) return; _peCommitInput(); _pe.zoom=Math.max(0.5,Math.min(2.5,+(_pe.zoom+(d*0.25)).toFixed(2))); _peRender(); }
+async function _peRender(){
+  const main=document.getElementById("peMain"), th=document.getElementById("peThumbs"); if(!main) return;
+  const zv=document.getElementById("peZv"); if(zv) zv.textContent=Math.round(_pe.zoom*100)+"%";
+  const avail=Math.min(900,(main.clientWidth||window.innerWidth)-32);
+  main.innerHTML=""; th.innerHTML=""; _pe.pages=[];
+  for(let k=0;k<_pe.idx.length;k++){ const i=_pe.idx[k];
+    const pg=await _pe.ctx.doc.getPage(i+1); const v0=pg.getViewport({scale:1}); const s=(avail/v0.width)*_pe.zoom; const vp=pg.getViewport({scale:s});
+    const wrap=document.createElement("div"); wrap.className="pe-pg"; wrap.dataset.k=k; wrap.dataset.tool=_pe.tool; wrap.style.width=vp.width+"px"; wrap.style.height=vp.height+"px";
+    const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
+    wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.textContent="Page "+(_pe.ctx.labelOf[i]||("PDF "+(i+1))); main.appendChild(cap); main.appendChild(wrap);
+    await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
+    const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
+    _pe.pages.push({k,i,s,w:v0.width,h:v0.height,segs,wrap,lay});
+    _peWire(_pe.pages[_pe.pages.length-1]);
+    const t=document.createElement("canvas"); const tv=pg.getViewport({scale:90/v0.width}); t.width=tv.width; t.height=tv.height; await pg.render({canvasContext:t.getContext("2d"),viewport:tv,intent:"print"}).promise;
+    const tb=document.createElement("button"); tb.className="pe-th"; tb.appendChild(t); const tl=document.createElement("span"); tl.textContent=_pe.ctx.labelOf[i]||("p"+(i+1)); tb.appendChild(tl); tb.onclick=()=>wrap.scrollIntoView({behavior:"smooth",block:"start"}); th.appendChild(tb);
+  }
+  _peDrawOps(); _peBtns();
+}
+// the page's text as line pieces (a table row's cells stay separate)
+function _peSegs(tc,v0,pg){
+  const its=tc.items.filter(it=>it.str&&it.str.trim()).map(it=>{ const z=Math.hypot(it.transform[2],it.transform[3])||Math.abs(it.transform[0])||11;
+    let bold=false; try{ const f=pg.commonObjs.get(it.fontName); bold=/bold|black|heavy|semibold/i.test((f&&(f.name||f.loadedName))||""); }catch(e){}
+    return {s:it.str, x:it.transform[4], y:v0.height-it.transform[5], w:it.width||z*it.str.length*0.5, z, bold}; }).sort((a,b)=>Math.abs(a.y-b.y)>2?a.y-b.y:a.x-b.x);
+  const segs=[]; let cur=null;
+  its.forEach(it=>{ if(cur&&Math.abs(it.y-cur.y)<=2&&it.x-cur.x1<cur.z*1.6){ const gap=it.x-cur.x1; cur.s+=(gap>cur.z*0.15&&!/\s$/.test(cur.s)&&!/^\s/.test(it.s)?" ":"")+it.s; cur.x1=it.x+it.w; cur.bold=cur.bold&&it.bold; }
+    else{ cur={s:it.s,x0:it.x,x1:it.x+it.w,y:it.y,z:it.z,bold:it.bold}; segs.push(cur); } });
+  segs.forEach(sg=>sg.s=sg.s.replace(/\s+/g," ").trim());
+  return segs.filter(sg=>sg.s);
+}
+function _peWire(P){
+  const el=P.wrap; let drag=null;
+  const pt=e=>{ const r=el.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:(c.clientX-r.left)/P.s, y:(c.clientY-r.top)/P.s}; };
+  el.addEventListener("pointerdown",e=>{ if(!_pe||e.target.closest(".pe-in,.pe-x")) return; const q=pt(e); const t=_pe.tool;
+    if(t==="white"){ drag={x:q.x,y:q.y}; el.setPointerCapture(e.pointerId); return; }
+    if(t==="select"){ const op=e.target.closest("[data-op]"); if(op){ _pe.sel=+op.dataset.op; const o=_pe.ops[_pe.sel]; if(o.t!=="replace"&&o.t!=="num"){ drag={mv:true,x:q.x,y:q.y,ox:o.rect?o.rect.x:o.x,oy:o.rect?o.rect.y:o.y,moved:false,prev:JSON.parse(JSON.stringify(o))}; el.setPointerCapture(e.pointerId); } _peDrawOps(); } else { _pe.sel=null; _peDrawOps(); } return; }
+    if(t==="text"){ const sg=_peSegAt(P,q); if(sg) _peEditSeg(P,sg); return; }
+    if(t==="add"){ _peAddAt(P,q); return; }
+    if(t==="tick"){ _pePush({k:P.k,t:"tick",x:q.x,y:q.y,s:10}); return; }
+    if(t==="truecopy"){ _pePush({k:P.k,t:"truecopy",x:Math.min(q.x,P.w-160),y:q.y}); return; }
+    if(t==="num"){ const def=_pe.ctx.labelOf[P.i]||""; const v=prompt("Page number to write at the top of this page",def); if(v&&v.trim()) _pePush({k:P.k,t:"num",str:v.trim()}); return; } });
+  el.addEventListener("pointermove",e=>{ if(!drag) return; const q=pt(e);
+    if(drag.mv){ const o=_pe.ops[_pe.sel]; if(!o) return; const dx=q.x-drag.x, dy=q.y-drag.y; if(Math.abs(dx)+Math.abs(dy)>1) drag.moved=true; if(o.rect){ o.rect.x=drag.ox+dx; o.rect.y=drag.oy+dy; } else { o.x=drag.ox+dx; o.y=drag.oy+dy; } _peDrawOps(); return; }
+    drag.x2=q.x; drag.y2=q.y; _peDrawOps({k:P.k,rect:{x:Math.min(drag.x,q.x),y:Math.min(drag.y,q.y),w:Math.abs(q.x-drag.x),h:Math.abs(q.y-drag.y)}}); });
+  el.addEventListener("pointerup",e=>{ if(!drag) return; const d=drag; drag=null;
+    if(d.mv){ if(d.moved){ _pe.dirty=true; _pe.undo.push({set:_pe.sel,prev:d.prev}); _pe.redo=[]; _peBtns(); } _peDrawOps(); return; }
+    if(d.x2==null) return; const r={x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)}; if(r.w<3||r.h<3){ _peDrawOps(); return; }
+    _pePush({k:P.k,t:"white",rect:r}); });
+}
+function _peSegAt(P,q){ return P.segs.find(sg=>q.x>=sg.x0-2&&q.x<=sg.x1+2&&q.y>=sg.y-sg.z*0.95&&q.y<=sg.y+sg.z*0.35); }
+function _peAvail(P,x,y,z){ const nxt=P.segs.filter(sg=>Math.abs(sg.y-y)<=2&&sg.x0>x+2).sort((a,b)=>a.x0-b.x0)[0]; return (nxt?nxt.x0-4:P.w-36)-x; }
+const _PE_CANVAS=document.createElement("canvas");
+function _peMeasure(str,size,bold){ const g=_PE_CANVAS.getContext("2d"); g.font=`${bold?"bold ":""}${size}px "Times New Roman", Times, serif`; return g.measureText(str).width; }
+/* tap a line → edit its words in place */
+function _peEditSeg(P,sg){
+  _peCommitInput();
+  const ex=_pe.ops.findIndex(o=>o.t==="replace"&&o.k===P.k&&Math.abs(o.rect.x-(sg.x0-1))<0.5&&Math.abs(o.y-sg.y)<0.5);
+  const cur=ex>=0?_pe.ops[ex]:null; const avail=_peAvail(P,sg.x0,sg.y,sg.z);
+  _peInput(P,{x:sg.x0,y:sg.y,size:cur?cur.size:sg.z,bold:cur?cur.bold:sg.bold,str:cur?cur.str:sg.s,orig:sg.s,avail,seg:sg,ex});
+}
+function _peAddAt(P,q){ _peCommitInput(); const near=P.segs.slice().sort((a,b)=>Math.abs(a.y-q.y)-Math.abs(b.y-q.y))[0]; const z=near?Math.round(near.z*10)/10:12;
+  _peInput(P,{x:q.x,y:q.y+z*0.35,size:z,bold:false,str:"",orig:null,avail:P.w-36-q.x,add:true}); }
+function _peInput(P,o){
+  const box=document.createElement("div"); box.className="pe-in"; box.style.left=(o.x*P.s)+"px"; box.style.top=((o.y-o.size*0.95)*P.s)+"px";
+  box.innerHTML=`<input type="text" value="${esc(o.str)}" style="font-size:${o.size*P.s}px;${o.bold?"font-weight:700;":""}width:${Math.max(160,(Math.max(o.avail,_peMeasure(o.str,o.size,o.bold))+20)*P.s)}px">
+    <div class="pe-mini"><button data-a="sm" title="Smaller">A−</button><button data-a="lg" title="Larger">A+</button><button data-a="b" title="Bold"><b>B</b></button><span class="pe-fit"></span><button data-a="ok" class="ok" title="Done (Enter)">✓</button><button data-a="no" title="Cancel (Esc)">✕</button></div>`;
+  P.wrap.appendChild(box); const inp=box.querySelector("input"); _pe.input={P,o,box,inp};
+  const fit=()=>{ const w=_peMeasure(inp.value,o.size,o.bold); const f=box.querySelector(".pe-fit"); if(!f) return;
+    f.textContent=w>o.avail+0.5?(w>o.avail/0.85?"Too long for this line":"Will be set a little smaller to fit"):""; f.className="pe-fit"+(w>o.avail/0.85?" bad":w>o.avail+0.5?" warn":""); };
+  inp.addEventListener("input",fit); fit();
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); _peCommitInput(); } else if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); _peCancelInput(); } });
+  box.querySelectorAll(".pe-mini button").forEach(b=>b.onclick=e=>{ e.preventDefault(); const a=b.dataset.a;
+    if(a==="ok") return _peCommitInput(); if(a==="no") return _peCancelInput();
+    if(a==="sm") o.size=Math.max(6,+(o.size-0.5).toFixed(1)); if(a==="lg") o.size=Math.min(30,+(o.size+0.5).toFixed(1)); if(a==="b") o.bold=!o.bold;
+    inp.style.fontSize=(o.size*P.s)+"px"; inp.style.fontWeight=o.bold?"700":"400"; fit(); inp.focus(); });
+  setTimeout(()=>{ inp.focus(); const n=inp.value.length; try{ inp.setSelectionRange(n,n); }catch(e){} },20);
+}
+function _peCancelInput(){ if(!_pe||!_pe.input) return; _pe.input.box.remove(); _pe.input=null; }
+function _peCommitInput(){
+  if(!_pe||!_pe.input) return; const {P,o,box,inp}=_pe.input; _pe.input=null; box.remove();
+  let str=inp.value.replace(/\s+/g," ").trim();
+  if(o.add){ if(str) _pePush({k:P.k,t:"text",x:o.x,y:o.y,size:o.size,bold:o.bold,str}); return; }
+  if(o.ex>=0&&!str&&o.str){ /* emptied an earlier edit: keep it as a blank (the words stay hidden) */ }
+  if(str===o.orig&&o.ex<0) return;
+  let size=o.size; const w=_peMeasure(str,size,o.bold); if(w>o.avail+0.5&&w<=o.avail/0.85) size=+(size*o.avail/w).toFixed(2);
+  const sg=o.seg; const op={k:P.k,t:"replace",rect:{x:sg.x0-1,y:sg.y-sg.z*0.95,w:Math.max(sg.x1-sg.x0+2,0),h:sg.z*1.32},x:sg.x0,y:sg.y,size,bold:o.bold,str,orig:o.orig};
+  if(o.ex>=0){ _pe.undo.push({set:o.ex,prev:Object.assign({},_pe.ops[o.ex])}); _pe.ops[o.ex]=op; _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+  else _pePush(op);
+}
+function _pePush(op){ _pe.ops.push(op); _pe.undo.push({add:_pe.ops.length-1}); _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+function _peUndo(){ if(!_pe) return; _peCommitInput(); const u=_pe.undo.pop(); if(!u) return;
+  if(u.add!=null){ const op=_pe.ops.splice(u.add,1)[0]; _pe.redo.push({op}); }
+  else if(u.set!=null){ const now=_pe.ops[u.set]; _pe.ops[u.set]=u.prev; _pe.redo.push({set:u.set,prev:now}); }
+  else if(u.del!=null){ _pe.ops.splice(u.del,0,u.op); _pe.redo.push({redel:u.del}); }
+  _pe.sel=null; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+function _peRedo(){ if(!_pe) return; const r=_pe.redo.pop(); if(!r) return;
+  if(r.op){ _pe.ops.push(r.op); _pe.undo.push({add:_pe.ops.length-1}); }
+  else if(r.set!=null){ const now=_pe.ops[r.set]; _pe.ops[r.set]=r.prev; _pe.undo.push({set:r.set,prev:now}); }
+  else if(r.redel!=null){ const op=_pe.ops.splice(r.redel,1)[0]; _pe.undo.push({del:r.redel,op}); }
+  _pe.dirty=true; _peDrawOps(); _peBtns(); }
+function _peDelSel(){ if(!_pe||_pe.sel==null) return; const op=_pe.ops.splice(_pe.sel,1)[0]; _pe.undo.push({del:_pe.sel,op}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+function _peBtns(){ const u=document.getElementById("peUndo"), r=document.getElementById("peRedo"); if(u) u.disabled=!_pe.undo.length; if(r) r.disabled=!_pe.redo.length; }
+// show the operations over the pages (the saved PDF is drawn the same way by pdf-lib)
+function _peDrawOps(temp){
+  if(!_pe) return;
+  _pe.pages.forEach(P=>{ const L=P.lay; L.innerHTML=""; const s=P.s;
+    const add=(op,ix)=>{ const sel=ix===_pe.sel?" sel":"", da=ix!=null?` data-op="${ix}"`:"";
+      if(op.t==="white"||op.t==="replace"){ L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-w${sel}"${da} style="left:${op.rect.x*s}px;top:${op.rect.y*s}px;width:${op.rect.w*s}px;height:${op.rect.h*s}px"></div>`); }
+      if(op.t==="replace"||op.t==="text") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-tx${sel}"${da} style="left:${op.x*s}px;top:${(op.y-op.size*0.86)*s}px;font-size:${op.size*s}px;${op.bold?"font-weight:700;":""}">${esc(op.str)}</div>`);
+      if(op.t==="tick") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-tk${sel}"${da} style="left:${(op.x-op.s/2)*s}px;top:${(op.y-op.s/2)*s}px;width:${op.s*s}px;height:${op.s*s}px">${_peIcon("M4 12l5 5L20 6")}</div>`);
+      if(op.t==="truecopy") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-tc${sel}"${da} style="left:${op.x*s}px;top:${op.y*s}px;width:${150*s}px;font-size:${12*s}px"><div class="pe-tcl" style="margin-top:${19*s}px"></div><div style="margin-top:${3*s}px">TRUE COPY</div></div>`);
+      if(op.t==="num") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-nm${sel}"${da} style="top:${(36-12)*s}px;font-size:${12*s}px">${esc(op.str)}</div>`);
+    };
+    _pe.ops.forEach((op,ix)=>{ if(op.k===P.k) add(op,ix); });
+    if(temp&&temp.k===P.k) L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-w pe-drag" style="left:${temp.rect.x*s}px;top:${temp.rect.y*s}px;width:${temp.rect.w*s}px;height:${temp.rect.h*s}px"></div>`);
+    if(_pe.tool==="text") P.segs.forEach(sg=>L.insertAdjacentHTML("beforeend",`<div class="pe-hl" style="left:${(sg.x0-1)*s}px;top:${(sg.y-sg.z*0.95)*s}px;width:${(sg.x1-sg.x0+2)*s}px;height:${sg.z*1.25*s}px"></div>`));
+    if(_pe.sel!=null&&_pe.ops[_pe.sel]&&_pe.ops[_pe.sel].k===P.k){ const op=_pe.ops[_pe.sel]; const x=op.rect?op.rect.x+op.rect.w:(op.x||0)+40, y=op.rect?op.rect.y:(op.y||36)-20;
+      L.insertAdjacentHTML("beforeend",`<button class="pe-x" style="left:${x*s+4}px;top:${y*s-4}px" onclick="_peDelSel()" title="Delete">✕</button>`); }
+  });
+}
+function _peKey(e){ if(!_pe) return;
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="z"){ e.preventDefault(); e.shiftKey?_peRedo():_peUndo(); return; }
+  if(e.key==="Escape"&&!_pe.input){ _peClose(); return; }
+  if((e.key==="Delete"||e.key==="Backspace")&&_pe.sel!=null&&!_pe.input){ e.preventDefault(); _peDelSel(); } }
+function _peClose(force){ if(!_pe) return; _peCommitInput();
+  if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes to these pages will be lost.")) return;
+  document.removeEventListener("keydown",_peKey); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
+/* 3 · save: copies of the pages + the operations, drawn with pdf-lib; attached to the defect */
+async function _peSave(){
+  if(!_pe) return; _peCommitInput(); const E=_pe;
+  if(!E.ops.length&&!confirm("Nothing has been changed. Save these pages as they are?")) return;
+  const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
+  _progressModal("Saving…","Making the corrected pages…");
+  try{
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const fR=await out.embedFont(StandardFonts.TimesRoman), fB=await out.embedFont(StandardFonts.TimesRomanBold), fH=await out.embedFont(StandardFonts.HelveticaBold);
+    const pages=await out.copyPages(src,E.idx);
+    pages.forEach((pg,k)=>{ out.addPage(pg); const H=pg.getSize().height, W=pg.getSize().width;
+      E.ops.filter(o=>o.k===k).forEach(o=>{
+        if(o.t==="white"||o.t==="replace") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,color:rgb(1,1,1)});
+        if((o.t==="replace"||o.t==="text")&&o.str){ const f=o.bold?fB:fR; let sz=o.size; const clean=String(o.str).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-");
+          try{ pg.drawText(clean,{x:o.x,y:H-o.y,size:sz,font:f,color:rgb(0,0,0)}); }
+          catch(e){ pg.drawText(clean.replace(/[^\x20-\x7e\xa0-\xff]/g,""),{x:o.x,y:H-o.y,size:sz,font:f,color:rgb(0,0,0)}); } }
+        if(o.t==="tick"){ const s=o.s, x=o.x, y=H-o.y; pg.drawLine({start:{x:x-s*0.35,y},end:{x:x-s*0.08,y:y-s*0.3},thickness:1.2,color:rgb(0,0,0)}); pg.drawLine({start:{x:x-s*0.08,y:y-s*0.3},end:{x:x+s*0.4,y:y+s*0.35},thickness:1.2,color:rgb(0,0,0)}); }
+        if(o.t==="truecopy"){ const x=o.x, y=H-o.y; pg.drawLine({start:{x:x+5,y:y-20},end:{x:x+145,y:y-20},thickness:0.8,color:rgb(0,0,0)}); const tw=fH.widthOfTextAtSize("TRUE COPY",12); pg.drawText("TRUE COPY",{x:x+75-tw/2,y:y-35,size:12,font:fH,color:rgb(0,0,0)}); }
+        if(o.t==="num"){ const tw=fR.widthOfTextAtSize(o.str,12); pg.drawRectangle({x:W/2-tw/2-7,y:H-41,width:tw+14,height:20,color:rgb(1,1,1)}); pg.drawText(o.str,{x:W/2-tw/2,y:H-36,size:12,font:fR,color:rgb(0,0,0)}); }
+      }); });
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _progressSet("Saving in stage 5…",0.6);
+    const old=p.cure&&p.cure.how==="edit"?p.cure.file:"";
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected - ${_safeName(p.label).replace(/[—–]/g,"-")}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
+    const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},E.ctx).idx;
+    if(E.idx.length<all.length||E.idx.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.idx.map(i=>E.ctx.labelOf[i]||("p"+(i+1))).join(", "); }
+    p.cure={file:name,pages:"all",how:"edit",mode:"replace",edit:{pages:E.idx,ops:E.ops,by:_aiWho(),at:new Date().toISOString()}};
+    _defCheckDone(d); _filingTouch(rec);
+    if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }   // the earlier edited copy goes to _to_delete
+    closeModal(); _peClose(true); toast("Saved — the corrected pages are attached to this defect."); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+
+/* every defect: Edit pages or Add cured document — a general defect (no part yet) gets a part on first use */
+function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
+  if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
+  then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
+try{ Object.assign(window,{_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -24971,7 +25227,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1000";
+  window.APP_VERSION = "2026.10.09-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
