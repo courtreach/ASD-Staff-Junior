@@ -2072,6 +2072,25 @@
   @media (max-width:760px){ .pe-thumbs{display:none} .pe-main{padding:8px 6px 90px} .pe-hint{display:none} .pe-zm span{display:none}
     .pe-tools{position:fixed;left:0;right:0;bottom:0;z-index:2;border-top:1px solid var(--line);border-bottom:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom));justify-content:space-between}
     .pe-t{flex-direction:column;gap:2px;font-size:10.5px;padding:5px 6px} }
+  .wz{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;margin:2px 0 14px;border-bottom:1px solid var(--line);scrollbar-width:thin}
+  .wz-s{flex:none;display:flex;align-items:center;gap:8px;padding:6px 13px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font:inherit;font-size:12.5px;color:var(--ink);text-align:left;line-height:1.2}
+  .wz-s:hover{border-color:var(--seal)} .wz-s.mut{opacity:.75}
+  .wz-d{flex:none;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:700;border:1.5px solid var(--line);color:var(--muted)}
+  .wz-s.done .wz-d{background:#2e7d32;border-color:#2e7d32;color:#fff}
+  .wz-s.on{border-color:var(--seal);background:var(--seal);color:#fff} .wz-s.on .wz-d{border-color:rgba(255,255,255,.8);color:#fff;background:transparent} .wz-s.on.done .wz-d{background:#2e7d32;border-color:#2e7d32}
+  .wz-l small{display:block;font-size:10.5px;opacity:.72;font-weight:400;margin-top:1px}
+  .wz-page{min-height:46vh} .wz-h{font-size:19px;font-weight:700;margin:4px 0 4px;color:var(--ink)} .wz-sub{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .wz-card{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--card)} .wz-row{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;font-size:13.5px} .wz-row>span:first-child{color:var(--muted)}
+  .anx-e{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:5px 0;border-top:1px solid var(--line2);font-size:13px} .anx-e:first-of-type{border-top:0} .anx-e.ok span:last-child{color:#2e7d32;font-weight:700}
+  .fd-g{border:1px solid var(--line);border-radius:12px;background:var(--card);margin-bottom:10px} .fd-g>summary{cursor:pointer;padding:11px 14px;font-weight:700;font-size:14px;list-style:none} .fd-g>summary::-webkit-details-marker{display:none} .fd-g>summary::after{content:"▾";float:right;color:var(--muted)} .fd-g:not([open])>summary::after{content:"▸"}
+  .fd-b{padding:0 14px 12px} .fd-r{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:start;padding:5px 0;border-top:1px solid var(--line2)} .fd-r:first-child{border-top:0} .fd-r>label{font-size:12.5px;color:var(--muted);padding-top:8px}
+  .fd-n{font-size:11.5px;color:var(--muted);margin-top:3px} .fd-o{border-left:3px solid var(--line);padding-left:10px;margin-bottom:8px} .fd-oh{font-weight:600;font-size:12.5px;margin:4px 0}
+  .fd-a{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;padding:3px 0}
+  @media (max-width:640px){ .fd-r{grid-template-columns:1fr;gap:2px} .fd-r>label{padding-top:2px} }
+  .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px} .fp-c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)} .fp-t{font-weight:700} .fp-s{font-size:12px;color:var(--muted);margin:3px 0 8px}
+  .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
+  .anx-rows{display:flex;flex-direction:column;gap:6px} .anx-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap} .anx-p{font-weight:700} .anx-n{width:58px} .anx-f{width:64px} .anx-l{color:var(--muted);font-size:12px} .anx-t{flex:1;min-width:180px}
+  .anx-th{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:260px;overflow:auto;padding:6px;background:var(--line2);border-radius:8px} .anx-tc{display:flex;flex-direction:column;align-items:center;font-size:10.5px;color:var(--muted)} .anx-tc canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff}
   .fsec-big{margin:12px 0 14px} .fsec-big .fsec-b{padding:13px 16px} .fsec-big .fsec-b b{font-size:16px}
   .fh-slim{padding-bottom:10px} .fh-slim .fh-meta{margin-top:6px} .fh-ref{margin-bottom:10px;padding-top:10px}
   .fsec{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px} .fsec-b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;font:inherit;color:var(--ink)}
@@ -19605,20 +19624,80 @@ function _filingViewHTML(){
       <div class="fh-meta"><span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span>${isStaffView()?"":`<span><button class="link-btn" style="color:var(--muted)" onclick="_filingRemoveAsk()">remove this filing</button></span>`}</div></div>`;
   const secSw=`<div class="fsec fsec-big"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_fsSetSec('filing')"><b>Filing</b><span>${lastC?(lastC.final?"Final filing copy ready":"Filing copy ready"):fsd.have?fsd.have+" of "+fsd.of+" documents":"Documents, numbering, filing copy"}</span></button><button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_fsSetSec('refiling')"><b>Refiling</b><span>${stg.tot?esc(stg.l):"Starts with the registry's defect list"}</span></button></div>`;
   if(sec==="filing") return title+secSw+`<div class="fv-box fsec-page">${_fsHTML(rec)}</div>`;
-  const meta=`<div class="fh fh-ref">
-      <div class="fh-meta">
-        ${listDate?`<span>Defect list <b>${esc(listDate)}</b></span>`:`<span><b>No defect list yet</b></span>`}
-        <span>Filing copy ${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>48?fc.name.slice(0,46)+"…":fc.name)}</button>${fc.linked?` <span class="hint">(in the case folder)</span>`:""} <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> <button class="link-btn" onclick="_flLinkFCAsk()">link</button>`}</span>
-      </div>
-      ${stg.tot?_flStepper(stg.k):""}
-    </div>`;
-  const tab=(v,l)=>`<button class="fsg-b ${st.view===v?"on":""}" onclick="_flState().touched=1;_flSet('view','${v}')">${l}</button>`;
-  const tabs=`<div class="fsg">${tab("defects",`Defects${stg.tot?` <b>${stg.open}</b>`:""}`)}${tab("stages","Papers")}${tab("check","Check")}</div>`;
-  let body;
-  if(st.view==="defects") body=_defectsHTML(rec);
-  else if(st.view==="check") body=_checkHTML(rec);
-  else body=_flPapersHTML(rec, fc);
-  return title+secSw+`<div class="fsec-page">`+meta+_flNextHTML(rec,stg,fc)+tabs+`<div class="fv-box">${body}</div></div>`;
+  return title+secSw+`<div class="fsec-page">${_rfWizardHTML(rec,stg,fc,listDate)}</div>`;
+}
+/* ---- step-by-step (owner, Oct 2026): one step fills the screen; the outline of all steps stays on top ---- */
+function _wzRail(steps, open, fn){
+  return `<div class="wz" role="tablist">${steps.map((x,i)=>`<button class="wz-s ${x.k===open?"on":""} ${x.done?"done":""} ${x.muted?"mut":""}" onclick="${fn}('${x.k}')" role="tab" aria-selected="${x.k===open}">
+      <span class="wz-d">${x.done?"✓":x.icon||i+1}</span><span class="wz-l">${esc(x.l)}${x.sub?`<small>${esc(x.sub)}</small>`:""}</span></button>`).join("")}</div>`;
+}
+function _wzNav(steps, open, fn){
+  const real=steps.filter(x=>!x.muted); const i=real.findIndex(x=>x.k===open); if(i<0) return "";
+  const pv=real[i-1], nx=real[i+1];
+  return `<div class="wz-nav">${pv?`<button class="btn ghost sm" onclick="${fn}('${pv.k}')">← ${esc(pv.l)}</button>`:"<span></span>"}${nx?`<button class="btn ${steps[i]&&steps[i].done?"seal":"ghost"} sm" onclick="${fn}('${nx.k}')">${esc(nx.l)} →</button>`:""}</div>`;
+}
+function _rfGo(k){ const st=_flState(); st.rstep=k; st.touched=1; renderFilesPage(); try{ document.querySelector(".wz").scrollIntoView({block:"start",behavior:"smooth"}); }catch(e){} }
+function _rfWizardHTML(rec, stg, fc, listDate){
+  const st=_flState(), owner=!isStaffView();
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  const ds=rec.defects||[], refs=rec.refilings||[], last=refs[refs.length-1], fin=(rec.finals||[]).slice(-1)[0];
+  const blocking=ds.filter(d=>d.status==="open"&&/^(pages|doc|new)$/.test(d.kind)).length;
+  const aiN=x=>ds.filter(d=>d.ai&&d.ai.status===x).length, aiRev=aiN("review"), aiQ=aiN("question");
+  const signed=!!(last&&last.signed);
+  const steps=[
+    {k:"list",l:"Defect list",done:stg.tot>0,sub:stg.tot?`${stg.tot} defect${stg.tot===1?"":"s"}${listDate?" · "+listDate:""}`:"not read yet"},
+    {k:"cure",l:"Cure defects",done:stg.tot>0&&!blocking&&!(owner&&(aiRev||aiQ)),sub:stg.tot?(blocking?`${blocking} to go`:"all cured"):""},
+    {k:"pages",l:"Defect pages",done:!!last,sub:last?`${last.pages||""} pages`:""},
+    {k:"sign",l:"Approve & sign",done:signed||!!fin,sub:last?(signed?"final":last.ok?"approved — to sign":last.back?"sent back":"awaiting approval"):""},
+    {k:"final",l:"Final copy",done:!!fin,sub:fin?"compiled":""},
+    {k:"files",l:"All files",muted:true,icon:"≡"}];
+  const auto=fin?"final":signed?"final":last?"sign":stg.tot&&!blocking&&!(owner&&(aiRev||aiQ))?"pages":stg.tot?"cure":"list";
+  const open=steps.some(x=>x.k===st.rstep)?st.rstep:auto;
+  const head=(t,sub)=>`<div class="wz-h">${t}</div>${sub?`<div class="wz-sub">${sub}</div>`:""}`;
+  let body="";
+  if(open==="list"){
+    body=head("Defect list", stg.tot?`Read on ${esc(listDate||"—")} · ${stg.tot} defect${stg.tot===1?"":"s"}`:"Save the Defects page from the Supreme Court site as a PDF, then read it here.")+
+      `<div class="wz-card"><div class="wz-row"><span>Filing copy</span><span>${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>56?fc.name.slice(0,54)+"…":fc.name)}</button> <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> — <button class="link-btn" onclick="_flLinkFCAsk()">link it</button> so each defect finds its pages`}</span></div></div>
+      <div class="fn-b" style="margin-top:12px">${btn("_defReadAsk()",stg.tot?"Read a new defect list":"Read defect list",stg.tot?"ghost":"seal")}${btn("_defAddAsk()","Add a defect by hand","ghost")}</div>`;
+  } else if(open==="cure"){
+    const aiFree=ds.filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
+    body=head("Cure the defects", !stg.tot?"Read the defect list first.":blocking?`${blocking} still to cure${owner&&(aiRev||aiQ)?` · <b>${aiRev+aiQ} from the AI clerk to look at</b>`:""}`:"Every defect is cured.")+
+      (owner&&aiFree&&stg.tot?`<div class="fn-b" style="margin-bottom:10px">${btn("_aiQueueAll()","✨ Cure all with AI","ghost")} <span class="hint">${_aiRunHTML()}</span></div>`:"")+
+      (stg.tot?`<div class="fv-box">${_defectsHTML(rec)}</div>`:"");
+  } else if(open==="pages"){
+    const decl=_flStage5(/Declaration/i);
+    body=head("Defect pages", last?`Collated${last.by?" by "+esc(last.by):""}${last.at?" on "+esc(fmtDate(_localISO(new Date(last.at)))):""} · <b>${esc(last.file)}</b>`:blocking?`${blocking} defect${blocking===1?"":"s"} still to cure — collate when all are done.`:"All defects are cured. Put the pages together, numbered as in the paper book.")+
+      (decl?"":`<div class="co-warn" style="margin-bottom:10px">No declaration yet — the defect pages must include one. ${btn("window.__collateAfter=false;_decChkAsk('decl',true)","Add declaration","ghost")}</div>`)+
+      `<div class="fn-b">${btn("_collateAsk()",last?"Collate again":"Collate defect pages",last?"ghost":"seal")}${last?btn("_rvOpen()","Review — before &amp; after")+btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")+btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost"):""}${btn("_flSet('view',_flState().view==='check'?'defects':'check')",st.view==="check"?"Hide page check":"Check pages","ghost")}</div>`+
+      (st.view==="check"?`<div class="fv-box" style="margin-top:12px">${_checkHTML(rec)}</div>`:"");
+  } else if(open==="sign"){
+    body=head("Approve & sign", !last?"Collate the defect pages first.":"")+(last&&!fin?_rfTailHTML(rec):last?`<div class="hint">The final copy has been compiled.</div>`:"");
+  } else if(open==="final"){
+    body=head("Final copy", fin?"":signed?"File the final defect pages, then compile the final filed copy.":"Approve and sign the defect pages first.")+(fin||signed?_rfTailHTML(rec):"");
+  } else if(open==="files"){
+    body=head("All files in this filing","")+`<div class="fv-box">${_flPapersHTML(rec, fc)}</div>`;
+  }
+  return _wzRail(steps,open,"_rfGo")+`<div class="wz-page">${body}</div>`+_wzNav(steps,open,"_rfGo");
+}
+/* the approval → signature → final copy cards (short) */
+function _rfTailHTML(rec){
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  const refs=rec.refilings||[], last=refs[refs.length-1], fin=(rec.finals||[]).slice(-1)[0]; if(!last) return "";
+  const base=_flCleanBase(rec), sg=last.signed, pg=last.pages?` · ${last.pages} page${last.pages===1?"":"s"}`:"";
+  const okLine=last.ok?`<span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:"";
+  if(!last.ok&&!fin){
+    const back=last.back?`<div class="fn-back">Sent back by ${esc(last.back.by||"the Head of Chamber")}: <i>${esc(last.back.note||"")}</i></div>`:"";
+    if(isStaffView()) return `<div class="fn"><div class="fn-t">Waiting for the Head of Chamber's approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}
+      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
+    return `<div class="fn"><div class="fn-t">Your approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}
+      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn("_refApprove()","✓ Approve","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
+  }
+  if(!fin&&!sg) return `<div class="fn"><div class="fn-t">Sign the defect pages</div><div class="fn-s"><b>${esc(last.file)}</b>${pg} ${okLine}</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
+  if(!fin) return `<div class="fn"><div class="fn-t">Final defect pages</div><div class="fn-s"><b>${esc(sg.file)}</b>${sg.nosign?" · no signature needed":" · signed"} ${okLine}</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+  return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s"><b>${esc(fin.file)}</b>${fin.pages?" · "+fin.pages+" pages":""}</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
 function _flPapersHTML(rec, fc){
   const items=_flItems(), base=_filingFolderRel(), can=!!_gkUrl(), st=_flState();
@@ -21090,37 +21169,464 @@ const _FS_SLOTS=[
  {k:"fmemo",l:"Filing memo",g:"num",one:1},
  {k:"vakalat",l:"Vakalatnama",g:"num",one:1,req:1},
  {k:"mop",l:"Memo of parties",g:"num",one:1}];
-const _FS_APPS=["Condonation of delay","Exemption from filing certified copy of the impugned order","Exemption from filing official translation","Permission to file the Special Leave Petition","Stay / interim relief","Other"];
+const _FS_APPS=["Condonation of delay","Exemption from filing certified copy of the impugned order","Exemption from filing official translation","Permission to file the Special Leave Petition","Exemption from surrendering","Suspension of sentence","Stay / interim relief","Other"];
 const _FS_GROUPS=[["front","Front pages","Unnumbered, then A, A1, A2…"],["letters","Synopsis & List of Dates","Lettered B, C, D…"],["num","The paper book","Numbered 1, 2, 3… from the impugned order"]];
 function _fsRec(){ const r=_flRec(); if(!r.fs||typeof r.fs!=="object") r.fs={slots:{},copies:[]}; if(!r.fs.slots) r.fs.slots={}; if(!r.fs.copies) r.fs.copies=[]; return r; }
 function _fsList(r,k){ return ((r.fs&&r.fs.slots&&r.fs.slots[k])||[]).filter(Boolean); }
 function _fsSec(){ const st=_flState(); if(window.__fsSecWant){ st.sec=window.__fsSecWant; window.__fsSecWant=null; } if(!st.sec){ const r=_filingRec(_filingFolderRel(),false); st.sec=(r&&(r.defects||[]).length)?"refiling":"filing"; } return st.sec; }
 function _fsSetSec(v){ _flState().sec=v; renderFilesPage(); }
 function _fsDone(r){ const req=_FS_SLOTS.filter(s=>!s.opt); return {have:req.filter(s=>_fsList(r,s.k).length).length, of:req.length, missReq:_FS_SLOTS.filter(s=>s.req&&!_fsList(r,s.k).length).map(s=>s.l)}; }
-function _fsHTML(rec){
-  const r=rec; if(!r.fs) r.fs={slots:{},copies:[]};
-  const can=!!_gkUrl(), dn=_fsDone(r), last=(r.fs.copies||[]).slice(-1)[0], owner=!isStaffView();
-  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
-  const k=last?3:dn.have?2:1;
-  const steps=["Documents","Collate & number","Filing copy"].concat(owner?["AI check"]:[]);
-  const stepper=`<div class="fs">${steps.map((s,i)=>`<div class="fs-i ${i+1<k?"done":i+1===k?"now":""}"><span class="fs-d">${i+1<k?"✓":i+1}</span><span class="fs-l">${s}</span></div>`).join("")}</div>`;
-  let next;
-  if(!last) next=`<div class="fn"><div class="fn-t">${dn.have<dn.of?`1 · Put each document in its slot — ${dn.have} of ${dn.of} done`:"2 · Collate and number the paper book"}</div>
-      <div class="fn-s">${dn.have<dn.of?"Upload each document below, in its place. Word drafts go in with the PDF saved from Word (that keeps the layout exactly).":"All the documents are in. Collate puts them in paper-book order, numbers the pages (A, A1… · B, C… · 1, 2…), fills the index and the page blanks in the List of Dates, and saves the Filing Copy."}${dn.missReq.length?` <b>Still needed: ${esc(dn.missReq.join(", "))}.</b>`:""}</div>
-      <div class="fn-b">${btn("_fsCollateAsk()","Collate &amp; number",dn.missReq.length?"ghost":"seal")}</div></div>`;
-  else next=`<div class="fn ok"><div class="fn-t">3 · Filing copy ready</div><div class="fn-s"><b>${esc(last.file)}</b>${last.pages?" · "+last.pages+" pages":""}${last.by?" · by "+esc(last.by):""}${last.at?" · "+esc(fmtDate(_localISO(new Date(last.at)))):""}</div>
-      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download")}${btn("_fsCollateAsk()","Collate again","ghost")}${owner&&typeof _fsAiHTML==="function"?"":""}${btn("_fsSetSec('refiling')","Defect list came → Refiling","ghost")}</div>${owner&&typeof _fsAiHTML==="function"?_fsAiHTML(r,last):""}</div>`;
-  const slot=s=>{
-    const xs=_fsList(r,s.k);
-    const rows=xs.map((x,i)=>`<div class="fsl-f"><span class="fsl-n">${s.annex?"P-"+(i+1):s.many?(i+1)+".":""}</span><span class="fsl-m"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(x.file)})">${esc(x.title||x.file)}</button>${x.kind?` <span class="hint">· ${esc(x.kind)}</span>`:""}${x.word?` <span class="hint">· Word: ${esc(x.word)}</span>`:s.word?` <span class="hint" style="color:#9a5b00">· no Word draft</span>`:""}</span>
-        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act fv-more" onclick="event.stopPropagation();_fsMenu(this,'${s.k}',${i})" title="More" aria-label="More">⋯</button></span></div>`).join("");
-    const add=can&&(s.many||!xs.length)?`<button class="btn ${xs.length?"ghost":"seal"} sm" onclick="_fsAddAsk('${s.k}')">${xs.length?"+ Add another":"+ Upload"}</button>`:"";
-    return `<div class="fsl ${xs.length?"has":""}"><div class="fsl-h"><span class="fsl-ck">${xs.length?"✓":s.opt?"○":"•"}</span><span class="fsl-t">${esc(s.l)}${s.opt?` <span class="hint">(if any)</span>`:""}</span>${add}</div>${s.h&&!xs.length?`<div class="fsl-s">${esc(s.h)}</div>`:""}${rows}</div>`;
-  };
-  const groups=_FS_GROUPS.map(([g,l,h])=>`<div class="dg"><div class="dg-h">${l} <span class="hint" style="text-transform:none;letter-spacing:0;font-weight:500">— ${h}</span></div><div class="fsl-box">${_FS_SLOTS.filter(s=>s.g===g).map(slot).join("")}</div></div>`).join("");
-  const older=(r.fs.copies||[]).length>1?`<details class="dr-wait" style="margin-top:10px"><summary>Earlier filing copies · ${r.fs.copies.length-1}</summary>${r.fs.copies.slice(0,-1).reverse().map(c=>`<div class="fsl-f"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(c.file)})">${esc(c.file)}</button> <span class="hint">${c.pages||""} pages · ${esc(fmtDate(_localISO(new Date(c.at))))}</span></div>`).join("")}</details>`:"";
-  return stepper+next+groups+older;
+/* Filing, step by step (owner, Oct 2026): the drafted documents → annexures → applications & papers →
+   case details (read from the documents) → front pages made by the app → Prepare filing copy → AI check (owner).
+   One step fills the screen; the outline of all steps stays on top. */
+const _FS_STEPS=[
+  {k:"docs",l:"Petition",slots:["lod","slp","affidavit","impugned","appendix"],h:"Synopsis & List of Dates, the SLP, affidavit and the impugned order."},
+  {k:"annex",l:"Annexures",slots:["annex"],h:"Upload the annexures. One PDF may hold several — say which pages are which."},
+  {k:"papers",l:"Applications & papers",slots:["apps","fmemo","vakalat","mop"],h:"Applications, filing memo, vakalatnama, memo of parties."},
+  {k:"details",l:"Case details",h:"Read from the documents. Check them — the front pages are made from these."},
+  {k:"front",l:"Front pages",slots:["cover","index","office","proforma"],h:"Cover page, index, office report on limitation and listing proforma — made by the app."},
+  {k:"copy",l:"Filing copy",h:"Everything put together, numbered, the index and page references filled."},
+  {k:"ai",l:"AI check",owner:1,h:"The AI clerk reads the filing copy for anything the registry would object to."}];
+function _fsSlotHTML(r,s){
+  const can=!!_gkUrl(); const xs=_fsList(r,s.k);
+  const rows=xs.map((x,i)=>`<div class="fsl-f"><span class="fsl-n">${s.annex?"P-"+_fsAnxNo(x,i):s.many?(i+1)+".":""}</span><span class="fsl-m"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(x.file)})">${esc(x.title||x.file)}</button>${x.kind?` <span class="hint">· ${esc(x.kind)}</span>`:""}${x.gen?` <span class="hint">· made by the app</span>`:""}${x.word?` <span class="hint">· Word ✓</span>`:s.word?` <span class="hint" style="color:#9a5b00">· no Word draft</span>`:""}</span>
+      <span class="fsl-a">${s.many&&!s.annex&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&!s.annex&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act fv-more" onclick="event.stopPropagation();_fsMenu(this,'${s.k}',${i})" title="More" aria-label="More">⋯</button></span></div>`).join("");
+  const add=can&&(s.many||!xs.length)?`<button class="btn ${xs.length?"ghost":"seal"} sm" onclick="${s.annex?"_fsAnxAsk()":`_fsAddAsk('${s.k}')`}">${xs.length?(s.annex?"+ Add annexures":"+ Add another"):"+ Upload"}</button>`:"";
+  return `<div class="fsl ${xs.length?"has":""}"><div class="fsl-h"><span class="fsl-ck">${xs.length?"✓":s.opt?"○":"•"}</span><span class="fsl-t">${esc(s.l)}${s.opt?` <span class="hint">(if any)</span>`:""}</span>${add}</div>${s.h&&!xs.length?`<div class="fsl-s">${esc(s.h)}</div>`:""}${rows}</div>`;
 }
+function _fsStepDone(r,k){
+  const has=x=>_fsList(r,x).length>0, last=(r.fs.copies||[]).slice(-1)[0];
+  if(k==="docs") return ["lod","slp","affidavit","impugned"].every(has);
+  if(k==="annex"){ const exp=_fsAnxExpected(r), have=_fsList(r,"annex").map((x,i)=>_fsAnxNo(x,i)); return exp.length?exp.every(a=>have.includes(String(a.n).toUpperCase())):have.length>0; }
+  if(k==="papers") return has("vakalat");
+  if(k==="details") return !!(r.fs.details&&r.fs.details.ok);
+  if(k==="front") return ["cover","index","office","proforma"].every(has);
+  if(k==="copy") return !!last;
+  if(k==="ai"){ const a=r.fs.ai; return !!(a&&last&&a.copy===last.file&&/applied|ok|verdict|done/.test(a.status||"")); }
+  return false; }
+function _fsGo(k){ const st=_flState(); st.fstep=k; renderFilesPage(); try{ document.querySelector(".wz").scrollIntoView({block:"start",behavior:"smooth"}); }catch(e){} }
+function _fsHTML(rec){
+  const r=rec; if(!r.fs) r.fs={slots:{},copies:[]}; if(!r.fs.slots) r.fs.slots={}; if(!r.fs.copies) r.fs.copies=[];
+  const owner=!isStaffView(), st=_flState(), last=(r.fs.copies||[]).slice(-1)[0];
+  const sub={docs:()=>{ const n=["lod","slp","affidavit","impugned"].filter(k=>_fsList(r,k).length).length; return n+" of 4"; },
+    annex:()=>{ const n=_fsList(r,"annex").length, e=_fsAnxExpected(r).length; return e?`${Math.min(n,e)} of ${e}`:n?n+" in":""; },
+    papers:()=>{ const n=_fsList(r,"apps").length; return (n?n+" application"+(n===1?"":"s")+" · ":"")+(_fsList(r,"vakalat").length?"vakalatnama ✓":"no vakalatnama"); },
+    details:()=>r.fs.details?(r.fs.details.ok?"checked":"to check"):"", front:()=>{ const n=["cover","index","office","proforma"].filter(k=>_fsList(r,k).length).length; return n+" of 4"; },
+    copy:()=>last?(last.pages?last.pages+" pages":"ready"):"", ai:()=>r.fs.ai&&r.fs.ai.status?r.fs.ai.status:""};
+  const steps=_FS_STEPS.filter(x=>!x.owner||owner).map(x=>({k:x.k,l:x.l,done:_fsStepDone(r,x.k),sub:(sub[x.k]||(()=>""))()}));
+  const auto=(steps.find(x=>!x.done)||steps[steps.length-1]).k;
+  const open=steps.some(x=>x.k===st.fstep)?st.fstep:auto; const S=_FS_STEPS.find(x=>x.k===open);
+  let body=`<div class="wz-h">${esc(S.l)}</div><div class="wz-sub">${esc(S.h)}</div>`;
+  if(open==="details") body+=(typeof _fsDetailsHTML==="function"?_fsDetailsHTML(r):"");
+  else if(open==="front") body+=(typeof _fsFrontHTML==="function"?_fsFrontHTML(r):"")+`<div class="fsl-box" style="margin-top:12px">${S.slots.map(k=>_fsSlotHTML(r,_FS_SLOTS.find(x=>x.k===k))).join("")}</div>`;
+  else if(open==="copy") body+=_fsCopyHTML(r);
+  else if(open==="ai") body+=(owner&&typeof _fsAiHTML==="function"&&last?_fsAiHTML(r,last):`<div class="hint">Prepare the filing copy first.</div>`);
+  else { if(open==="annex") body+=_fsAnxExpectedHTML(r);
+    if(open==="papers"&&r.fs.details&&r.fs.details.readAt){ const need=_fsIaList(r.fs.details), apps=_fsList(r,"apps");
+      if(need.length) body+=`<div class="wz-card" style="margin-bottom:12px"><div class="hint" style="margin-bottom:6px">Applications this case needs (from the case details)</div>${need.map(k=>{ const ok=apps.some(x=>_fsIaKindOf(x)===k); return `<div class="anx-e ${ok?"ok":""}"><b>I.A.</b><span>${esc(_FS_IA[k].l)}</span><span>${ok?"✓":`<button class="link-btn" onclick="_fsAddAsk('apps')">upload</button>`}</span></div>`; }).join("")}</div>`; }
+    body+=`<div class="fsl-box">${S.slots.map(k=>_fsSlotHTML(r,_FS_SLOTS.find(x=>x.k===k))).join("")}</div>`; }
+  return _wzRail(steps,open,"_fsGo")+`<div class="wz-page">${body}</div>`+_wzNav(steps,open,"_fsGo");
+}
+function _fsAnxExpectedHTML(r){
+  const exp=_fsAnxExpected(r); if(!exp.length) return _fsList(r,"lod").length?"":`<div class="hint" style="margin-bottom:10px">Upload the Synopsis &amp; List of Dates first — the app then lists the annexures it relies on.</div>`;
+  const have=_fsList(r,"annex").map((x,i)=>_fsAnxNo(x,i));
+  return `<div class="wz-card" style="margin-bottom:12px"><div class="hint" style="margin-bottom:6px">Annexures in the List of Dates</div>${exp.map(a=>{ const ok=have.includes(String(a.n).toUpperCase());
+    return `<div class="anx-e ${ok?"ok":""}"><b>P-${esc(a.n)}</b><span>${esc(a.desc||"")}</span><span>${ok?"✓":`<button class="link-btn" onclick="_fsAnxAsk()">upload</button>`}</span></div>`; }).join("")}</div>`;
+}
+function _fsCopyHTML(r){
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  const last=(r.fs.copies||[]).slice(-1)[0], miss=_FS_STEPS.filter(x=>["docs","annex","papers","details"].includes(x.k)&&!_fsStepDone(r,x.k)).map(x=>x.l);
+  const older=(r.fs.copies||[]).length>1?`<details class="dr-wait" style="margin-top:14px"><summary>Earlier filing copies · ${r.fs.copies.length-1}</summary>${r.fs.copies.slice(0,-1).reverse().map(c=>`<div class="fsl-f"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(c.file)})">${esc(c.file)}</button> <span class="hint">${c.at?esc(fmtDate(_localISO(new Date(c.at)))):""}</span></div>`).join("")}</details>`:"";
+  return (miss.length?`<div class="co-warn" style="margin-bottom:12px">Not finished: <b>${esc(miss.join(", "))}</b>. You can still prepare it to see how it looks.</div>`:"")+
+    (last?`<div class="fn ok"><div class="fn-t">Filing copy ready</div><div class="fn-s"><b>${esc(last.file)}</b>${last.pages?" · "+last.pages+" pages":""}${last.by?" · "+esc(last.by):""}${last.at?" · "+esc(fmtDate(_localISO(new Date(last.at)))):""}</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download")}${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'fscopy')`,"✏️ Edit pages","ghost")}${btn("_fsCollateAsk()","Prepare again","ghost")}${btn("_fsSetSec('refiling')","Defect list came → Refiling","ghost")}</div></div>`
+    :`<div class="fn"><div class="fn-t">Prepare the filing copy</div><div class="fn-s">Front pages, then every document in order — numbered A, A1… · B, C… · 1, 2…, annexure headings checked, the index and “Pgs.” filled.</div><div class="fn-b">${btn("_fsCollateAsk()","Prepare filing copy")}</div></div>`)+older;
+}
+/* ---- front pages: a small layout engine (A4, Times) for the cover, index, office report and proforma ----
+   blocks: {t:"p",text,align,bold,size,before,after,indent,under,lh} · {t:"lr",l,r,bold} · {t:"gap",h} · {t:"page"}
+           {t:"table",cols:[fractions],rows:[[cell…]],head:n,size,pad,border} — a cell is text or {text,bold,align,span} */
+function _fpClean(s){ return String(s==null?"":s).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/…/g,"...").replace(/ /g," ").replace(/[^\x09\x0a\x20-\x7e\xa0-\xff√]/g,"").replace(/√/g,"√"); }
+async function _fpRender(blocks, o){
+  o=o||{}; const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+  const doc=await PDFDocument.create(); const F={r:await doc.embedFont(StandardFonts.TimesRoman),b:await doc.embedFont(StandardFonts.TimesRomanBold)};
+  let sym=null; try{ sym=await doc.embedFont(StandardFonts.ZapfDingbats); }catch(e){}
+  const PW=595.28, PH=841.89, M=Object.assign({l:72,r:60,t:64,b:60},o.margins||{}), CW=PW-M.l-M.r;
+  let page=doc.addPage([PW,PH]), y=PH-M.t; const pages=[page];
+  const newPage=()=>{ page=doc.addPage([PW,PH]); pages.push(page); y=PH-M.t; };
+  const W=(t,f,z)=>{ let w=0; String(t).split("√").forEach((pt,i)=>{ if(i) w+=z*0.8; try{ w+=f.widthOfTextAtSize(pt,z); }catch(e){ w+=pt.length*z*0.5; } }); return w; };
+  const draw=(t,x,yy,f,z)=>{ const parts=String(t).split("√"); let cx=x;
+    parts.forEach((pt,i)=>{ if(pt){ try{ page.drawText(pt,{x:cx,y:yy,size:z,font:f,color:rgb(0,0,0)}); }catch(e){ page.drawText(pt.replace(/[^\x20-\x7e]/g,""),{x:cx,y:yy,size:z,font:f,color:rgb(0,0,0)}); } cx+=W(pt,f,z); }
+      if(i<parts.length-1){ if(sym){ try{ page.drawText("\u2714",{x:cx,y:yy,size:z*0.85,font:sym,color:rgb(0,0,0)}); }catch(e){ page.drawText("X",{x:cx,y:yy,size:z,font:F.b,color:rgb(0,0,0)}); } } cx+=z*0.8; } }); };
+  /* text → lines of words; "**" switches bold on/off inside a paragraph; spaces are kept as written */
+  const toks=(t,bold)=>{ const out=[]; let b=!!bold; String(t).split("**").forEach((seg,si)=>{ if(si) b=!b; seg.split("\n").forEach((ln,li)=>{ if(li) out.push({nl:1}); ln.split(" ").forEach((w,wi)=>{ if(wi) out.push({sp:1,b}); if(w) out.push({w,b}); }); }); }); return out; };
+  const lines=(t,bold,z,w)=>{ const ts=toks(_fpClean(t),bold); const out=[]; let cur=[], cw=0;
+    const tw=x=>x.sp?W(" ",x.b?F.b:F.r,z):W(x.w,x.b?F.b:F.r,z);
+    const flush=()=>{ while(cur.length&&cur[cur.length-1].sp) cur.pop(); out.push(cur); cur=[]; cw=0; };
+    ts.forEach(x=>{ if(x.nl){ flush(); return; } if(x.sp&&!cur.length&&out.length) return; const xw=tw(x);
+      if(!x.sp&&cw+xw>w&&cur.some(c=>!c.sp)){ flush(); } cur.push(x); cw+=xw; });
+    flush(); return out.map(l=>({toks:l,w:l.reduce((a,x)=>a+tw(x),0)})); };
+  const drawLine=(ln,x,yy,z,just,avail)=>{ const sps=ln.toks.filter(t=>t.sp).length; const extra=just&&sps?(avail-ln.w)/sps:0; let cx=x;
+    if(!extra){ // runs of the same style go down as one string, so every viewer spaces the words itself
+      const runs=[]; ln.toks.forEach(t=>{ const b=!!t.b, s=t.sp?" ":t.w; const L=runs[runs.length-1]; if(L&&L.b===b) L.s+=s; else runs.push({b,s}); });
+      runs.forEach(rn=>{ const f=rn.b?F.b:F.r; draw(rn.s,cx,yy,f,z); cx+=W(rn.s,f,z); }); return; }
+    ln.toks.forEach(t=>{ const f=t.b?F.b:F.r; if(t.sp){ cx+=W(" ",f,z)+extra; return; } draw(t.w,cx,yy,f,z); cx+=W(t.w,f,z); }); };
+  for(const b of blocks){
+    if(b.t==="page"){ newPage(); continue; }
+    if(b.t==="gap"){ y-=b.h||12; if(y<M.b) newPage(); continue; }
+    if(b.t==="p"||b.t==="lr"){
+      const z=b.size||o.size||12, lh=z*(b.lh||o.lh||1.35); y-=b.before||0;
+      if(b.t==="lr"){ const rr=_fpClean(b.r||""), rw=W(rr,b.rbold?F.b:F.r,z); const ll=lines(b.l,b.bold,z,CW*0.62-(b.indent||0));
+        ll.forEach((ln,i)=>{ if(y-lh<M.b) newPage(); y-=lh; drawLine(ln,M.l+(b.indent||0),y+z*0.28,z); if(i===ll.length-1&&rr) draw(rr,M.l+CW-rw,y+z*0.28,b.rbold?F.b:F.r,z); });
+        y-=b.after==null?2:b.after; continue; }
+      const ind=b.indent||0, ri=b.rindent||0, avail=CW-ind-ri, ls=lines(b.text,b.bold,z,avail);
+      ls.forEach((ln,i)=>{ if(y-lh<M.b) newPage(); y-=lh; let x=M.l+ind;
+        if(b.align==="center") x=M.l+ind+(avail-ln.w)/2; else if(b.align==="right") x=M.l+CW-ri-ln.w;
+        drawLine(ln,x,y+z*0.28,z,b.align==="justify"&&i<ls.length-1,avail);
+        if(b.under) page.drawLine({start:{x,y:y+z*0.28-2},end:{x:x+ln.w,y:y+z*0.28-2},thickness:0.7,color:rgb(0,0,0)}); });
+      y-=b.after==null?4:b.after; continue; }
+    if(b.t==="table"){
+      const z=b.size||o.tsize||11, pad=b.pad==null?4:b.pad, lh=z*(b.lh||1.25); const tw=b.cols.reduce((a,c)=>a+c,0); const cw=b.cols.map(c=>c/tw*CW);
+      const drawRow=(row,ri)=>{ let ci=0; const cells=[]; row.forEach(c=>{ const cc=typeof c==="object"&&c?c:{text:c}; const sp=cc.span||1; const w=cw.slice(ci,ci+sp).reduce((a,v)=>a+v,0); const x=M.l+cw.slice(0,ci).reduce((a,v)=>a+v,0);
+          const cz=cc.size||z; cells.push({cc,x,w,cz,ls:lines(cc.text==null?"":cc.text,cc.bold||ri<(b.head||0),cz,w-2*pad)}); ci+=sp; });
+        const h=Math.max(lh+2*pad,...cells.map(c=>c.ls.length*c.cz*(b.lh||1.25)+2*pad))+(b.rowGap||0);
+        if(y-h<M.b){ newPage(); if(b.head&&ri>=b.head&&b.repeat!==false) b.rows.slice(0,b.head).forEach((hr,hi)=>drawRow(hr,hi)); }
+        cells.forEach(c=>{ if(b.border!==false) page.drawRectangle({x:c.x,y:y-h,width:c.w,height:h,borderColor:rgb(0,0,0),borderWidth:0.6});
+          let yy=y-pad; const clh=c.cz*(b.lh||1.25); c.ls.forEach(ln=>{ yy-=clh; const x=c.cc.align==="center"?c.x+(c.w-ln.w)/2:c.cc.align==="right"?c.x+c.w-pad-ln.w:c.x+pad; drawLine(ln,x,yy+c.cz*0.3,c.cz); }); });
+        y-=h; };
+      b.rows.forEach((row,ri)=>drawRow(row,ri)); y-=b.after==null?8:b.after; continue; }
+  }
+  return {blob:new Blob([await doc.save()],{type:"application/pdf"}), pages:pages.length};
+}
+/* ---------- CASE DETAILS + FRONT PAGES (owner, Oct 2026) ----------
+   The cover page, index, office report on limitation and listing proforma follow fixed formats; what changes is read
+   from the case's own Synopsis & List of Dates, SLP and impugned order — never from a previous case's document
+   (the study of 30 filed SLPs found earlier cases' Acts and cause titles carried into new filings).
+   Every value is shown for checking and can be changed; what the app could not find is left for the person to fill. */
+var __fsTxt={};
+async function _fsDocxText(blob){
+  const JSZip=await _libZip(); const zip=await JSZip.loadAsync(blob); const xml=await zip.file("word/document.xml").async("string");
+  const dom=new DOMParser().parseFromString(xml,"application/xml"); const W="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const out=[]; const body=dom.getElementsByTagNameNS(W,"body")[0]; if(!body) return "";
+  const ptext=p=>{ let t=""; p.getElementsByTagNameNS(W,"*"); [...p.getElementsByTagNameNS(W,"r")].forEach(r=>[...r.childNodes].forEach(n=>{ if(n.localName==="t") t+=n.textContent; else if(n.localName==="tab") t+="\t"; else if(n.localName==="br") t+="\n"; })); return t; };
+  const walk=el=>{ [...el.childNodes].forEach(n=>{ if(n.localName==="p") out.push(ptext(n)); else if(n.localName==="tbl"){ [...n.childNodes].filter(x=>x.localName==="tr").forEach(tr=>{ out.push([...tr.childNodes].filter(x=>x.localName==="tc").map(tc=>[...tc.childNodes].filter(x=>x.localName==="p").map(ptext).join(" ").trim()).join(" | ")); }); } else if(n.localName==="sdt"){ const c=[...n.childNodes].find(x=>x.localName==="sdtContent"); if(c) walk(c); } }); };
+  walk(body); return out.join("\n");
+}
+async function _fsTextOf(r,k,max){
+  const xs=_fsList(r,k); if(!xs.length) return ""; const base=_filingFolderRel(); let all=[];
+  for(const x of xs){ const key=(x.word||x.file)+"|"+(max||0); if(__fsTxt[key]!=null){ all.push(__fsTxt[key]); continue; }
+    let t="";
+    try{ if(x.word&&/\.docx$/i.test(x.word)){ const b=await _paperBlob({path:base+"/"+x.word,name:x.word}); t=await _fsDocxText(b); } }catch(e){ t=""; }
+    if(!t.trim()){ try{ const b=await _paperBlob({path:base+"/"+x.file,name:x.file}); const td=await _pdfTextDoc(b,max); t=td.pages.map(p=>p.text).join("\n\f\n"); }catch(e){ t=""; } }
+    __fsTxt[key]=t; all.push(t); }
+  return all.join("\n\f\n");
+}
+const _FS_MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+function _fsDate(s){ s=String(s||"").trim(); let m=/(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{4})/.exec(s); if(m) return _fsDD(+m[1],+m[2],+m[3]);
+  m=/(\d{1,2})(?:st|nd|rd|th)?\s*(?:day\s+of\s+)?([A-Za-z]{3,})[,\s]+(\d{4})/.exec(s); if(m&&_FS_MON[m[2].slice(0,3).toLowerCase()]) return _fsDD(+m[1],_FS_MON[m[2].slice(0,3).toLowerCase()],+m[3]);
+  m=/([A-Za-z]{3,})\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/.exec(s); if(m&&_FS_MON[m[1].slice(0,3).toLowerCase()]) return _fsDD(+m[2],_FS_MON[m[1].slice(0,3).toLowerCase()],+m[3]);
+  return ""; }
+function _fsDD(d,m,y){ if(!(d>=1&&d<=31&&m>=1&&m<=12&&y>1900)) return ""; return String(d).padStart(2,"0")+"."+String(m).padStart(2,"0")+"."+y; }
+function _fsDateObj(s){ const m=/(\d{2})\.(\d{2})\.(\d{4})/.exec(s||""); return m?new Date(+m[3],+m[2]-1,+m[1]):null; }
+function _fsToday(){ const d=new Date(); return _fsDD(d.getDate(),d.getMonth()+1,d.getFullYear()); }
+/* delay in filing = days from the (earliest) impugned order to the filing date, less 90 — checked on 20 filed SLPs */
+function _fsDelay(d){ const ds=(d.orders||[]).map(o=>_fsDateObj(o.date)).filter(Boolean); const f=_fsDateObj(d.filingDate||_fsToday()); if(!ds.length||!f) return null;
+  const first=new Date(Math.min(...ds)); return Math.round((f-first)/86400000)-90; }
+function _fsTitleCase(s){ return String(s||"").toLowerCase().replace(/\b([a-z])/g,c=>c.toUpperCase()).replace(/\b(Of|At|And|In|The|For|By)\b/g,w=>w.toLowerCase()).replace(/^./,c=>c.toUpperCase()).replace(/\bNo\b/g,"No").replace(/\bHon'ble\b/gi,"Hon'ble"); }
+function _fsShortName(s){ s=String(s||"").replace(/\s+/g," ").trim().replace(/^\d+\.\s*/,"");
+  s=s.split(/,?\s+(?:s\/o|d\/o|w\/o|son of|daughter of|wife of|aged?|age:?|r\/o|residing|having|through|occupation|occ\.?)\b/i)[0];
+  return s.replace(/[,;:]+$/,"").trim(); }
+/* read everything the documents tell us */
+async function _fsReadDetails(r, quiet){
+  const slp=await _fsTextOf(r,"slp"), lod=await _fsTextOf(r,"lod"), imp=await _fsTextOf(r,"impugned");
+  const T=(slp+"\n"+lod).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/ /g," ");
+  const one=t=>t.replace(/\s+/g," ");
+  const d={src:{}}, src=(k,v)=>{ d.src[k]=v; };
+  // civil / criminal
+  const sm=/SPECIAL\s+LEAVE\s+PETITIO?N?\s*\(\s*(CIVIL|CRIMINAL)\s*\)/i.exec(T); d.side=sm?sm[1].toUpperCase():/CRIMINAL\s+APPEAL|F\.?I\.?R\.?|police station|Cr\.?P\.?C|BNSS/i.test(one(imp).slice(0,4000))?"CRIMINAL":"CIVIL"; src("side",sm?"SLP":"guessed");
+  // the bracket line: [AGAINST THE IMPUGNED … DATED … PASSED BY THE … IN …]
+  const bm=/\[\s*(?:AGAINST|ARISING\s+OUT\s+OF)\s+THE\s+IMPUGNED([\s\S]{10,500}?)\]/i.exec(T);
+  let orders=[];
+  if(bm){ const b=one(bm[1]); const dates=(b.match(/\d{1,2}\.\d{1,2}\.\d{4}/g)||[]).map(_fsDate);
+    let court="", cno="";
+    let m=/PASSED\s+BY\s+THE\s+(?:HON'?BLE\s+)?(HIGH\s+COURT.+?)\s+IN\s+(.+)$/i.exec(b); if(m){ court=m[1]; cno=m[2]; }
+    else if((m=/PASSED\s+IN\s+(.+?)\s+BY\s+THE\s+(?:HON'?BLE\s+)?(HIGH\s+COURT.+)$/i.exec(b))){ cno=m[1]; court=m[2]; }
+    court=court.replace(/[,.\s]+$/,"").toUpperCase(); cno=cno.replace(/[.\s]+$/,"");
+    orders=(dates.length?dates:[""]).map(dt=>({date:dt,court,caseNo:cno})); src("orders","SLP cover line"); }
+  // the impugned order itself: date, court, judges, case number
+  const it=imp.replace(/[‘’]/g,"'"), ih=it.slice(0,3000), io=one(ih);
+  if(!orders.length) orders=[{date:"",court:"",caseNo:""}];
+  const o0=orders[0];
+  if(!o0.date){ const m=/(?:PRONOUNCED\s+ON|DATE\s+OF\s+(?:PRONOUNCEMENT|JUDGMENT|ORDER)|DATED|DATE)\s*[:\-]*\s*([0-9]{1,2}(?:st|nd|rd|th)?[\s.\/-]+(?:[0-9]{1,2}|[A-Za-z]+)[\s.\/,-]+[0-9]{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4})/i.exec(it); if(m){ o0.date=_fsDate(m[1]); src("orders","impugned order"); } }
+  if(!o0.court){ const m=/IN\s+THE\s+HIGH\s+COURT\s+OF\s+((?:JUDICATURE\s+)?(?:AT\s+|FOR\s+)?[A-Z][A-Z .&,]+?)\s*(?:\n|$)\s*((?:CIRCUIT\s+)?BENCH\s+AT\s+[A-Z]+)?/i.exec(ih);
+    if(m) o0.court=("HIGH COURT OF "+m[1].trim()+(m[2]?" "+m[2].replace(/CIRCUIT\s+/i,""):"")).toUpperCase().replace(/\s+/g," "); }
+  if(!o0.caseNo){ const m=/((?:CIVIL\s+|CRIMINAL\s+)?(?:WRIT\s+PETITION|FIRST\s+APPEAL|SECOND\s+APPEAL|CIVIL\s+REVISION\s+APPLICATION|CRIMINAL\s+APPEAL|CRIMINAL\s+APPLICATION|CRIMINAL\s+REVISION|CIVIL\s+APPLICATION|LETTERS\s+PATENT\s+APPEAL|C\.?R\.?P\.?|W\.?P\.?|F\.?A\.?|S\.?A\.?|M\.?A\.?C\.?A\.?|CRL\.?\s*A\.?)\s*(?:\([A-Z]+\)\s*)?NO\.?\s*\d+\s*(?:OF|\/)\s*\d{4})/i.exec(io); if(m) o0.caseNo=_fsTitleCase(m[1]).replace(/\bNo\.?\s*/i,"No. "); }
+  orders.forEach(o=>{ if(o.caseNo&&o.caseNo===o.caseNo.toUpperCase()){ // the prayer / synopsis usually has the same number in ordinary case
+      const rx=new RegExp(o.caseNo.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\s+/g,"\\s*"),"i"); const m=rx.exec(one(T).replace(o.caseNo,"")); o.caseNo=m&&m[0]!==m[0].toUpperCase()?m[0]:_fsTitleCase(o.caseNo).replace(/\bNo\.?\s*/i,"No. "); } });
+  // judges — CORAM may be deep in a batch judgment: search all of it
+  // judges: the CORAM line (Bombay "KISHORE C. SANT &\n AJIT B. KADETHANKAR, JJ.", Madras "THE HON'BLE MRS.JUSTICE N. MALA")
+  const jud=[]; let jl=[]; const ci=it.search(/\bCORAM\b/i);
+  const jlines=(arr)=>{ const out=[]; for(let q=0;q<Math.min(arr.length,6);q++){ const l=arr[q]; out.push(l); const nx=arr[q+1]||"";
+      if(/\bJ{1,2}\.?\s*$/.test(l)&&!/JUSTICE/i.test(nx)) break; if(/(?:&|\bAND|,)\s*$/i.test(l)||/JUSTICE/i.test(nx)) continue; break; } return out; };
+  if(ci>=0) jl=jlines(it.slice(ci).replace(/^CORAM\s*[:\-]?\s*/i,"").split("\n").map(x=>x.trim()).filter(Boolean));
+  else { const ls=ih.split("\n").map(x=>x.trim()); const k=ls.findIndex(l=>/HON'?(?:BLE|OURABLE).{0,25}JUSTICE/i.test(l)); if(k>=0) jl=jlines(ls.slice(k).filter(Boolean)); }
+  jl.join(" ").split(/\s*(?:&|\bAND\b|,(?!\s*J{1,2}\.?\s*$))\s*|(?=\bTHE\s+HON)/i).forEach(x=>{ x=x.replace(/^(?:THE\s+)?HON'?(?:BLE|OURABLE)\s*/i,"").replace(/^(?:THE\s+)?(?:CHIEF\s+)?(?:MRS|MR|MS|DR|SHRI|SMT|KUMARI)\.?\s*/i,"").replace(/^JUSTICE\s*/i,"").replace(/\s*,?\s*J{1,2}\.?\s*$/i,"").trim();
+    if(x&&/^[A-Z][A-Za-z. ]{2,40}$/.test(x)&&!/JUSTICE|COURT|BENCH|CORAM|PETITION/i.test(x)) jud.push(x.toUpperCase().replace(/\.(?=[A-Z])/g,". ")); });
+  orders.forEach(o=>{ if(!o.judges&&jud.length) o.judges="HON'BLE JUSTICE "+[...new Set(jud)].slice(0,3).join(" & "); });
+  d.orders=orders.map(o=>({date:o.date||"",court:o.court||"",caseNo:o.caseNo||"",judges:o.judges||""}));
+  // parties — the short cause title (certificate / affidavit pages), the counts from POSITION OF PARTIES
+  const ct=[]; const rxCT=/IN\s+THE\s+MATTER\s+OF\s*:?\s*([\s\S]{2,260}?)(?:…|\.{2,}|…)\s*Petitioners?\s*VERSUS\s*([\s\S]{2,260}?)(?:…|\.{2,}|…)\s*Respondents?/gi; let m;
+  while((m=rxCT.exec(T))){ const p=one(m[1]).trim(), q=one(m[2]).trim(); if(!/POSITION|S\.\s*NO|HIGH\s+COURT|\|/i.test(p)&&p.length<120&&q.length<160) ct.push({p,q}); }
+  const pick=ct.sort((a,b)=>(a.p.length+a.q.length)-(b.p.length+b.q.length))[0];
+  const npet=Math.max(0,...[...T.matchAll(/PETITIONER\s*(?:\|\s*)?NO\.?\s*(\d+)/gi)].map(x=>+x[1])), nres=Math.max(0,...[...T.matchAll(/RESPONDENT\s*(?:\|\s*)?NO\.?\s*(\d+)/gi)].map(x=>+x[1]));
+  d.pet1=pick?_fsShortName(pick.p.replace(/\s+and\s+(?:Ors|Anr)\.?$/i,"")):""; d.res1=pick?_fsShortName(pick.q.replace(/\s+and\s+(?:Ors|Anr)\.?$/i,"")):"";
+  d.petN=npet||(pick&&/and\s+(?:Ors|Anr)/i.test(pick.p)?2:1); d.resN=nres||(pick&&/and\s+(?:Ors|Anr)/i.test(pick.q)?2:1); src("parties",pick?"SLP cause title":"not found");
+  // prayers and applications
+  d.interim=/PRAYER\s+FOR\s+INTERIM\s+RELIEF\s*:?\s*\n?\s*(?!N\.?A\.?|NIL)/i.test(T)||/GROUNDS\s+FOR\s+INTERIM\s+RELIEF/i.test(T);
+  // annexures — from the List of Dates
+  const L=lod.replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/ /g," ").replace(/[–—]/g,"-");
+  const anx=[]; const rxA=/(?:has\s+been\s+attached|is\s+annexed|are\s+annexed)\s+(?:herewith,?\s*)?(?:and\s+)?(?:marked\s+)?(?:as\s+)?["']*\s*ANNEXURE\s*-?\s*P\s*[-\/]?\s*(\d+[A-Z]?)\b/gi;
+  while((m=rxA.exec(L))){ const before=L.slice(Math.max(0,m.index-700),m.index); const flat=before.replace(/\s+/g," ");
+    let k=-1; const rs=/(?:^|[.;:\n]\s*|\s)((?:A|The|Certified|True|Translated|Typed)\s+(?:true\s+|translated\s+|typed\s+|certified\s+|photo\s*)*cop(?:y|ies)\s+of\b|Cop(?:y|ies)\s+of\b)/gi; let mm;
+    while((mm=rs.exec(flat))) k=mm.index+mm[0].indexOf(mm[1]);
+    let desc=k>=0?flat.slice(k):flat.split(/[.:]\s+/).pop(); desc=desc.replace(/[,\s]+$/,"").replace(/\s+is$/i,"").trim();
+    const n=m[1].toUpperCase(); if(!anx.some(a=>a.n===n)) anx.push({n,desc:desc.charAt(0).toUpperCase()+desc.slice(1)}); }
+  anx.sort((a,b)=>_fsAnxCmp(a.n,b.n)); d.annexures=anx; src("annexures",anx.length?"List of Dates":"none found");
+  const r5=/Annexures?\s+numbered\s+P\s*[-\/]?\s*1\s+to\s+P\s*[-\/]?\s*(\d+)/i.exec(T); d.rule5=r5?+r5[1]:null;
+  // which applications
+  const ot=anx.some(a=>/translat/i.test(a.desc))||/vernacular|translat(?:ed|ion)\s+(?:copy|from)/i.test(lod);
+  d.ias={permission:/NOT\s+A\s+PARTY/i.test(T), cc:true, ot, delay:false};
+  // Acts and sections — a suggestion only: "Section 14 of the SARFAESI Act, 2002"
+  const acts={}; const rxS=/Sections?\s+([\dA-Z][\dA-Za-z(),\s]*?(?:\s*(?:and|&)\s*[\dA-Z()]+)?)\s+of\s+(?:the\s+)?([A-Z][A-Za-z().,'&\s-]{3,80}?(?:Act|Code|Sanhita|Adhiniyam),?\s*(?:of\s+)?\d{4})/g;
+  while((m=rxS.exec(one(T+"\n"+imp.slice(0,20000))))){ const act=m[2].replace(/\s+/g," ").replace(/,\s*(\d{4})$/,", $1"); const k=act.toLowerCase(); (acts[k]=acts[k]||{act,secs:new Set(),n:0}).n++; acts[k].secs.add(m[1].replace(/\s+/g," ").trim()); }
+  const top=Object.values(acts).sort((a,b)=>b.n-a.n);
+  const isState=a=>/Maharashtra|Tamil|Karnataka|Kerala|Gujarat|Rajasthan|Punjab|Bihar|Bengal|Pradesh|Haryana|Assam|Odisha|Orissa|Telangana|Goa|Delhi|Chhattisgarh|Jharkhand|Uttarakhand|Bombay|Madras|Mysore/i.test(a);
+  const ca=top.find(a=>!isState(a.act)), sa=top.find(a=>isState(a.act));
+  d.pf={centralAct:ca?ca.act:"N.A.",centralSec:ca?"Section "+[...ca.secs].slice(0,3).join(", "):"N.A.",centralRules:"N.A.",centralRuleNo:"N.A.",stateAct:sa?sa.act:"N.A.",stateSec:sa?"Section "+[...sa.secs].slice(0,3).join(", "):"N.A.",stateRules:"N.A.",stateRuleNo:"N.A.",
+    interimDate:"N.A.",tribunal:"N.A.",catMain:"",catSub:"",notBefore:"N.A.",simDisposed:"No case",simPending:/WITH\s+(?:WRIT\s+PETITION|W\.?P\.?)\s+NO|COMMON\s+(?:JUDGMENT|ORDER)|connected/i.test(io+one(T).slice(0,6000))?"":"No case",
+    surrendered:d.side==="CRIMINAL"?"":"No",fir:d.side==="CRIMINAL"?"":"No Details.",ps:d.side==="CRIMINAL"?"":"No Details.",sentence:d.side==="CRIMINAL"?"":"No Sentence.",undergone:d.side==="CRIMINAL"?"":"No Sentence Undergone.",
+    earlierCase:"No",firCase:d.side==="CRIMINAL"?"":"No Details.",bail:d.side==="CRIMINAL"?"":"No",la4:"N.A.",la6:"N.A.",la17:"N.A.",tax:"N.A.",special:"",vehicle:"N.A.",sameLaw:"No",section:"II",petEmail:"N.A.",petMobile:"N.A.",resEmail:"N.A.",resMobile:"N.A."};
+  if(ca||sa) src("acts","suggested from the SLP — check");
+  if(d.pf.simPending==="") src("simPending","the order is a common judgment — name the connected matters");
+  return d;
+}
+/* what the person typed is never overwritten by a re-read */
+function _fsMergeDetails(old, nw){
+  if(!old){ nw.u={}; return nw; } const u=old.u||{}; const out=JSON.parse(JSON.stringify(nw)); out.u=u;
+  const keep=(path)=>{ const g=(o,p)=>p.split(".").reduce((a,k)=>a==null?a:a[k],o); const s=(o,p,v)=>{ const ks=p.split("."); let a=o; ks.slice(0,-1).forEach(k=>{ if(a[k]==null) a[k]=/^\d+$/.test(k)?[]:{}; a=a[k]; }); a[ks[ks.length-1]]=v; }; s(out,path,g(old,path)); };
+  Object.keys(u).forEach(keep);
+  ["filingDate","adv","ok","okBy","okAt"].forEach(k=>{ if(old[k]!=null&&out[k]==null) out[k]=old[k]; });
+  if((old.orders||[]).length>(out.orders||[]).length&&Object.keys(u).some(k=>k.startsWith("orders."))) out.orders=old.orders;
+  return out;
+}
+async function _fsReadAsk(){
+  const r=_fsRec(); if(!_fsList(r,"slp").length&&!_fsList(r,"lod").length){ toast("Upload the Synopsis & List of Dates and the SLP first.",true); return; }
+  _progressModal("Reading the documents…","Synopsis & List of Dates, SLP, impugned order…");
+  try{ __fsTxt={}; const nw=await _fsReadDetails(r); r.fs.details=_fsMergeDetails(r.fs.details,nw); if(!r.fs.details.adv) r.fs.details.adv=_fsAdvDefault();
+    r.fs.details.readAt=new Date().toISOString(); r.fs.details.ok=false; _filingTouch(r); closeModal(); toast("Read. Check each value."); renderFilesPage(); }
+  catch(e){ closeModal(); toast(e.message,true); } }
+function _fsAdvDefault(){ let s={}; try{ s=_chamberDocSettings()||{}; }catch(e){}
+  const name=String(s.advName||"").replace(/^\s*(adv\.?|advocate)\s+/i,"").trim().toUpperCase();
+  return {name:name||"", code:String(s.aorCode||"").replace(/[^0-9]/g,""), email:s.email||""}; }
+function _fsD(){ const r=_fsRec(); if(!r.fs.details) r.fs.details={orders:[{date:"",court:"",caseNo:"",judges:""}],pf:{},ias:{cc:true},annexures:[],u:{},src:{},adv:_fsAdvDefault()}; return r.fs.details; }
+function _fsDSet(path,v,el){ const r=_fsRec(); const d=_fsD(); const ks=path.split("."); let a=d; ks.slice(0,-1).forEach(k=>{ if(a[k]==null) a[k]=/^\d+$/.test(k)?[]:{}; a=a[k]; }); a[ks[ks.length-1]]=v;
+  (d.u=d.u||{})[path]=1; d.ok=false; clearTimeout(window.__fsDT); window.__fsDT=setTimeout(()=>_filingTouch(r),600);
+  if(el&&el.dataset.rr) renderFilesPage(); }
+const _FS_IA={
+  permission:{l:"Permission to file the SLP",cover:"APPLICATION FOR PERMISSION TO FILE THE SPECIAL LEAVE PETITION",idx:"Application for permission to file the Special Leave Petition",kind:/permission/i},
+  cc:{l:"Exemption from filing certified copy",cover:"APPLICATION SEEKING EXEMPTION FROM FILING CERTIFIED COPY OF IMPUGNED ORDER",idx:"Application for exemption from filing certified copy of Impugned order",kind:/certified/i},
+  ot:{l:"Exemption from filing official translation",cover:"APPLICATION SEEKING EXEMPTION FROM FILING OFFICIAL TRANSLATION",idx:"Application for exemption from filing official translation",kind:/translation/i},
+  delay:{l:"Condonation of delay",cover:"APPLICATION SEEKING CONDONATION OF DELAY IN FILING THE SPECIAL LEAVE PETITION",idx:"Application for condonation of delay in filing the Special Leave Petition",kind:/condon|delay/i},
+  surrender:{l:"Exemption from surrendering",cover:"APPLICATION SEEKING EXEMPTION FROM SURRENDERING",idx:"Application for exemption from surrendering",kind:/surrender/i,crim:1},
+  suspend:{l:"Suspension of sentence",cover:"APPLICATION SEEKING SUSPENSION OF SENTENCE",idx:"Application for suspension of sentence",kind:/suspen/i,crim:1}};
+function _fsIaList(d){ const dl=_fsDelay(d); const on=Object.assign({},d.ias||{}); if(on.delay==null||!(d.u&&d.u["ias.delay"])) on.delay=dl!=null&&dl>0; return Object.keys(_FS_IA).filter(k=>on[k]); }
+/* ---- the form ---- */
+function _fsDetailsHTML(r){
+  const d=r.fs.details; const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  if(!d||!d.readAt) return `<div class="fn"><div class="fn-t">Read the case details from the documents</div><div class="fn-s">The app reads the parties, the impugned order (date, court, case number, judges), the annexures in the List of Dates, the applications needed and the delay.</div><div class="fn-b">${btn("_fsReadAsk()","Read the documents")}${btn("_fsD();_fsRec().fs.details.readAt=new Date().toISOString();renderFilesPage()","Fill by hand","ghost")}</div></div>`;
+  const v=x=>esc(x==null?"":x);
+  const inp=(path,val,ph,o)=>`<input class="in ${o&&o.mono?"mono":""}" value="${v(val)}" placeholder="${v(ph||"")}" onchange="_fsDSet('${path}',this.value,this)" ${o&&o.rr?'data-rr="1"':""}>`;
+  const row=(l,h,note)=>`<div class="fd-r"><label>${l}</label><div>${h}${note?`<div class="fd-n">${note}</div>`:""}</div></div>`;
+  const grp=(t,body,open)=>`<details class="fd-g" ${open?"open":""}><summary>${t}</summary><div class="fd-b">${body}</div></details>`;
+  const dl=_fsDelay(d); const ias=_fsIaList(d); const src=d.src||{};
+  const ordersH=(d.orders||[]).map((o,i)=>`<div class="fd-o">${(d.orders||[]).length>1?`<div class="fd-oh">Impugned order ${i+1} <button class="link-btn" onclick="_fsOrderDel(${i})">remove</button></div>`:""}
+      ${row("Date",inp(`orders.${i}.date`,o.date,"DD.MM.YYYY",{mono:1,rr:1}))}
+      ${row("Court",inp(`orders.${i}.court`,o.court,"HIGH COURT OF JUDICATURE AT BOMBAY BENCH AT AURANGABAD"))}
+      ${row("Case number",inp(`orders.${i}.caseNo`,o.caseNo,"Writ Petition No. 6549 of 2026"),"Written exactly the same everywhere — the registry checks it.")}
+      ${row("Judges",inp(`orders.${i}.judges`,o.judges,"HON'BLE JUSTICE …"))}</div>`).join("")+`<button class="link-btn" onclick="_fsOrderAdd()">+ another impugned order</button>`;
+  const ia=Object.keys(_FS_IA).filter(k=>!_FS_IA[k].crim||d.side==="CRIMINAL"||ias.includes(k)).map(k=>`<label class="co-opt"><input type="checkbox" ${ias.includes(k)?"checked":""} onchange="_fsDSet('ias.${k}',this.checked,this);renderFilesPage()"> ${esc(_FS_IA[k].l)}${k==="delay"&&dl!=null?` <span class="hint">(${dl>0?dl+" days late":"within time"})</span>`:""}</label>`).join("");
+  const pf=d.pf||{}; const P=(k,l,ph)=>row(l,inp("pf."+k,pf[k],ph||"N.A."));
+  const crim=d.side==="CRIMINAL";
+  const warn=[]; if(d.rule5&&d.annexures&&d.annexures.length&&d.rule5!==d.annexures.length) warn.push(`The SLP's Rule 5 declaration says P-1 to P-${d.rule5}, the List of Dates has ${d.annexures.length} annexures.`);
+  const nums=(d.annexures||[]).map(a=>a.n); nums.forEach((n,i)=>{ if(nums.indexOf(n)!==i) warn.push(`Annexure P-${n} appears twice in the List of Dates.`); });
+  if(!(d.orders||[]).every(o=>o.date&&o.court&&o.caseNo)) warn.push("Some impugned-order details are missing.");
+  if(!d.pet1||!d.res1) warn.push("The parties' names are missing.");
+  if(!pf.catMain||!pf.catSub) warn.push("Subject category (main and sub) is not filled — the registry needs it.");
+  if(pf.simPending==="") warn.push("The impugned order looks like a common judgment — fill “similar pending matter” with the connected matters, or write No case.");
+  return `${warn.length?`<div class="co-warn" style="margin-bottom:10px">${warn.map(esc).join("<br>")}</div>`:""}
+    ${grp("Petition & parties",`${row("Side",`<select class="in" onchange="_fsDSet('side',this.value,this)" data-rr="1"><option ${d.side!=="CRIMINAL"?"selected":""}>CIVIL</option><option ${crim?"selected":""}>CRIMINAL</option></select>`)}
+      ${row("Petitioner (first)",inp("pet1",d.pet1,"Lalit Nakade"),src.parties&&src.parties!=="SLP cause title"?"Not found in the SLP — type it.":"")}${row("Number of petitioners",inp("petN",d.petN,"1",{mono:1,rr:1}))}
+      ${row("Respondent (first)",inp("res1",d.res1,"The State of Maharashtra"))}${row("Number of respondents",inp("resN",d.resN,"1",{mono:1,rr:1}))}
+      ${row("Prayer for interim relief",`<label class="co-opt" style="margin:0"><input type="checkbox" ${d.interim?"checked":""} onchange="_fsDSet('interim',this.checked,this)"> the SLP prays for interim relief — the cover says so</label>`)}`,true)}
+    ${grp("Impugned order",ordersH,true)}
+    ${grp("Filing date, delay & applications",`${row("Filing date",inp("filingDate",d.filingDate||"","today — "+_fsToday(),{mono:1,rr:1}),dl==null?"":dl>0?`<b>${dl} days' delay</b> (${Math.round(dl+90)} days from the impugned order, less 90).`:`Within time (${Math.round(dl+90)} days from the impugned order).`)}
+      ${row("Applications on the cover",ia,"Upload each in Applications &amp; papers.")}`,true)}
+    ${grp(`Annexures from the List of Dates · ${(d.annexures||[]).length}`,(d.annexures||[]).map((a,i)=>`<div class="fd-a"><b>P-${v(a.n)}</b>${inp(`annexures.${i}.desc`,a.desc,"Description, as in the index")}</div>`).join("")||`<div class="hint">None found. They are read from sentences like “… is annexed herewith as ANNEXURE P-1 …”.</div>`,false)}
+    ${grp("Listing proforma",`${row("Section",inp("pf.section",pf.section,"II"))}
+      ${P("centralAct","Central Act (title)")}${P("centralSec","Section")}${P("centralRules","Central Rules (title)")}${P("centralRuleNo","Rule No(s)")}
+      ${P("stateAct","State Act (title)")}${P("stateSec","Section")}${P("stateRules","State Rule (title)")}${P("stateRuleNo","Rule No(s)")}
+      ${src.acts?`<div class="fd-n" style="margin:-2px 0 8px">Acts and sections ${esc(src.acts)}.</div>`:""}
+      ${P("interimDate","Impugned interim order (date)")}${P("tribunal","Tribunal / authority")}
+      ${row("Main category",inp("pf.catMain",pf.catMain,"e.g. 18",{mono:1}))}${row("Sub category",inp("pf.catSub",pf.catSub,"e.g. 1807",{mono:1}),"From the Supreme Court's subject-category list.")}
+      ${P("notBefore","Not to be listed before")}${P("simDisposed","Similar disposed of matter","No case")}${P("simPending","Similar pending matter","No case")}
+      ${row("Criminal matter",crim?"Yes":"No")}
+      ${P("surrendered","Whether accused/convict has surrendered",crim?"Convicted (in jail) / Surrendered / No — exemption sought":"No")}
+      ${P("fir","FIR No.",crim?"":"No Details.")}${P("ps","Police Station",crim?"":"No Details.")}${P("sentence","Sentence awarded",crim?"":"No Sentence.")}${P("undergone","Sentence undergone",crim?"":"No Sentence Undergone.")}
+      ${P("earlierCase","Earlier case between the same parties","No")}${P("firCase","Particulars of the FIR and case",crim?"":"No Details.")}${P("bail","Earlier bail application and decision",crim?"":"No")}
+      ${P("la4","Land acquisition: Section 4 notification")}${P("la6","Section 6 notification")}${P("la17","Section 17 notification")}${P("tax","Tax effect")}
+      ${row("Special category",["Senior citizen","SC/ST","Woman/child","Disabled","Legal Aid case","In custody"].map(x=>`<label class="co-opt" style="display:inline-flex;margin:0 10px 4px 0"><input type="checkbox" ${(pf.special||"").split("|").includes(x)?"checked":""} onchange="_fsSpecial('${x}',this.checked)"> ${x}</label>`).join(""),"First petitioner only.")}
+      ${P("vehicle","Vehicle number (motor accident)")}${P("sameLaw","Litigation on the same point of law","No")}
+      ${P("petEmail","Petitioner e-mail")}${P("petMobile","Petitioner mobile")}${P("resEmail","Respondent e-mail")}${P("resMobile","Respondent mobile")}`,false)}
+    ${grp("Advocate",`${row("Name",inp("adv.name",(d.adv||{}).name,"ADITH SATISH DESHMUKH"))}${row("Registration / AoR No.",inp("adv.code",(d.adv||{}).code,"4096",{mono:1}))}${row("E-mail",inp("adv.email",(d.adv||{}).email,""))}`,false)}
+    <div class="fn-b" style="margin-top:14px">${btn("_fsDetailsOk()","✓ Details are right — make the front pages")}${btn("_fsReadAsk()","Read the documents again","ghost")}</div>
+    <div class="hint" style="margin-top:6px">Reading again keeps everything you typed.</div>`;
+}
+function _fsSpecial(x,on){ const d=_fsD(); const l=(d.pf&&d.pf.special||"").split("|").filter(Boolean).filter(y=>y!==x); if(on) l.push(x); _fsDSet("pf.special",l.join("|")); }
+function _fsOrderAdd(){ const d=_fsD(); (d.orders=d.orders||[]).push({date:"",court:(d.orders[0]||{}).court||"",caseNo:(d.orders[0]||{}).caseNo||"",judges:(d.orders[0]||{}).judges||""}); (d.u=d.u||{})["orders"]=1; _filingTouch(_fsRec()); renderFilesPage(); }
+function _fsOrderDel(i){ const d=_fsD(); d.orders.splice(i,1); (d.u=d.u||{})["orders"]=1; _filingTouch(_fsRec()); renderFilesPage(); }
+async function _fsDetailsOk(){ const r=_fsRec(), d=_fsD();
+  if(!(d.orders||[]).length||!d.orders[0].date||!d.orders[0].court||!d.orders[0].caseNo){ toast("Fill the impugned order's date, court and case number.",true); return; }
+  if(!d.pet1||!d.res1){ toast("Fill the parties.",true); return; }
+  d.ok=true; d.okBy=_aiWho(); d.okAt=new Date().toISOString(); _filingTouch(r);
+  await _fsFrontMake(["cover","office","proforma","index"]); _fsGo("front"); }
+
+/* ---- the four front pages, built from the case details ----
+   Formats as in the chamber's filed SLPs of 2026 (cover, record of proceeding, index, office report "A", proforma "A1…") */
+function _fsHead(d,paren){ const crim=d.side==="CRIMINAL"; const B=(t,o)=>Object.assign({t:"p",text:t,align:"center",bold:true,size:13,after:1},o||{});
+  return [B("IN THE HON'BLE SUPREME COURT OF INDIA"),B(paren?`(${crim?"CRIMINAL":"CIVIL"} APPELLATE JURISDICTION)`:`${crim?"CRIMINAL":"CIVIL"} APPELLATE JURISDICTION`),
+    B(crim?"[S.C.R. ORDER XXII RULE 2 (1)]":"ORDER XXI RULE 3 (1) (a)",{bold:false}),B("(Under Article 136 of the Constitution of India)",{bold:false}),
+    B(`SPECIAL LEAVE PETITION (${crim?"CRL.":"CIVIL"}) NO.            OF ${_fsYear(d)}`,{before:4})]; }
+function _fsYear(d){ const f=_fsDateObj(d.filingDate||_fsToday()); return f?f.getFullYear():new Date().getFullYear(); }
+function _fsOrdersLine(d){ const os=d.orders||[]; const dates=os.map(o=>o.date).filter(Boolean);
+  const same=os.every(o=>o.court===os[0].court&&o.caseNo===os[0].caseNo);
+  if(same) return `[AGAINST THE IMPUGNED JUDGMENT AND ORDER DATED ${dates.join(" AND ")} PASSED BY THE ${(os[0]||{}).court||""} IN ${String((os[0]||{}).caseNo||"").toUpperCase()}]`;
+  return "[AGAINST THE IMPUGNED "+os.map(o=>`JUDGMENT AND ORDER DATED ${o.date} PASSED BY THE ${o.court} IN ${String(o.caseNo).toUpperCase()}`).join(" AND ")+"]"; }
+function _fsParty(name,n,role){ const many=(+n||1)>1; return {l:String(name||"").trim()+(many&&!/and\s+(?:Ors|Anr)\.?$/i.test(name)?" and Ors.":""), r:"…"+role+(many?"s":"")}; }
+function _fsBlocksCover(d){
+  const P=_fsParty(d.pet1,d.petN,"Petitioner"), R=_fsParty(d.res1,d.resN,"Respondent"), yr=_fsYear(d), ias=_fsIaList(d), adv=d.adv||{};
+  const b=_fsHead(d,true).concat([
+    {t:"p",text:_fsOrdersLine(d),align:"center",size:12.5,before:8,after:2},
+    d.interim?{t:"p",text:"[WITH PRAYER FOR INTERIM RELIEF]",align:"center",bold:true,size:12.5,after:2}:null,
+    {t:"p",text:"IN THE MATTER OF:",bold:true,size:13,before:12,after:6},
+    {t:"lr",l:P.l,r:P.r,size:13,after:6},{t:"p",text:"VERSUS",align:"center",bold:true,size:13,after:6},{t:"lr",l:R.l,r:R.r,size:13,after:10},
+    ias.length?{t:"p",text:"WITH",align:"center",bold:true,size:13,after:6}:null,
+    ias.length?{t:"table",cols:[1.15,2.6],border:false,size:12,pad:3,rowGap:4,rows:ias.map(k=>[`I.A. NO. _____ OF ${yr}`,_FS_IA[k].cover])}:null,
+    {t:"p",text:"PAPER - BOOK",align:"center",bold:true,size:14,before:14,after:2},
+    {t:"p",text:"[FOR DETAILED INDEX KINDLY SEE INSIDE]",align:"center",size:12,after:30},
+    {t:"p",text:adv.name||"",align:"right",bold:true,size:12.5,after:1},
+    {t:"p",text:"ADVOCATE ON RECORD FOR THE "+(((+d.petN||1)>1)?"PETITIONERS":"PETITIONER"),align:"right",size:12,after:0},
+    {t:"page"},
+    {t:"p",text:"RECORD OF PROCEEDING",align:"center",bold:true,under:true,size:14,after:14},
+    {t:"table",cols:[0.7,3,1.1],head:1,size:12,pad:9,rows:[["S.No.","Date of record of proceedings","Pages"]].concat([...Array(10).keys()].map(i=>[{text:(i+1)+".",align:"center"},"",""]))}]);
+  return b.filter(Boolean); }
+function _fsBlocksOffice(d){
+  const P=_fsParty(d.pet1,d.petN,"Petitioner"), R=_fsParty(d.res1,d.resN,"Respondent"), dl=_fsDelay(d), late=dl!=null&&dl>0;
+  const dates=(d.orders||[]).map(o=>o.date).filter(Boolean).join(" and ");
+  return _fsHead(d,false).concat([
+    {t:"p",text:"IN THE MATTER OF:",bold:true,size:13,before:16,after:6},
+    {t:"lr",l:P.l,r:P.r,size:13,after:6},{t:"p",text:"VERSUS",align:"center",bold:true,size:13,after:6},{t:"lr",l:R.l,r:R.r,size:13,after:18},
+    {t:"p",text:"OFFICE REPORT ON LIMITATION",align:"center",bold:true,under:true,size:14,after:14},
+    {t:"p",text:"1.  The Petition is/are within time.",size:13,lh:1.6,after:6},
+    {t:"p",text:`2.  The Petition is barred by time and there is delay of ${late?dl+" days":"N.A."} in filing the same against order dated ${dates} and petition for condonation of ${late?dl+" days":"N.A."} delay has been filed.`,align:"justify",size:13,lh:1.6,indent:0,after:6},
+    {t:"p",text:"3.  There is delay of NIL days in refiling the Petition and Petitioner has prayed for condonation of NIL days' delay in refiling and petition for condonation of NIL days' delay in refiling has been filed.",align:"justify",size:13,lh:1.6,after:40},
+    {t:"lr",l:"PLACE: NEW DELHI",r:"BRANCH OFFICER",rbold:true,size:13,after:2},{t:"p",text:"DATE: "+(d.filingDate||_fsToday()),size:13}]); }
+function _fsBlocksProforma(d){
+  const pf=d.pf||{}, o=(d.orders||[])[0]||{}, crim=d.side==="CRIMINAL", na=v=>(v==null||String(v).trim()==="")?"N.A.":v, adv=d.adv||{};
+  const box="[  ] ", sp=(pf.special||"").split("|");
+  const R=(l,v,bl)=>[{text:l,bold:!!bl},{text:":",align:"center"},{text:v==null?"":String(v)}];
+  const rows=[
+    R(box+"Central Act: (Title)",na(pf.centralAct)),R(box+"Section",na(pf.centralSec)),R(box+"Central Rules: (Title)",na(pf.centralRules)),R(box+"Rule No(s)",na(pf.centralRuleNo)),
+    R(box+"State Act: (Title)",na(pf.stateAct)),R(box+"Section",na(pf.stateSec)),R(box+"State Rule: (Title)",na(pf.stateRules)),R(box+"Rule No(s)",na(pf.stateRuleNo)),
+    R(box+"Impugned interim order: (Date)",na(pf.interimDate)),R(box+"Impugned Final Order/Decree: (Date)",(d.orders||[]).map(x=>x.date).filter(Boolean).join(" and ")),
+    R(box+"High Court: (Name)",[...new Set((d.orders||[]).map(x=>x.court).filter(Boolean))].join(" / ")),R(box+"Name of Judges",[...new Set((d.orders||[]).map(x=>x.judges).filter(Boolean))].join(" / ")||"N.A."),
+    R(box+"Tribunal/Authority: (Name)",na(pf.tribunal)),
+    R("1. Nature of Matter",crim?"[  ] Civil   [√] Criminal":"[√] Civil   [  ] Criminal",true),
+    R("2. (a) Petitioner/Appellant No. 1",d.pet1||""),R("    (b) E-mail ID",na(pf.petEmail)),R("    (c) Mobile phone number",na(pf.petMobile)),
+    R("3. (a) Respondent No. 1",d.res1||""),R("    (b) E-mail ID",na(pf.resEmail)),R("    (c) Mobile phone number",na(pf.resMobile)),
+    R("4. (a) Main category classification",pf.catMain||""),R("    (b) Sub classification",pf.catSub||""),
+    R("5. Not to be listed before",na(pf.notBefore)),
+    R("6. (a) Similar disposed of matter with citation, if any, & case details",pf.simDisposed||"No case"),R("    (b) Similar pending matter with case details",pf.simPending||"No case"),
+    R("7. Criminal Matters",crim?"Yes":"No",true),
+    R("    (a) Whether accused/convict has surrendered",pf.surrendered?pf.surrendered:(crim?"":"[  ] Yes   [√] No")),
+    R("    (b) FIR No.",pf.fir||(crim?"":"No Details.")),R("    (c) Police Station",pf.ps||(crim?"":"No Details.")),
+    R("    (d) Sentence Awarded",pf.sentence||(crim?"":"No Sentence.")),R("    (e) Period of sentence undergone including period of detention/custody undergone",pf.undergone||(crim?"":"No Sentence Undergone.")),
+    R("    (f) Whether any earlier case between the same parties is filed",pf.earlierCase||"No"),R("    (g) Particulars of the FIR and Case",pf.firCase||(crim?"":"No Details.")),
+    R("    (h) Whether any bail application was preferred earlier and decision thereupon",pf.bail||(crim?"":"No")),
+    R("8. Land Acquisition Matters","",true),R("    (a) Date of Section 4 notification",na(pf.la4)),R("    (b) Date of Section 6 notification",na(pf.la6)),R("    (c) Date of Section 17 notification",na(pf.la17)),
+    R("9. Tax Matters: State the tax effect",na(pf.tax)),
+    R("10. Special Category (first petitioner/appellant only)",["Senior citizen > 65 years","SC/ST","Woman/child","Disabled","Legal Aid case","In custody"].map(x=>`[${sp.includes(x.replace(" > 65 years",""))?"√":"  "}] ${x}`).join("   ")),
+    R("11. Vehicle Number (in case of Motor Accident Claim matters)",na(pf.vehicle)),
+    R("12. Whether there was/is litigation on the same point of law, if yes, details thereof",pf.sameLaw||"No")];
+  return [{t:"p",text:"PRO FORMA FOR FIRST LISTING",align:"center",bold:true,under:true,size:14,after:4},
+    {t:"p",text:"SECTION "+(pf.section||"II"),align:"center",bold:true,size:12.5,after:8},
+    {t:"p",text:"The case pertains to (Please tick/check the correct box):",size:11.5,after:4},
+    {t:"table",cols:[2.35,0.18,2.2],border:false,size:11.5,pad:2.5,rows},
+    {t:"p",text:"DATED: "+(d.filingDate||_fsToday()),size:12,before:10,after:22},
+    {t:"p",text:adv.name||"",align:"right",bold:true,size:12,after:1},{t:"p",text:"Advocate for the "+(((+d.petN||1)>1)?"Petitioners":"Petitioner"),align:"right",size:12,after:1},
+    adv.code?{t:"p",text:"Registration No. "+adv.code,align:"right",size:12,after:1}:null,adv.email?{t:"p",text:"Email: "+adv.email,align:"right",size:12}:null].filter(Boolean); }
+/* the index — rows from the papers actually in the book; pages filled when the filing copy is prepared */
+function _fsIaKindOf(x){ const t=(x.kind||"")+" "+(x.title||""); for(const k of Object.keys(_FS_IA)) if(_FS_IA[k].kind.test(t)) return k; return ""; }
+function _fsBlocksIndex(d, rg, r){
+  rg=rg||{}; const yr=_fsYear(d); const rows=[]; let n=0; const pg=k=>rg[k]||"";
+  const add=(text,p1,p2)=>rows.push([{text:(++n)+".",align:"center"},{text},{text:p1||"",align:"center"},{text:p2||"",align:"center"},""]);
+  add("Court fee"); add("Office report on limitation",pg("office")||"A",pg("office")||"A"); add("Listing Proforma",pg("proforma")||"A1-A2",pg("proforma")||"A1-A2");
+  add("Cover page of Paper Book","","A3"); add("Index of Record of Proceedings","","A4"); add("Limitation report prepared by Registry","","A5"); add("Defect list","","A6"); add("Note sheet","","NS1 to");
+  add("Synopsis & List of Dates",pg("lod"));
+  const imps=_fsList(r,"impugned"); const os=d.orders||[];
+  if(imps.length<=1) add(os.map((o,i)=>`${i?"And copy":"Copy"} of the Impugned Judgment and Order dated ${o.date} passed by the Hon'ble ${_fsTitleCase(o.court).replace(/^High/,"High")} in ${o.caseNo}`).join(" "),pg("impugned"));
+  else imps.forEach((x,i)=>{ const o=os[i]||os[0]||{}; add(x.title||`Copy of the Impugned Judgment and Order dated ${o.date} passed by the Hon'ble ${_fsTitleCase(o.court)} in ${o.caseNo}`,pg("impugned:"+i)); });
+  add("Special Leave Petition along with affidavit",pg("slp"));
+  const apx=_fsList(r,"appendix"); if(apx.length) add("Appendix"+(apx.length===1&&apx[0].title?": "+apx[0].title:""),pg("appendix"));
+  const have=_fsList(r,"annex"); const descs={}; (d.annexures||[]).forEach(a=>descs[String(a.n).toUpperCase()]=a.desc);
+  const nums=have.length?have.map((x,i)=>_fsAnxNo(x,i)):(d.annexures||[]).map(a=>String(a.n).toUpperCase());
+  nums.slice().sort(_fsAnxCmp).forEach(no=>{ const x=have.find((y,i)=>_fsAnxNo(y,i)===no); add(`**ANNEXURE P-${no}:** ${descs[no]||(x&&x.title)||""}`,pg("annex:"+no)); });
+  const apps=_fsList(r,"apps");
+  if(apps.length) apps.forEach((x,i)=>{ const k=_fsIaKindOf(x); add(`I. A. No. ___ of ${yr}: ${k?_FS_IA[k].idx:("Application for "+(x.title||x.kind||"").replace(/^application\s+(for|seeking)\s+/i,""))}`,pg("apps:"+i)); });
+  else _fsIaList(d).forEach(k=>add(`I. A. No. ___ of ${yr}: ${_FS_IA[k].idx}`));
+  add("Filing Memo",pg("fmemo")); add("Vakalatnama and Memo of Appearance",pg("vakalat")); if(_fsList(r,"mop").length) add("Memo of Parties",pg("mop"));
+  return [{t:"p",text:"INDEX",align:"center",bold:true,under:true,size:14,after:10},
+    {t:"table",cols:[0.55,3.3,0.95,0.95,0.75],head:3,size:11.5,pad:4,rows:[
+      [{text:"S. No.",align:"center"},{text:"Particulars of document",align:"center"},{text:"Page no. of Part to which it belongs",align:"center",span:2},{text:"Remarks",align:"center"}],
+      ["","",{text:"Part-1 (Contents of paper book)",align:"center"},{text:"Part-2 (Contents of file alone)",align:"center"},""],
+      [{text:"(i)",align:"center"},{text:"(ii)",align:"center"},{text:"(iii)",align:"center"},{text:"(iv)",align:"center"},{text:"(v)",align:"center"}]].concat(rows)}]; }
+async function _fsFrontBlob(r,k,rg){ const d=r.fs.details; const B=k==="cover"?_fsBlocksCover(d):k==="office"?_fsBlocksOffice(d):k==="proforma"?_fsBlocksProforma(d):_fsBlocksIndex(d,rg,r);
+  return (await _fpRender(B,{margins:{l:72,r:60,t:k==="office"||k==="proforma"?78:60,b:56}})).blob; }
+const _FS_FRONT={cover:"Cover Page",index:"Index",office:"Office Report on Limitation",proforma:"Listing Proforma"};
+/* make (or remake) front pages as files in the filing folder — one the person uploaded or edited is kept unless they ask */
+async function _fsFrontMake(keys, force){
+  const r=_fsRec(); if(!r.fs.details){ toast("Fill the case details first.",true); return; }
+  _progressModal("Making the front pages…","");
+  try{ const base=_filingFolderRel(); let made=0, kept=[];
+    for(const k of keys){ const cur=_fsList(r,k)[0];
+      if(cur&&(!cur.gen||cur.edited)&&!force){ kept.push(_FS_FRONT[k]); continue; }
+      _progressSet(_FS_FRONT[k]+"…",made/keys.length);
+      const blob=await _fsFrontBlob(r,k);
+      const name=await _uploadPaper(base+"/"+`2.${_stageNext(2,_currentNames())} ${_FS_FRONT[k]}.pdf`,blob,()=>{});
+      try{ (_fv.idx.items||(_fv.idx.items=[])).push({name,size:blob.size}); }catch(e){}
+      if(cur){ try{ await _gkTrash(base+"/"+cur.file); }catch(e){} }
+      r.fs.slots[k]=[{file:name,gen:true,title:_FS_FRONT[k],at:new Date().toISOString(),by:_aiWho()}]; made++; }
+    _filingTouch(r); closeModal(); toast(made?`Made ${made} front page${made===1?"":"s"}.`+(kept.length?` Kept your own: ${kept.join(", ")}.`:""):`Kept your own: ${kept.join(", ")}.`); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); } }
+function _fsFrontHTML(r){
+  const btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  if(!(r.fs.details&&r.fs.details.ok)) return `<div class="fn"><div class="fn-t">Check the case details first</div><div class="fn-s">The front pages are made from them.</div><div class="fn-b">${btn("_fsGo('details')","Case details")}</div></div>`;
+  return `<div class="fp-grid">${Object.keys(_FS_FRONT).map(k=>{ const x=_fsList(r,k)[0];
+    return `<div class="fp-c"><div class="fp-t">${_FS_FRONT[k]}</div><div class="fp-s">${x?(x.gen?(x.edited?"made by the app · edited":"made by the app"):"your own upload"):"not made yet"}${k==="index"?" · page numbers go in when the filing copy is prepared":""}</div>
+      <div class="fn-b">${x?btn(`_flOpenStored(${_fvQuote(x.file)})`,"Open","ghost")+btn(`_peOpenFile(${_fvQuote(x.file)},'slot')`,"✏️ Edit","ghost"):""}${btn(`_fsFrontAsk('${k}')`,x?"Make again":"Make",x?"ghost":"seal")}</div></div>`; }).join("")}</div>
+    <div class="hint" style="margin-top:8px">Wrong detail? Change it in <button class="link-btn" onclick="_fsGo('details')">Case details</button> and make the page again. Small changes can be made in the editor.</div>`; }
+function _fsFrontAsk(k){ const r=_fsRec(); const x=_fsList(r,k)[0];
+  if(x&&(!x.gen||x.edited)&&!confirm(`${_FS_FRONT[k]}: ${x.gen?"it was edited by hand":"this is your own upload"}. Make a fresh one from the case details instead? (The current file goes to _to_delete.)`)) return;
+  _fsFrontMake([k],true); }
+
 /* ---- upload into a slot ---- */
 function _fsAddAsk(k, i){
   const s=_FS_SLOTS.find(x=>x.k===k); if(!s) return; const r=_fsRec(); const cur=i!=null?_fsList(r,k)[i]:null;
@@ -21136,6 +21642,83 @@ function _fsAddAsk(k, i){
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAddGo('${k}'${i!=null?","+i:""})">${cur?"Save":"Add"}</button></div>`);
 }
 function _fsEditAsk(k,i){ _fsAddAsk(k,i); }
+/* ---- annexures (owner, Oct 2026): one PDF may hold several annexures — ask which annexure is on which pages,
+   save each as its own file with "ANNEXURE P-n" in bold at the top right (unless it already says so) ---- */
+function _fsAnxNo(x,i){ return String(x&&x.n?x.n:i+1).toUpperCase(); }
+function _fsAnxCmp(a,b){ const pa=/^(\d+)(.*)$/.exec(a)||[0,0,a], pb=/^(\d+)(.*)$/.exec(b)||[0,0,b]; return (+pa[1]-+pb[1])||String(pa[2]).localeCompare(String(pb[2])); }
+function _fsAnxExpected(r){ return ((r.fs&&r.fs.details&&r.fs.details.annexures)||[]).filter(a=>a&&a.n); }
+function _fsAnxAsk(){
+  const r=_fsRec(); const have=_fsList(r,"annex").map((x,i)=>_fsAnxNo(x,i));
+  const exp=_fsAnxExpected(r); const missing=exp.filter(a=>!have.includes(String(a.n).toUpperCase()));
+  window.__anx={file:null,n:0,have,missing};
+  openModal("Add annexures", `<div class="hint" style="margin-bottom:8px">Choose the PDF. If it holds more than one annexure, say which pages are which — each is saved as its own annexure with its number at the top right.</div>
+    <input type="file" id="anxFile" accept="application/pdf,.pdf" class="in" onchange="_fsAnxPicked()">
+    <div id="anxBody"></div>`);
+  document.getElementById("modal").classList.add("m-wide");
+}
+async function _fsAnxPicked(){
+  const f=(document.getElementById("anxFile")||{}).files; if(!(f&&f[0])) return; const A=window.__anx; A.file=f[0];
+  const body=document.getElementById("anxBody"); body.innerHTML=`<div class="hint" style="margin:8px 0">Reading…</div>`;
+  try{ const td=await _pdfTextDoc(f[0]); A.n=td.numPages; A.doc=td.doc;
+    // a page that already says "ANNEXURE P-n" near the top starts that annexure — suggest the split from those
+    const heads=[]; td.pages.forEach((pg,i)=>{ const top=(pg.rows||[]).filter(rw=>rw[0].y<140).map(rw=>rw.map(it=>it.s).join(" ")).join(" "); const m=/ANNEXURE\s*[-–]?\s*P\s*[-–]?\s*(\d+[A-Z]?)/i.exec(top); if(m) heads.push({i,n:m[1].toUpperCase()}); });
+    let rows;
+    if(heads.length) rows=heads.map((h,j)=>({n:h.n,from:h.i+1,to:(heads[j+1]?heads[j+1].i:A.n)}));
+    else { const nx=A.missing[0]?String(A.missing[0].n):String(A.have.length?Math.max(...A.have.map(x=>parseInt(x)||0))+1:1); rows=[{n:nx,from:1,to:A.n}]; }
+    if(heads.length&&heads[0].i>0) rows.unshift({n:"",from:1,to:heads[0].i});
+    rows.forEach(rw=>{ const e=_fsAnxExpected(_fsRec()).find(a=>String(a.n).toUpperCase()===rw.n); rw.t=e?e.desc:""; });
+    A.rows=rows; _fsAnxDraw(heads.length>0);
+  }catch(e){ body.innerHTML=`<div class="co-warn">That PDF could not be read: ${esc(e.message)}</div>`; }
+}
+function _fsAnxDraw(found){
+  const A=window.__anx; const body=document.getElementById("anxBody"); if(!body) return;
+  const exp=_fsAnxExpected(_fsRec());
+  body.innerHTML=`<div class="hint" style="margin:10px 0 6px"><b>${esc(A.file.name)}</b> · ${A.n} page${A.n===1?"":"s"}${found?" · split where the pages already say “ANNEXURE P-…” — check it":""}</div>
+    <div class="anx-rows">${A.rows.map((rw,j)=>`<div class="anx-r"><span class="anx-p">P-</span><input class="in mono anx-n" value="${esc(rw.n)}" oninput="window.__anx.rows[${j}].n=this.value.trim().toUpperCase()" placeholder="no.">
+      <span class="anx-l">pages</span><input class="in mono anx-f" type="number" min="1" max="${A.n}" value="${rw.from}" oninput="window.__anx.rows[${j}].from=+this.value"><span>–</span><input class="in mono anx-f" type="number" min="1" max="${A.n}" value="${rw.to}" oninput="window.__anx.rows[${j}].to=+this.value">
+      <input class="in anx-t" value="${esc(rw.t||"")}" placeholder="Description, as in the index" oninput="window.__anx.rows[${j}].t=this.value">
+      ${A.rows.length>1?`<button class="row-act" title="Remove this row" onclick="window.__anx.rows.splice(${j},1);_fsAnxDraw()">✕</button>`:""}</div>`).join("")}</div>
+    <button class="link-btn" style="margin-top:6px" onclick="_fsAnxMore()">+ another annexure in this file</button>
+    ${exp.length?`<div class="hint" style="margin-top:8px">From the List of Dates: ${exp.map(a=>`P-${esc(a.n)}${A.have.includes(String(a.n).toUpperCase())?" ✓":""}`).join(" · ")}</div>`:""}
+    <div class="anx-th" id="anxTh"></div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAnxGo()">Save annexures</button></div>`;
+  _fsAnxThumbs();
+}
+function _fsAnxMore(){ const A=window.__anx; const last=A.rows[A.rows.length-1]; const nx=(parseInt(last&&last.n)||0)+1; const e=_fsAnxExpected(_fsRec()).find(a=>String(a.n)===String(nx));
+  A.rows.push({n:String(nx),from:Math.min(A.n,(last?last.to:0)+1),to:A.n,t:e?e.desc:""}); if(last&&last.to>=A.n&&A.n>1){ last.to=Math.max(last.from,A.n-1); A.rows[A.rows.length-1].from=last.to+1; } _fsAnxDraw(); }
+async function _fsAnxThumbs(){ const A=window.__anx; const box=document.getElementById("anxTh"); if(!box||!A.doc) return;
+  const N=Math.min(A.n,150); box.innerHTML=[...Array(N).keys()].map(i=>`<div class="anx-tc"><canvas data-i="${i}"></canvas><span>${i+1}</span></div>`).join("")+(A.n>N?`<div class="hint">…and ${A.n-N} more pages</div>`:"");
+  for(const c of box.querySelectorAll("canvas")){ if(!document.getElementById("anxTh")) return; try{ const pg=await A.doc.getPage(+c.dataset.i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:64/v0.width}); c.width=vp.width; c.height=vp.height; await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise; }catch(e){} } }
+async function _fsAnxGo(){
+  const A=window.__anx; if(!A||!A.file) { toast("Choose the PDF.",true); return; }
+  const r=_fsRec(); const list=(r.fs.slots.annex=_fsList(r,"annex"));
+  const rows=A.rows.map(rw=>({n:String(rw.n||"").replace(/^P\s*[-–]?\s*/i,"").toUpperCase(),from:+rw.from,to:+rw.to,t:(rw.t||"").trim()}));
+  for(const rw of rows){ if(!/^\d+[A-Z]?$/.test(rw.n)){ toast("Give each annexure its number (e.g. 3 or 3A).",true); return; }
+    if(!(rw.from>=1&&rw.to<=A.n&&rw.from<=rw.to)){ toast(`Annexure P-${rw.n}: pages must be between 1 and ${A.n}.`,true); return; }
+    if(!rw.t){ toast(`Annexure P-${rw.n}: add a short description — it goes into the index.`,true); return; } }
+  const nums=rows.map(rw=>rw.n); if(new Set(nums).size!==nums.length){ toast("The same annexure number is used twice.",true); return; }
+  const taken=rows.filter(rw=>list.some((x,i)=>_fsAnxNo(x,i)===rw.n)).map(rw=>"P-"+rw.n);
+  if(taken.length&&!confirm(`${taken.join(", ")} ${taken.length===1?"is":"are"} already in. Replace with these pages? (The earlier file goes to _to_delete.)`)) return;
+  _progressModal("Saving annexures…","Cutting the pages…");
+  try{ const {PDFDocument,StandardFonts,rgb}=await _libPdfLib(); const src=await PDFDocument.load(new Uint8Array(await A.file.arrayBuffer()),{ignoreEncryption:true});
+    const base=_filingFolderRel(); let k=0;
+    for(const rw of rows){ k++; _progressSet(`Annexure P-${rw.n} (${k} of ${rows.length})…`,(k-1)/rows.length);
+      const out=await PDFDocument.create(); const idx=[]; for(let i=rw.from-1;i<rw.to;i++) idx.push(i);
+      (await out.copyPages(src,idx)).forEach(pg=>out.addPage(pg));
+      // the heading, unless the first page already shows it near the top
+      let has=false; try{ const pg=await A.doc.getPage(rw.from); const tc=await pg.getTextContent(); const H=pg.getViewport({scale:1}).height;
+        const top=tc.items.filter(it=>H-it.transform[5]<150).map(it=>it.str).join(" "); has=new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+rw.n+"\\b","i").test(top); }catch(e){}
+      if(!has){ const fB=await out.embedFont(StandardFonts.TimesRomanBold); const pg=out.getPage(0); const {width:W,height:H}=pg.getSize(); const want="ANNEXURE P-"+rw.n, sz=16, tw=fB.widthOfTextAtSize(want,sz);
+        pg.drawRectangle({x:W-36-tw-6,y:H-60,width:tw+12,height:24,color:rgb(1,1,1)}); pg.drawText(want,{x:W-36-tw,y:H-53,size:sz,font:fB,color:rgb(0,0,0)}); }
+      const blob=new Blob([await out.save()],{type:"application/pdf"});
+      const name=await _uploadPaper(base+"/"+`1.${_stageNext(1,_currentNames())} Annexure P ${rw.n} ${_fnSafe(rw.t).slice(0,60)}.pdf`,blob,(g,t)=>_progressSet(null,(k-1+g/t)/rows.length));
+      try{ (_fv.idx.items||(_fv.idx.items=[])).push({name,size:blob.size}); }catch(e){}
+      const old=list.findIndex((x,i)=>_fsAnxNo(x,i)===rw.n);
+      const ent={file:name,n:rw.n,title:rw.t,src:A.file.name,srcPages:rw.from===rw.to?String(rw.from):rw.from+"-"+rw.to,head:!has,pages:idx.length,at:new Date().toISOString(),by:_aiWho()};
+      if(old>=0){ const prev=list[old]; list[old]=ent; try{ await _gkTrash(base+"/"+prev.file); }catch(e){} } else list.push(ent); }
+    list.forEach((x,i)=>{ if(!x.n) x.n=String(i+1); }); list.sort((a,b)=>_fsAnxCmp(a.n,b.n));
+    _filingTouch(r); closeModal(); toast(rows.length===1?`Annexure P-${rows[0].n} saved.`:`${rows.length} annexures saved.`); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); } }
 async function _fsAddGo(k, i){
   const s=_FS_SLOTS.find(x=>x.k===k); const r=_fsRec(); const list=(r.fs.slots[k]=_fsList(r,k));
   const title=((document.getElementById("fsTitle")||{}).value||"").trim(), kind=((document.getElementById("fsKind")||{}).value||"").trim();
@@ -21180,17 +21763,20 @@ function _fsLabelAt(pg){ // the page number already printed at the top/bottom ce
       return {t, x0, x1, y:mid[0].y, z}; } }
   return null;
 }
+/* the paper-book number: top centre, bold, in the top margin above anything the page already carries */
+function _fsStampNo(pg,L,font,rgb){ const {width:W,height:H}=pg.getSize(); const sz=16, tw=font.widthOfTextAtSize(L,sz);
+  pg.drawRectangle({x:W/2-tw/2-6,y:H-29,width:tw+12,height:20,color:rgb(1,1,1)}); pg.drawText(L,{x:W/2-tw/2,y:H-24,size:sz,font,color:rgb(0,0,0)}); }
 function _fsRange(a,b){ return !a?"":a===b?a:a+"-"+b; }
 function _fsCollateAsk(){
   const r=_fsRec(); const dn=_fsDone(r);
-  openModal("Collate & number the paper book", `
+  openModal("Prepare the filing copy", `
     ${dn.missReq.length?`<div class="co-warn" style="margin-bottom:8px">Not yet in: <b>${esc(dn.missReq.join(", "))}</b>. You can still collate to see how it looks.</div>`:""}
     <div class="hint" style="margin-bottom:8px">Order: cover · index · office report (A) · proforma (A1…) · synopsis &amp; list of dates (B…) · impugned order (1…) · SLP · affidavit · appendix · annexures · applications · filing memo · vakalatnama · memo of parties.</div>
     <label class="co-opt"><input type="checkbox" id="fsNum" checked> Number every page that doesn't already show its number (a wrong number is replaced)</label>
     <label class="co-opt"><input type="checkbox" id="fsAnx" checked> Write “ANNEXURE P-n” at the top of an annexure's first page if it isn't there</label>
     <label class="co-opt"><input type="checkbox" id="fsIdx" checked> Fill the page numbers in the index</label>
     <label class="co-opt"><input type="checkbox" id="fsPgs" checked> Fill the “Pgs.” blanks against each annexure in the List of Dates and the SLP</label>
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsCollateGo()">Collate</button></div>`);
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsCollateGo()">Prepare</button></div>`);
 }
 var _fsBuilt=null;
 async function _fsCollateGo(){
@@ -21202,20 +21788,30 @@ async function _fsCollateGo(){
     const out=await PDFDocument.create(); const fB=await out.embedFont(StandardFonts.TimesRomanBold), fR=await out.embedFont(StandardFonts.TimesRoman);
     const parts=[]; const warn=[]; const fills=[];
     // 1. load every slot in paper-book order
-    const order=_FS_SLOTS.map(s=>_fsList(r,s.k).map((x,i)=>({s,x,i}))).flat();
-    for(let q=0;q<order.length;q++){ const {s,x,i}=order[q];
+    const D=r.fs.details&&r.fs.details.ok?r.fs.details:null; const FRONT=["cover","index","office","proforma"];
+    if(D&&!(r.fs.details.u&&r.fs.details.u.filingDate)) r.fs.details.filingDate=_fsToday();   // the dates on the front pages are the day it is prepared
+    const order=_FS_SLOTS.map(s=>{ let l=_fsList(r,s.k).map((x,i)=>({s,x,i,no:s.annex?_fsAnxNo(x,i):""})); if(s.annex) l.sort((a,b)=>_fsAnxCmp(a.no,b.no));
+      if(D&&FRONT.includes(s.k)&&!l.length) l=[{s,x:{virtual:1,gen:1,title:_FS_FRONT[s.k],file:""},i:0,no:""}]; return l; }).flat();
+    for(let q=0;q<order.length;q++){ const {s,x,i,no}=order[q];
       _progressSet(`Reading ${x.title||x.file}…`,0.05+0.45*q/Math.max(1,order.length));
-      const it=_flItems().find(z=>z.name===x.file); if(!it){ warn.push(`${s.l}: "${x.file}" is no longer in the filing folder — left out.`); continue; }
-      const blob=await _paperBlob({path:base+"/"+x.file,name:x.file,size:it.size});
+      const gen=!!(D&&FRONT.includes(s.k)&&x.gen&&!x.edited);
+      const it=gen?null:_flItems().find(z=>z.name===x.file); if(!gen&&!it){ warn.push(`${s.l}: "${x.file}" is no longer in the filing folder — left out.`); continue; }
+      const blob=gen?await _fsFrontBlob(r,s.k):await _paperBlob({path:base+"/"+x.file,name:x.file,size:it.size});
       const pd=await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()),{ignoreEncryption:true});
       const tx=await _fsText(blob);
-      parts.push({s,x,i,pd,tx,n:pd.getPageCount()}); }
+      parts.push({s,x,i,no,pd,tx,n:pd.getPageCount(),gen}); }
     if(!parts.length) throw new Error("Nothing uploaded yet.");
     // 2. page labels
     let a=0, b=0, num=0;
     parts.forEach(p=>{ p.labels=[]; for(let j=0;j<p.n;j++){ let L="";
       if(p.s.n==="A"){ L=a===0?"A":"A"+a; a++; } else if(p.s.n==="B"){ L=_fsLetters(b++); } else if(p.s.n!=="none"){ L=String(++num); }
       p.labels.push(L); } p.from=p.labels[0]||""; p.to=p.labels[p.labels.length-1]||""; });
+    // the index made by the app: now that every page has its number, make it with the pages filled in
+    let idxMade=false; const ip0=parts.find(p=>p.s.k==="index");
+    if(ip0&&ip0.gen){ _progressSet("Making the index…",0.52); const R=(ps)=>ps.length?_fsRange(ps[0].from,ps[ps.length-1].to):""; const of=k=>parts.filter(p=>p.s.k===k);
+      const rg={office:R(of("office")),proforma:R(of("proforma")),lod:R(of("lod")),impugned:R(of("impugned")),slp:R(of("slp").concat(of("affidavit"))),appendix:R(of("appendix")),fmemo:R(of("fmemo")),vakalat:R(of("vakalat")),mop:R(of("mop"))};
+      of("impugned").forEach((p,k)=>rg["impugned:"+k]=R([p])); of("annex").forEach(p=>rg["annex:"+p.no]=R([p])); of("apps").forEach((p)=>rg["apps:"+p.i]=R([p]));
+      const blob=await _fsFrontBlob(r,"index",rg); ip0.pd=await PDFDocument.load(new Uint8Array(await blob.arrayBuffer())); ip0.tx=await _fsText(blob); ip0.n=ip0.pd.getPageCount(); ip0.labels=Array(ip0.n).fill(""); idxMade=true; }
     // 3. copy pages, number them, mark annexures
     _progressSet("Numbering the pages…",0.55);
     const outPages=[]; let stamped=0, fixed=0;
@@ -21223,26 +21819,27 @@ async function _fsCollateGo(){
       cp.forEach((pg,j)=>{ out.addPage(pg); outPages.push({pg,p,j}); const L=p.labels[j]; if(!o.num||!L) return;
         const have=_fsLabelAt(p.tx.pages[j]||{rows:[]}); const {height:H}=pg.getSize();
         if(have&&have.t===L) return;
+        if(have&&(have.z||11)<14){ _fsStampNo(pg,L,fB,rgb); stamped++; return; }   // the document's own page number (High Court's, "Page 1 of 8") stays; ours goes above it
         if(have){ pg.drawRectangle({x:have.x0-3,y:H-have.y-3,width:have.x1-have.x0+6,height:have.z+5,color:rgb(1,1,1)});
           const sz=Math.min(14,Math.max(10,have.z)), tw=fR.widthOfTextAtSize(L,sz); pg.drawText(L,{x:(have.x0+have.x1)/2-tw/2,y:H-have.y,size:sz,font:fR,color:rgb(0,0,0)}); fixed++;
           if(fixed<=12) warn.push(`${p.s.l}${p.x.title?" ("+p.x.title+")":""}: page showed “${have.t}”, now “${L}”.`); }
-        else { _stampLabel(pg,L,fR,rgb,true); stamped++; } });
-      if(o.anx&&p.s.annex){ const t0=((p.tx.pages[0]||{}).text||"").slice(0,400); const want="ANNEXURE P-"+(p.i+1);
-        if(!new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+(p.i+1)+"\\b","i").test(t0)){ const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const tw=fB.widthOfTextAtSize(want,15);
+        else { _fsStampNo(pg,L,fB,rgb); stamped++; } });
+      if(o.anx&&p.s.annex){ const t0=((p.tx.pages[0]||{}).text||"").slice(0,400); const want="ANNEXURE P-"+p.no;
+        if(!new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+p.no+"\\b","i").test(t0)){ const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const tw=fB.widthOfTextAtSize(want,15);
           pg.drawRectangle({x:W-40-tw-6,y:H-58,width:tw+12,height:22,color:rgb(1,1,1)}); pg.drawText(want,{x:W-40-tw,y:H-52,size:15,font:fB,color:rgb(0,0,0)}); fills.push({where:want,what:"heading written at the top"}); } } }
     // 4. index
     const rng=k=>{ const ps=parts.filter(p=>p.s.k===k); return ps.length?_fsRange(ps[0].from,ps[ps.length-1].to):""; };
     const P=k=>parts.filter(p=>p.s.k===k);
     const idxPart=parts.find(p=>p.s.k==="index");
-    if(o.idx&&idxPart){ _progressSet("Filling the index…",0.7);
+    if(o.idx&&idxPart&&!idxMade){ _progressSet("Filling the index…",0.7);
       const res=_fsFillIndex(idxPart, outPages, parts, rng, P, fR, rgb); res.fills.forEach(f=>fills.push(f)); res.warn.forEach(w=>warn.push(w)); }
-    else if(o.idx) warn.push("No index uploaded — nothing to fill.");
+    else if(o.idx&&!idxMade) warn.push("No index uploaded — nothing to fill.");
     // 5. "Pgs." blanks in the list of dates and the SLP
     if(o.pgs){ _progressSet("Filling the page references…",0.8);
       const annex=P("annex"); const res=_fsFillPgs(parts.filter(p=>p.s.k==="lod"||p.s.k==="slp"), outPages, annex, fR, rgb); res.fills.forEach(f=>fills.push(f)); res.warn.forEach(w=>warn.push(w)); }
     _progressSet("Saving…",0.9);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
-    _fsBuilt={blob,pages:out.getPageCount(),fills,warn,stamped,fixed,map:parts.map(p=>({l:p.s.annex?"Annexure P-"+(p.i+1)+(p.x.title?" — "+p.x.title:""):p.s.k==="apps"?"Application — "+(p.x.kind||p.x.title||""):p.s.l+(p.x.title?" — "+p.x.title:""),r:_fsRange(p.from,p.to),n:p.n}))};
+    _fsBuilt={blob,pages:out.getPageCount(),fills,warn,stamped,fixed,map:parts.map(p=>({l:p.s.annex?"Annexure P-"+p.no+(p.x.title?" — "+p.x.title:""):p.s.k==="apps"?"Application — "+(p.x.kind||p.x.title||""):p.s.l+(p.x.title?" — "+p.x.title:""),r:_fsRange(p.from,p.to),n:p.n}))};
     closeModal(); _fsReview();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
@@ -21290,7 +21887,7 @@ function _fsFillIndex(ip, outPages, parts, rng, P, font, rgb){
     if(/pro\s*-?\s*forma/i.test(T)) return rng("proforma");
     if(/cover\s*page|record of proceedings|limitation report|defect list|note\s*sheet/i.test(T)) return null;
     if(/synopsis|list of dates/i.test(T)) return rng("lod");
-    const am=/annexure\s*[-–]?\s*p\s*[-–]?\s*(\d+)/i.exec(T); if(am){ const p=annex[+am[1]-1]; return p?_fsRange(p.from,p.to):(warn.push(`Index: Annexure P-${am[1]} is in the index but not uploaded.`),null); }
+    const am=/annexure\s*[-–]?\s*p\s*[-–]?\s*(\d+[A-Z]?)\b/i.exec(T); if(am){ const p=annex.find(z=>z.no===am[1].toUpperCase()); return p?_fsRange(p.from,p.to):(warn.push(`Index: Annexure P-${am[1]} is in the index but not uploaded.`),null); }
     if(/^\s*I\.?\s*A\.?\b|application/i.test(T)&&!/special leave petition along|petition with affidavit/i.test(T)){
       const kinds=[[/certified copy/i,/certified/i],[/translation|o\.\s*t\./i,/translation/i],[/condon|delay/i,/condon|delay/i],[/permission/i,/permission/i],[/stay|interim/i,/stay|interim/i]];
       let p=null; for(const [rt,rk] of kinds){ if(rt.test(T)){ p=apps.find((x,j)=>!appUsed.has(j)&&rk.test(x.x.kind||x.x.title||"")); break; } }
@@ -21346,7 +21943,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
       for(const e of evs){
         if(e.anx){ lastAnx=e.anx; lastRow=ri; continue; }
         if(lastAnx==null||ri-lastRow>2) continue;
-        const an=annex[lastAnx-1]; if(!an){ warn.push(`${p.s.l}: Annexure P-${lastAnx} is referred to but not uploaded.`); continue; }
+        const an=annex.find(z=>z.no===String(lastAnx)); if(!an){ warn.push(`${p.s.l}: Annexure P-${lastAnx} is referred to but not uploaded.`); continue; }
         const v=_fsRange(an.from,an.to);
         // what follows "Pgs.": a blank (____ / ....) and/or an old number; a date (14.11.2017) is the next entry, not a page
         const rest=str.slice(e.end); const bm=/^([_.\s]*?)(\d{1,3}\s*(?:-|–|to)\s*\d{1,3}|\d{1,3})?(?=[\s.,;)]|$)/.exec(rest)||["",""];
@@ -21368,7 +21965,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -21647,7 +22244,7 @@ async function _peOpenAsk(did,pid){
   _progressModal("Opening…","Fetching the filing copy…");
   let ctx; try{ ctx=await _flLoadCtx(); }catch(e){ closeModal(); toast(e.message,true); return; }
   const res=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},ctx);
-  const prev=p.cure&&p.cure.edit;
+  const prev=p.cure&&p.cure.edit&&p.cure.edit.pages?p.cure.edit:null;   // an edit with added/replaced pages can't be replayed — start from the filing copy
   if(!res.idx.length&&!prev){ closeModal();
     openModal("Not in the filing copy", `<div class="hint">“${esc(p.label)}” has no pages in the filing copy to edit${p.pages?` (pages ${esc(p.pages)} were not found)`:""}. Bring the cured document in from outside with <b>Add cured document</b>, or set its pages first.</div>
       <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Close</button><button class="btn ghost" onclick="closeModal();_defPagesAsk('${did}','${pid}')">Set pages</button><button class="btn seal" onclick="closeModal();_defAttachAsk('${did}','${pid}')">Add cured document</button></div>`); return; }
@@ -21700,7 +22297,7 @@ async function _peRender(){
     const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
     wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
     const del=_pe.ops.some(o=>o.k===k&&o.t==="del");
-    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span><button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete page"}</button>`;
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span><button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
     if(del) wrap.classList.add("pe-deleted"); main.appendChild(cap); main.appendChild(wrap);
     await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
     const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
@@ -21819,6 +22416,40 @@ function _peKey(e){ if(!_pe) return;
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="z"){ e.preventDefault(); e.shiftKey?_peRedo():_peUndo(); return; }
   if(e.key==="Escape"&&!_pe.input){ _peClose(); return; }
   if((e.key==="Delete"||e.key==="Backspace")&&_pe.sel!=null&&!_pe.input){ e.preventDefault(); _peDelSel(); } }
+/* add / replace pages (owner, Oct 2026): pages from another PDF go in after a page, or in place of one.
+   The edits made so far are drawn onto a working copy first (nothing is saved until Save). */
+function _peStructAsk(kind,k){ if(!_pe) return; _peCommitInput();
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="application/pdf,.pdf";
+  inp.onchange=async()=>{ const f=inp.files&&inp.files[0]; if(!f) return; if(!/\.pdf$/i.test(f.name)){ toast("Choose a PDF.",true); return; }
+    let n=0; try{ const {PDFDocument}=await _libPdfLib(); n=(await PDFDocument.load(new Uint8Array(await f.arrayBuffer()),{ignoreEncryption:true})).getPageCount(); }catch(e){ toast("That PDF could not be read.",true); return; }
+    window.__peStructFile=f;
+    const where=kind==="rep"?`in place of page ${esc(_pe.ctx.labelOf[_pe.idx[k]]||("PDF "+(_pe.idx[k]+1)))}`:k<0?"before the first page":`after page ${esc(_pe.ctx.labelOf[_pe.idx[k]]||("PDF "+(_pe.idx[k]+1)))}`;
+    openModal(kind==="rep"?"Replace page":"Add pages", `<div class="hint" style="margin-bottom:8px"><b>${esc(f.name)}</b> · ${n} page${n===1?"":"s"} — they go ${where}.</div>
+      ${n>1?`<label class="fld">Which pages of it <span style="color:var(--muted);font-weight:400">(e.g. 2-4, 7 · blank = all)</span></label><input class="in mono" id="peStPg">`:""}
+      <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_peStructGo('${kind}',${k},${n})">${kind==="rep"?"Replace":"Add"}</button></div>`); };
+  inp.click(); }
+function _pePageList(str,n){ const out=[]; String(str||"").split(/[,;]+/).map(x=>x.trim()).filter(Boolean).forEach(x=>{ const m=/^(\d+)\s*(?:-|–|to)\s*(\d+)$/.exec(x); if(m){ for(let i=+m[1];i<=+m[2];i++) out.push(i); } else if(/^\d+$/.test(x)) out.push(+x); });
+  const ok=out.filter(i=>i>=1&&i<=n); return ok.length?[...new Set(ok)].map(i=>i-1):[...Array(n).keys()]; }
+async function _peStructGo(kind,k,n){
+  const f=window.__peStructFile; if(!f||!_pe) return; const want=_pePageList((document.getElementById("peStPg")||{}).value,n);
+  _progressModal("Working…","Putting the pages in…");
+  try{ const E=_pe; const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    if(!E.base) E.base={idx:E.idx.slice(),labels:E.idx.map(i=>E.ctx.labelOf[i])};
+    const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const add=await PDFDocument.load(new Uint8Array(await f.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const F={fR:await out.embedFont(StandardFonts.TimesRoman),fB:await out.embedFont(StandardFonts.TimesRomanBold),fH:await out.embedFont(StandardFonts.HelveticaBold),rgb};
+    const mine=await out.copyPages(src,E.idx); const theirs=await out.copyPages(add,want);
+    if(kind==="ins"&&k<0) theirs.forEach(pg=>out.addPage(pg));
+    mine.forEach((pg,j)=>{ const gone=E.ops.some(o=>o.k===j&&o.t==="del");
+      if(kind==="rep"&&j===k){ theirs.forEach(t=>out.addPage(t)); return; }
+      if(!gone){ out.addPage(pg); _peDrawOn(pg,E.ops.filter(o=>o.k===j),F); }
+      if(kind==="ins"&&j===k) theirs.forEach(t=>out.addPage(t)); });
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    const td=await _pdfTextDoc(blob);
+    E.ctx={blob,doc:td.doc,labelOf:td.pages.map(_pageLabel)}; E.idx=[...Array(td.numPages).keys()];
+    E.ops=[]; E.undo=[]; E.redo=[]; E.sel=null; E.dirty=true; E.struct=true; window.__peStructFile=null;
+    closeModal(); await _peRender(); toast(kind==="rep"?"Page replaced. Save when done.":`${want.length} page${want.length===1?"":"s"} added. Save when done.`);
+  }catch(e){ closeModal(); toast(e.message,true); } }
 function _peClose(force){ if(!_pe) return; _peCommitInput();
   if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes to these pages will be lost.")) return;
   document.removeEventListener("keydown",_peKey); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
@@ -21833,7 +22464,7 @@ async function _peOpenFile(name, kind){
     _progressSet("Reading the pages…",null);
     const td=await _pdfTextDoc(blob);
     const ctx={blob,doc:td.doc,labelOf:td.pages.map(_pageLabel)};
-    closeModal(); _peStart({file:name,kind,ctx,idx:[...Array(td.numPages).keys()],label:kind==="final"?"Final copy":"Defect pages"});
+    closeModal(); _peStart({file:name,kind,ctx,idx:[...Array(td.numPages).keys()],label:kind==="final"?"Final copy":kind==="fscopy"?"Filing copy":kind==="slot"?name.replace(/^\d\.\d+ /,"").replace(/\.pdf$/i,""):"Defect pages"});
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 async function _peSaveFile(){
@@ -21848,15 +22479,16 @@ async function _peSaveFile(){
     pages.forEach((pg,j)=>{ out.addPage(pg); _peDrawOn(pg,E.ops.filter(o=>o.k===keep[j]),{fR,fB,fH,rgb}); });
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     _progressSet("Saving in the filing folder…",0.5);
-    const tmp=E.file.replace(/\.pdf$/i,"")+" (edited).pdf";
+    const tmp=E.file.replace(/\.pdf$/i,"")+" edited.pdf";
     const got=await _uploadPaper(base+"/"+tmp,blob,(g,t)=>_progressSet(null,0.5+0.35*g/t));
     let final=got;
     try{ await _gkTrash(base+"/"+E.file); const rn=await _gkNew("/api/rename",{path:base+"/"+got,name:E.file}); final=(rn&&rn.name)||E.file; }catch(e){}
-    const list=E.kind==="final"?(rec.finals||[]):(rec.refilings||[]); const ent=list.find(x=>x.file===E.file);
+    const list=E.kind==="final"?(rec.finals||[]):E.kind==="fscopy"?((rec.fs&&rec.fs.copies)||[]):E.kind==="refiling"?(rec.refilings||[]):[]; const ent=list.find(x=>x.file===E.file);
+    if(E.kind==="slot"&&rec.fs&&rec.fs.slots) Object.values(rec.fs.slots).forEach(l=>(l||[]).forEach(x=>{ if(x&&x.file===E.file){ x.file=final; x.edited={by:_aiWho(),at:new Date().toISOString()}; } }));
     let note="";
     if(ent){ ent.file=final; ent.pages=out.getPageCount(); ent.edited={by:_aiWho(),at:new Date().toISOString()};
-      if(E.kind!=="final"&&ent.ok&&isStaffView()){ delete ent.ok; note=" They need the Head of Chamber's approval again."; }
-      if(E.kind!=="final"&&ent.signed&&!ent.signed.nosign){ delete ent.signed; note+=" The signed copy no longer matches — sign and upload again."; } }
+      if(E.kind==="refiling"&&ent.ok&&isStaffView()){ delete ent.ok; note=" They need the Head of Chamber's approval again."; }
+      if(E.kind==="refiling"&&ent.signed&&!ent.signed.nosign){ delete ent.signed; note+=" The signed copy no longer matches — sign and upload again."; } }
     _filingTouch(rec);
     closeModal(); _peClose(true); toast(`Saved — ${out.getPageCount()} pages.`+note); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
@@ -21896,9 +22528,11 @@ async function _peSave(){
     _progressSet("Saving in stage 5…",0.6);
     const old=p.cure&&p.cure.how==="edit"?p.cure.file:"";
     const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
-    const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},E.ctx).idx;
-    if(E.idx.length<all.length||E.idx.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.idx.map(i=>E.ctx.labelOf[i]||("p"+(i+1))).join(", "); }
-    p.cure={file:name,pages:"all",how:"edit",mode:"replace",edit:{pages:E.idx,ops:E.ops,by:_aiWho(),at:new Date().toISOString()}};
+    if(E.struct&&E.base){ const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},await _flLoadCtx()).idx;
+      if(E.base.idx.length<all.length||E.base.idx.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.base.labels.map((l,j)=>l||("p"+(E.base.idx[j]+1))).join(", "); } }
+    else { const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},E.ctx).idx;
+      if(E.idx.length<all.length||E.idx.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.idx.map(i=>E.ctx.labelOf[i]||("p"+(i+1))).join(", "); } }
+    p.cure={file:name,pages:"all",how:"edit",mode:"replace",edit:E.struct?{struct:true,by:_aiWho(),at:new Date().toISOString()}:{pages:E.idx,ops:E.ops,by:_aiWho(),at:new Date().toISOString()}};
     _defCheckDone(d); _filingTouch(rec);
     if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }   // the earlier edited copy goes to _to_delete
     closeModal(); _peClose(true); toast("Saved — the corrected pages are attached to this defect."); _fv.live=true; _filesLoad();
@@ -21909,7 +22543,7 @@ async function _peSave(){
 function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
-try{ Object.assign(window,{_peTogglePage,_peOpenFile,_peSaveFile,_peDrawOn,_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
+try{ Object.assign(window,{_peStructAsk,_peStructGo,_pePageList,_peTogglePage,_peOpenFile,_peSaveFile,_peDrawOn,_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -21957,7 +22591,7 @@ function _fvRemoveFilingAsk(path){
 async function _fvRemoveFilingGo(path){ _progressModal("Removing…",path.split("/").pop());
   try{ await _gkTrash(path); _filingRecGone(path); closeModal(); toast("Filing removed — folder in _to_delete, record in Trash."); _fv.live=true; _filesLoad(); }
   catch(e){ closeModal(); toast(e.message,true); } }
-function _fsMenu(btn,k,i){ const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; _fvMenu(btn,[{l:"Edit description",on:`_fsEditAsk('${k}',${i})`},{l:"Replace with a new copy…",on:`_fsReplaceAsk('${k}',${i})`},"-",{l:"Remove…",on:`_fsRemoveAsk('${k}',${i})`,danger:true}]); }
+function _fsMenu(btn,k,i){ const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; _fvMenu(btn,[{l:"Edit pages…",on:`_peOpenFile(${_fvQuote(x.file)},'slot')`},{l:"Edit description",on:`_fsEditAsk('${k}',${i})`},{l:"Replace with a new copy…",on:`_fsReplaceAsk('${k}',${i})`},"-",{l:"Remove…",on:`_fsRemoveAsk('${k}',${i})`,danger:true}]); }
 try{ Object.assign(window,{_fvSelOn,_fvSelToggle,_fvSelAll,_fvSelBar,_fvSelRemoveAsk,_fvSelRemoveGo,_filingRecGone,_fvMenuClose,_fvMenuOut,_fvMenu,_fvFileMenu,_fvDirMenu,_fvRemoveFilingAsk,_fvRemoveFilingGo,_fsMenu}); }catch(e){}
 /* ---------- REVIEW the defect pages before approving (owner, Oct 2026) ----------
    "Show me the comparison of before and after, and the registry's comment on the defect on top in bigger and
@@ -25532,7 +26166,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1600";
+  window.APP_VERSION = "2026.10.09-2100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
