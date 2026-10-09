@@ -19404,7 +19404,7 @@ async function _uploadPaper(relPath, blob, onProgress, opts){
     if(dir===sdir&&_FILING_RX.test(dir.split("/").pop())&&!used&&_extOf(sname)===_extOf(nn)){
       try{ const r=await _gkNew("/api/rename",{path:srcPath,name:nn}); __srcMap.delete(_srcKey(blob)); onProgress&&onProgress(blob.size,blob.size); return (r&&r.name)||nn; }catch(e){} } }
   const d=opts.owner&&!isStaffView()?await _gk("/api/uploadsession",{path:relPath}):await _gkNew("/api/addsession",{path:relPath, replace:!!opts.replace});
-  const CH=320*1024*16, size=blob.size; let off=0, last=null, viaGk=false; const errs=new Set();
+  let CH=320*1024*16; const size=blob.size; let off=0, last=null, viaGk=false; const errs=new Set();
   /* each piece goes as raw bytes (some browsers send a sliced file as an empty body); fetch first, then the
      older XMLHttpRequest, first straight to Microsoft, then through the gatekeeper (Oct 2026, other laptop) */
   const xhr=(method,url,headers,buf)=>new Promise((res,rej)=>{ const x=new XMLHttpRequest(); x.open(method,url); Object.keys(headers).forEach(k=>x.setRequestHeader(k,headers[k]));
@@ -19422,10 +19422,12 @@ async function _uploadPaper(relPath, blob, onProgress, opts){
     try{ return await xhr("POST",ru,hd,buf); }catch(e){ errs.add(host(ru)+": "+(e.message||e)); throw e; }
   };
   while(off<size){
-    const end=Math.min(off+CH,size); let tries=0, r=null;
+    let end=Math.min(off+CH,size), tries=0, r=null;
     for(;;){
       try{ r=await put(`bytes ${off}-${end-1}/${size}`,blob.slice(off,end)); }catch(e){ r=null; }
       if(r&&(r.ok||r.status===202)) break;
+      // a security program or network that stops big uploads often lets small ones through: smaller pieces, both routes again
+      if(!r&&CH>327680){ CH=327680; viaGk=false; end=Math.min(off+CH,size); tries=0; continue; }
       if(++tries>=4){ let why=""; if(r){ try{ const j=await r.json(); why=(j.error&&(j.error.message||j.error))||""; }catch(e){} }
         throw new Error(r?`Upload to OneDrive failed (${r.status}${why?": "+why:""}).`
           :`This computer could not send the paper. The internet is working, so the browser, an antivirus / security program or the network is blocking uploads to ${[...errs].map(x=>x.split(":")[0]).filter((x,i,a)=>a.indexOf(x)===i).join(" and ")}. Try another browser (Chrome or Edge), or allow these sites in the security program. Details: ${[...errs].join("; ")}`); }
@@ -26336,7 +26338,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0030";
+  window.APP_VERSION = "2026.10.10-0100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
