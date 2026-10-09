@@ -20226,10 +20226,34 @@ async function _dlStartGo(){
   }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); }
 }
 // Read a defect list PDF into the filing record (shared by "Read defect list" and the start flow).
+/* A PDF "printed" through Acrobat Distiller / Microsoft Print to PDF often keeps the letters as shapes with no
+   meaning ("@ABCECFAGHB…") — the page looks right but no text can be read from it (Lalit Nakade's list of
+   09.10.2026). Then the pages are read the way a person reads them: recognising the letters in the picture (OCR),
+   with each word's position, so the same column reader works. */
+function _pdfGarbled(td){ const t=(td.pages||[]).map(p=>p.text||"").join(" "); const toks=t.split(/\s+/).filter(x=>x.length>=3);
+  if(t.replace(/\s+/g,"").length<60) return true;
+  const good=toks.filter(x=>/^[A-Za-z][a-z]+[.,:;]?$|^[A-Z]{3,}[.,:;]?$|^\d[\d.\-\/]*$/.test(x)&&/[aeiouAEIOU\d]/.test(x)).length;
+  return toks.length<8||good/toks.length<0.35; }
+async function _ocrLib(){ if(!window.Tesseract) await _qlLoadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"); if(!window.Tesseract) throw new Error("Could not load the page reader (OCR) — check the internet."); return window.Tesseract; }
+async function _ocrTextDoc(blob, maxPages, onPage){
+  const T=await _ocrLib(); const lib=await _qlPdfLib(); const doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise;
+  const worker=await T.createWorker("eng"); const pages=[]; const n=Math.min(doc.numPages,maxPages||doc.numPages), SC=2.5;
+  try{ for(let i=1;i<=n;i++){ onPage&&onPage(i,n);
+      const p=await doc.getPage(i), v0=p.getViewport({scale:1}), vp=p.getViewport({scale:SC}); const c=document.createElement("canvas"); c.width=vp.width; c.height=vp.height;
+      await p.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise;   // "print": not paused when the tab is in the background
+      const {data}=await worker.recognize(c);
+      const items=(data.words||[]).filter(w=>w.text&&w.text.trim()&&w.confidence>30).map(w=>({s:w.text.trim(),x:w.bbox.x0/SC,y:w.bbox.y1/SC-1.5,w:(w.bbox.x1-w.bbox.x0)/SC}));
+      items.sort((a,b)=>(Math.abs(a.y-b.y)>3?a.y-b.y:a.x-b.x)); const rows=_itemRows(items);
+      pages.push({w:v0.width,h:v0.height,items,rows,text:rows.map(r=>_joinItems(r)).join("\n")}); } }
+  finally{ try{ await worker.terminate(); }catch(e){} }
+  return {doc,pages,numPages:doc.numPages,ocr:true};
+}
 async function _defIngest(rec, blob, name){
   _progressSet("Reading the defects…",0.5);
-  const rows=_parseDefectList(await _pdfTextDoc(blob,12));
-  if(!rows.length){ toast("No defects could be read from that PDF — add them by hand.",true); return 0; }
+  const td0=await _pdfTextDoc(blob,12); let rows=_parseDefectList(td0);
+  if(!rows.length&&_pdfGarbled(td0)){ _progressSet("This PDF has no readable text — reading the page pictures (about 10 seconds a page)…",0.55);
+    try{ rows=_parseDefectList(await _ocrTextDoc(blob,12,(i,n)=>_progressSet(`Reading page ${i} of ${n} from its picture…`,0.55+0.3*i/n))); }catch(e){ toast(e.message,true); } }
+  if(!rows.length){ toast("No defects could be read from that PDF. Best: on the Supreme Court site open the Defects page in Chrome → Print → Save as PDF (not “Adobe PDF” / “Microsoft Print to PDF”) and read that — or add the defects by hand.",true); return 0; }
   let index=rec.index||[];
   if(_flFC()){ try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){} }
   const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
@@ -23345,7 +23369,7 @@ function _aiApprove(did){
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
 try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
-try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
+try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -26623,7 +26647,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0245";
+  window.APP_VERSION = "2026.10.10-0315";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
