@@ -2022,6 +2022,15 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .fv-plus{min-width:30px;font-size:15px;font-weight:600;line-height:1} .fv-more{min-width:34px;font-size:16px;line-height:1;letter-spacing:1px} .fv-menu{position:fixed;z-index:9000;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;min-width:190px}
+  .fv-menu button{display:block;width:100%;text-align:left;border:0;background:none;border-radius:7px;padding:9px 12px;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer} .fv-menu button:hover{background:var(--line2)} .fv-menu button.danger{color:#b23a3a}
+  .fvm-sep{height:1px;background:var(--line2);margin:4px 6px}
+  .fv-row.selmode{cursor:pointer} .fv-row.selmode .fv-ck{width:18px;height:18px;flex:none;margin:0 2px 0 0;accent-color:var(--seal)} .fv-row.picked{background:#f6efec} .fv-row.locked{opacity:.55;cursor:default}
+  .fv-selbtn.on{background:var(--seal);color:#fff;border-color:var(--seal)} .fv-selhead{display:flex;justify-content:flex-end;margin:0 0 8px}
+  #fvSelBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));z-index:8500;display:flex;align-items:center;gap:6px;background:#1f1b18;color:#fff;border-radius:14px;padding:8px 10px 8px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100vw - 24px)}
+  .fsb-n{font-size:13.5px;margin-right:6px;white-space:nowrap} .fsb-b{border:0;border-radius:9px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap}
+  .fsb-b:disabled{opacity:.4;cursor:default} .fsb-rm{background:#b23a3a} .fsb-done{background:#fff;color:#1f1b18}
+  @media (max-width:760px){ #fvSelBar{bottom:calc(76px + env(safe-area-inset-bottom))} }
   #peOverlay{position:fixed;inset:0;z-index:2000;background:#e9e7e3;display:none;flex-direction:column} #peOverlay.show{display:flex}
   .pe-top{display:flex;align-items:center;gap:6px;height:52px;padding:0 10px;background:#fff;border-bottom:1px solid var(--line)}
   .pe-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2} .pe-ttl b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pe-ttl span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -19133,6 +19142,7 @@ function openFiles(serial, q, sub, view){
   _filesLoad();
 }
 function _filesLoad(){
+  if(window.__fvSel&&__fvSel.on){ __fvSel.on=false; __fvSel.set=new Set(); try{ _fvSelBar(); }catch(e){} }
   const f=_fv; f.loading=true; f.err=""; renderFilesPage();
   const path=f.folder+(f.sub?"/"+f.sub:"");
   const done=fx=>{ if(_fv!==f) return; f.idx=fx; f.loading=false; f.title=f.title||(fx&&fx.title)||""; renderFilesPage(); };
@@ -19175,15 +19185,19 @@ function _fvSetSort(v){ _fv.sort=v; _fvRenderList(); }
 function _fvQuote(s){ return JSON.stringify(String(s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
 function _fvRowHTML(x,base,q,can){
   {
-    const k=can?_paperReg({path:base+"/"+x.name,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:x.num||"",mtime:x.mtime||""}):-1;
+    const path=base+"/"+x.name, canRm=_canRemove(x);
+    const k=can?_paperReg({path,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:x.num||"",mtime:x.mtime||""}):-1;
     const kind=_fileKind(x.ext); const lab=_FK[kind][0], col=_FK[kind][1];
+    const meta=`<div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span>${window.__fvSel&&__fvSel.on&&!canRm?`<span>older than a week — Head of Chamber only</span>`:""}</div>`;
+    if(window.__fvSel&&__fvSel.on&&can){ __fvSel.meta[path]={name:x.name}; const on=__fvSel.set.has(path);
+      return `<div class="fv-row selmode${on?" picked":""}${canRm?"":" locked"}" data-sp="${esc(path)}" ${canRm?`onclick="_fvSelToggle(${_fvQuote(path)})"`:""}><input type="checkbox" class="fv-ck" ${on?"checked":""} ${canRm?"":"disabled"} tabindex="-1">
+        <div class="fv-ic" style="background:${col}">${lab}</div><div class="fv-main"><div class="fv-name">${_hl(x._label,q)}</div>${meta}</div></div>`; }
     return `<div class="fv-row${k>=0&&k===_fv.selK?" sel":""}" ${k>=0?`data-k="${k}"`:""}>
       <div class="fv-ic" style="background:${col}">${lab}</div>
       <div class="fv-main" ${k>=0?`onclick="_fvSelect(${k});_qlShow(${k})" title="Preview (Space)"`:""}>
-        <div class="fv-name">${_hl(x._label,q)}</div>
-        <div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div>
+        <div class="fv-name">${_hl(x._label,q)}</div>${meta}
       </div>
-      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app"><span class="fv-l-long">Download</span><span class="fv-l-short">Save</span></button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button>${_canRemove(x)?`<button onclick="_paperReplaceAsk(${_fvQuote(base+"/"+x.name)})" title="Put a new copy in its place (the old one goes to _to_delete)">Replace</button><button onclick="_paperRemoveAsk(${_fvQuote(base+"/"+x.name)})" title="Move to _to_delete (not deleted)">Remove</button>`:""}</div>`:""}
+      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button class="fv-more" onclick="event.stopPropagation();_fvFileMenu(this,${k},${_fvQuote(path)},${kind==="word"},${canRm})" title="More" aria-label="More">⋯</button></div>`:""}
     </div>`;
   }
 }
@@ -19197,9 +19211,12 @@ function _fvRenderList(){
   const dl=dirs.filter(x=>(f.type==="all"||f.type===x._t)&&match(x));
   const can=!!_gkUrl(); const base=(f.idx&&f.idx.folder)||(f.folder+(f.sub?"/"+f.sub:""));
   const row=x=>_fvRowHTML(x,base,q,can);
-  const drow=x=>`<div class="fv-row"><div class="fv-ic dir">${x._t==="fil"?"⚖️":"📁"}</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span><span>${x._t==="fil"?"filing — stages 1 to 6":"older folder, kept as it was"}</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button></div></div>`;
+  const drow=x=>{ const path=base+"/"+x.name, fil=x._t==="fil";
+    if(__fvSel.on){ const can2=fil&&!isStaffView(); if(can2) __fvSel.meta[path]={dir:true}; const on=__fvSel.set.has(path);
+      return `<div class="fv-row selmode${on?" picked":""}${can2?"":" locked"}" ${can2?`data-sp="${esc(path)}" onclick="_fvSelToggle(${_fvQuote(path)})"`:""}><input type="checkbox" class="fv-ck" ${on?"checked":""} ${can2?"":"disabled"} tabindex="-1"><div class="fv-ic dir">${fil?"⚖️":"📁"}</div><div class="fv-main"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span>${can2?"":`<span>${fil?"Head of Chamber only":"folders are not removed here"}</span>`}</div></div></div>`; }
+    return `<div class="fv-row"><div class="fv-ic dir">${fil?"⚖️":"📁"}</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button>${fil&&!isStaffView()?`<button class="fv-more" onclick="event.stopPropagation();_fvDirMenu(this,${_fvQuote(path)},true)" title="More" aria-label="More">⋯</button>`:""}</div></div>`; };
   let h="";
-  if(f.type==="all"&&!q){
+  if(f.type==="all"&&!q&&!__fvSel.on){
     // ISLANDS: the latest few papers, then one big tile per kind of paper
     const latest=files.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))).slice(0,3);
     const kinds=[["fil","⚖️","Filings"],["N","📝","Notes"],["F","📕","PDF files"],["LS","📄","Lists & Submissions"],["C","📚","Compilations"],["D","✏️","Drafts"],["X","❔","Not yet numbered"],["dir","📁","Older folders"]];
@@ -19243,10 +19260,11 @@ function renderFilesPage(){
           <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>`}
         <div style="display:flex;gap:6px">${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
       </div>
-      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">+ Add paper</button><button class="btn ghost sm" onclick="_scanOpen({})">📷 Scan</button><button class="btn ghost sm" onclick="_newFilingAsk()">⚖️ New filing</button><button class="btn ghost sm" onclick="_dlStartAsk()">⚠️ Defect list</button></div>`:""}
+      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_fvMenu(this,[{l:'Upload a paper…',on:'_addPaperAsk(0)'},{l:'Scan with the camera…',on:'_scanOpen({})'},'-',{l:'Start a new filing…',on:'_newFilingAsk()'},{l:'Add a defect list…',on:'_dlStartAsk()'}])">＋ Add</button></div>`:""}
       ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:_inFiling()?_filingViewHTML():`
       <div class="fv-tools">
         <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
+        ${_gkUrl()&&f.idx?`<button class="btn ghost sm fv-selbtn${__fvSel.on?" on":""}" onclick="_fvSelOn(!__fvSel.on)">${__fvSel.on?"Done":"Select"}</button>`:""}
         ${f.type==="all"?"":`<select class="fv-sort" onchange="_fvSetSort(this.value)"><option value="num" ${f.sort==="num"?"selected":""}>By number</option><option value="new" ${f.sort==="new"?"selected":""}>Newest first</option></select>`}
       </div>
       ${chips?`<div class="fv-chips">${chips}</div>`:""}
@@ -19587,14 +19605,15 @@ function _flPapersHTML(rec, fc){
     const xs=items.filter(x=>x.stage===s.n);
     const extra=(s.n===3&&fc&&fc.linked)?`<div class="ps-link">📕 <button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name)}</button> <span class="hint">— filing copy kept where it is in the case folder</span></div>`:"";
     return `<details class="ps" ${xs.length||extra||st.stage===s.n?"open":""}><summary><span class="ps-n">${s.n}</span><span class="ps-l">${esc(s.l)}</span><span class="ps-c">${xs.length||""}</span>
-        <span class="ps-a" onclick="event.preventDefault();event.stopPropagation()"><button class="row-act" onclick="_addPaperAsk(${s.n})">+ Add</button><button class="row-act" onclick="_scanOpen({stage:${s.n}})">Scan</button></span></summary>
+        <span class="ps-a" onclick="event.preventDefault();event.stopPropagation()"><button class="row-act fv-plus" title="Add to ${esc(s.l)}" aria-label="Add" onclick="_fvMenu(this,[{l:'Upload a paper…',on:'_addPaperAsk(${s.n})'},{l:'Scan with the camera…',on:'_scanOpen({stage:${s.n}})'}])">＋</button></span></summary>
       <div class="ps-b">${extra}${xs.length?xs.map(x=>_fvRowHTML(x,base,"",can)).join(""):(extra?"":`<div class="hint" style="padding:6px 2px">${esc(s.h)}</div>`)}</div></details>`; }).join("");
   const loose=items.filter(x=>!x.stage);
   const looseHTML=loose.length?`<details class="ps" open><summary><span class="ps-n">·</span><span class="ps-l">Not yet sorted</span><span class="ps-c">${loose.length}</span></summary><div class="ps-b">`+
     loose.map(x=>`<div class="fv-row"><div class="fv-ic" style="background:${_FK[_fileKind(x.ext)][1]}">${_FK[_fileKind(x.ext)][0]}</div>
       <div class="fv-main"><div class="fv-name">${esc(x.name)}</div><div class="fv-meta"><span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div></div>
       <div class="fv-acts"><select class="fv-sort" style="min-width:140px" onchange="_sortIntoStage(${_fvQuote(x.name)},this.value)"><option value="">Sort into…</option>${opts}</select></div></div>`).join("")+`</div></details>`:"";
-  return groups+looseHTML+`<div class="btn-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="_decChkAsk('decl')">Declaration</button><button class="btn ghost sm" onclick="_decChkAsk('chk')">Checklist</button></div>`;
+  const selHead=`<div class="fv-selhead"><button class="btn ghost sm fv-selbtn${__fvSel.on?" on":""}" onclick="_fvSelOn(!__fvSel.on)">${__fvSel.on?"Done":"Select"}</button></div>`;
+  return selHead+groups+looseHTML+`<div class="btn-row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" onclick="_decChkAsk('decl')">Declaration</button><button class="btn ghost sm" onclick="_decChkAsk('chk')">Checklist</button></div>`;
 }
 /* ---------- defects list (Oct 2026 redesign, with the AI clerk) ----------
    Grouped by what is needed: Needs your attention · To do · With the AI clerk · Done.
@@ -21022,7 +21041,7 @@ function _fsHTML(rec){
   const slot=s=>{
     const xs=_fsList(r,s.k);
     const rows=xs.map((x,i)=>`<div class="fsl-f"><span class="fsl-n">${s.annex?"P-"+(i+1):s.many?(i+1)+".":""}</span><span class="fsl-m"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(x.file)})">${esc(x.title||x.file)}</button>${x.kind?` <span class="hint">· ${esc(x.kind)}</span>`:""}${x.word?` <span class="hint">· Word: ${esc(x.word)}</span>`:s.word?` <span class="hint" style="color:#9a5b00">· no Word draft</span>`:""}</span>
-        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act" onclick="_fsEditAsk('${s.k}',${i})">Edit</button><button class="row-act" onclick="_fsReplaceAsk('${s.k}',${i})" title="Put a new copy in its place">Replace</button><button class="row-act" onclick="_fsRemoveAsk('${s.k}',${i})" title="Remove">Remove</button></span></div>`).join("");
+        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act fv-more" onclick="event.stopPropagation();_fsMenu(this,'${s.k}',${i})" title="More" aria-label="More">⋯</button></span></div>`).join("");
     const add=can&&(s.many||!xs.length)?`<button class="btn ${xs.length?"ghost":"seal"} sm" onclick="_fsAddAsk('${s.k}')">${xs.length?"+ Add another":"+ Upload"}</button>`:"";
     return `<div class="fsl ${xs.length?"has":""}"><div class="fsl-h"><span class="fsl-ck">${xs.length?"✓":s.opt?"○":"•"}</span><span class="fsl-t">${esc(s.l)}${s.opt?` <span class="hint">(if any)</span>`:""}</span>${add}</div>${s.h&&!xs.length?`<div class="fsl-s">${esc(s.h)}</div>`:""}${rows}</div>`;
   };
@@ -21416,9 +21435,11 @@ async function _pfPendingTick(){
       if(!m.folder&&!isStaffView()){ m.folder=folder; changed=true; }
       if(!_gkUrl()) continue;
       const ser=String(m.serial).padStart(3,"0");
-      let n=0; try{ const d=await _gk("/api/list",{folder}); (d.items||[]).forEach(x=>{ const mm=_FILING_RX.exec(x.name||""); if(mm&&mm[2]===ser) n=Math.max(n,+mm[3]); }); }
+      let have=[]; try{ const d=await _gk("/api/list",{folder}); (d.items||[]).forEach(x=>{ const mm=_FILING_RX.exec(x.name||""); if(mm&&mm[2]===ser) have.push(x.name); }); }
       catch(e){ m.pendingFiling.err="The case folder is not in OneDrive online yet — trying again shortly."; continue; }
-      const name=`${m.pendingFiling.kind} Filing (${ser}-${n+1})`;
+      // a new case has no filing yet: the target is fixed at "(NNN-1)", and if a filing folder is already there
+      // (made by this or another device moments ago) it is used — never a second one (the 388 duplicates, Oct 2026)
+      const name=m.pendingFiling.target||have.sort()[0]||`${m.pendingFiling.kind} Filing (${ser}-1)`; m.pendingFiling.target=name;
       try{ const d=await _gkNew("/api/mkdir",{parent:folder, name}); const rel=d.folder||(folder+"/"+name);
         _filingRec(rel,true); m.pendingFiling=Object.assign({},m.pendingFiling,{done:true, folder:rel, err:""}); changed=true;
         toast(`Filing folder ready: ${name}`); }
@@ -21763,6 +21784,55 @@ function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
 try{ Object.assign(window,{_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
+/* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
+window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
+function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
+function _fvSelToggle(path){ const s=__fvSel.set; s.has(path)?s.delete(path):s.add(path);
+  document.querySelectorAll("[data-sp]").forEach(el=>{ const on=s.has(el.dataset.sp); el.classList.toggle("picked",on); const c=el.querySelector(".fv-ck"); if(c) c.checked=on; }); _fvSelBar(); }
+function _fvSelAll(){ const els=[...document.querySelectorAll("[data-sp]:not(.locked)")]; const all=els.every(el=>__fvSel.set.has(el.dataset.sp));
+  els.forEach(el=>{ all?__fvSel.set.delete(el.dataset.sp):__fvSel.set.add(el.dataset.sp); }); _fvSelToggle("__noop__"); __fvSel.set.delete("__noop__"); _fvSelBar(); }
+function _fvSelBar(){ let b=document.getElementById("fvSelBar"); if(!__fvSel.on){ if(b) b.remove(); return; }
+  if(!b){ b=document.createElement("div"); b.id="fvSelBar"; document.body.appendChild(b); }
+  const n=__fvSel.set.size;
+  b.innerHTML=`<span class="fsb-n">${n?`<b>${n}</b> selected`:"Tap papers to select"}</span><button class="fsb-b" onclick="_fvSelAll()">Select all</button><button class="fsb-b fsb-rm" ${n?"":"disabled"} onclick="_fvSelRemoveAsk()">Remove</button><button class="fsb-b fsb-done" onclick="_fvSelOn(false)">Done</button>`; }
+function _fvSelRemoveAsk(){
+  const xs=[...__fvSel.set]; if(!xs.length) return; const dirs=xs.filter(p=>(__fvSel.meta[p]||{}).dir).length, files=xs.length-dirs;
+  openModal(`Remove ${xs.length} item${xs.length===1?"":"s"}?`, `<div class="hint">${files?`${files} paper${files===1?"":"s"}`:""}${files&&dirs?" and ":""}${dirs?`${dirs} filing${dirs===1?"":"s"} (with everything inside)`:""} will be moved to <b>_to_delete</b> — not deleted, so they can be put back. Anything in the app that used them is updated.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fvSelRemoveGo()">Remove ${xs.length}</button></div>`);
+}
+async function _fvSelRemoveGo(){
+  const xs=[...__fvSel.set]; let ok=0; const bad=[];
+  _progressModal("Removing…","Starting…");
+  for(let i=0;i<xs.length;i++){ const p=xs[i], m=__fvSel.meta[p]||{}; _progressSet(`Removing ${p.split("/").pop()} (${i+1} of ${xs.length})…`,i/xs.length);
+    try{ await _gkTrash(p); if(m.dir) _filingRecGone(p); else _fileGone(p); ok++; }catch(e){ bad.push(p.split("/").pop()+": "+e.message); } }
+  closeModal(); _fvSelOn(false);
+  toast(`${ok} removed — moved to _to_delete.`+(bad.length?` ${bad.length} could not be removed: ${bad.slice(0,2).join(" · ")}${bad.length>2?" …":""}`:""), !!bad.length);
+  _fv.live=true; _filesLoad();
+}
+function _filingRecGone(path){ ["filings","sdFilings"].forEach(c=>{ (DB[c]||[]).filter(r=>r&&r.folder===path).forEach(r=>{ try{ softDelete(c,r.id); }catch(e){} }); }); }
+/* the ⋯ menu */
+function _fvMenuClose(){ const m=document.getElementById("fvMenu"); if(m) m.remove(); document.removeEventListener("pointerdown",_fvMenuOut,true); }
+function _fvMenuOut(e){ const m=document.getElementById("fvMenu"); if(m&&!m.contains(e.target)) _fvMenuClose(); }
+function _fvMenu(btn, items){
+  _fvMenuClose(); const m=document.createElement("div"); m.id="fvMenu"; m.className="fv-menu";
+  m.innerHTML=items.filter(Boolean).map(it=>it==="-"?`<div class="fvm-sep"></div>`:`<button class="${it.danger?"danger":""}" onclick="_fvMenuClose();${it.on}">${it.l}</button>`).join("");
+  document.body.appendChild(m); const r=btn.getBoundingClientRect(); const mw=m.offsetWidth, mh=m.offsetHeight;
+  m.style.left=Math.max(8,Math.min(window.innerWidth-mw-8,r.right-mw))+"px"; m.style.top=(r.bottom+mh+8>window.innerHeight?Math.max(8,r.top-mh-4):r.bottom+4)+"px";
+  setTimeout(()=>document.addEventListener("pointerdown",_fvMenuOut,true),0);
+}
+function _fvFileMenu(btn,k,path,word,canRm){ _fvMenu(btn,[
+  {l:"Download",on:`_paperDownload(${k})`},{l:"Share",on:`_paperShare(${k})`}, word?{l:"Edit in Word",on:`_paperEdit(${k})`}:null,
+  canRm?"-":null, canRm?{l:"Replace with a new copy…",on:`_paperReplaceAsk(${_fvQuote(path)})`}:null, canRm?{l:"Remove…",on:`_paperRemoveAsk(${_fvQuote(path)})`,danger:true}:null]); }
+function _fvDirMenu(btn,path,isFiling){ _fvMenu(btn,[{l:"Open",on:`_filesSub(${_fvQuote(path.split("/").pop())})`},
+  isFiling&&!isStaffView()?"-":null, isFiling&&!isStaffView()?{l:"Remove this filing…",on:`_fvRemoveFilingAsk(${_fvQuote(path)})`,danger:true}:null]); }
+function _fvRemoveFilingAsk(path){
+  openModal("Remove this filing?", `<div style="margin-bottom:8px"><b>${esc(path.split("/").pop())}</b></div><div class="hint">The filing folder and everything in it is moved to <b>_to_delete</b> (not deleted); its record goes to the app's Trash, from where it can be restored.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fvRemoveFilingGo(${_fvQuote(path)})">Remove the filing</button></div>`); }
+async function _fvRemoveFilingGo(path){ _progressModal("Removing…",path.split("/").pop());
+  try{ await _gkTrash(path); _filingRecGone(path); closeModal(); toast("Filing removed — folder in _to_delete, record in Trash."); _fv.live=true; _filesLoad(); }
+  catch(e){ closeModal(); toast(e.message,true); } }
+function _fsMenu(btn,k,i){ const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; _fvMenu(btn,[{l:"Edit description",on:`_fsEditAsk('${k}',${i})`},{l:"Replace with a new copy…",on:`_fsReplaceAsk('${k}',${i})`},"-",{l:"Remove…",on:`_fsRemoveAsk('${k}',${i})`,danger:true}]); }
+try{ Object.assign(window,{_fvSelOn,_fvSelToggle,_fvSelAll,_fvSelBar,_fvSelRemoveAsk,_fvSelRemoveGo,_filingRecGone,_fvMenuClose,_fvMenuOut,_fvMenu,_fvFileMenu,_fvDirMenu,_fvRemoveFilingAsk,_fvRemoveFilingGo,_fsMenu}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -25227,7 +25297,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1100";
+  window.APP_VERSION = "2026.10.09-1200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
