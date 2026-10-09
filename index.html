@@ -20588,15 +20588,30 @@ function _defRescan(did,pid){
 function _blobReady(blob,name,note,dlName){
   window.__readyBlob={blob,name,dl:dlName||name};
   openModal("Ready", `<div style="font-weight:600;margin-bottom:4px;word-break:break-word">${esc(dlName||name)}</div><div class="hint" style="margin-bottom:12px">${esc(note||"Saved in the filing folder.")}</div>
-    <div class="btn-row" style="gap:8px"><button class="btn seal" style="flex:1" onclick="(function(){const u=URL.createObjectURL(window.__readyBlob.blob),a=document.createElement('a');a.href=u;a.download=window.__readyBlob.dl;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);})()">⬇ Download</button>
-    <button class="btn ghost" style="flex:1" onclick="_blobOpenIn(window.open('about:blank','_blank'),window.__readyBlob.blob,window.__readyBlob.dl)">Open</button>
+    <div class="btn-row" style="gap:8px"><button class="btn seal" style="flex:1" onclick="_readySave()">⬇ Download</button>
+    <button class="btn ghost" style="flex:1" onclick="_blobOpenIn(window.open('about:blank','_blank'),_readyFile(),window.__readyBlob.dl)">Open</button>
     <button class="btn ghost" onclick="closeModal()">Close</button></div>`);
 }
+/* the ready file with the right type — a PDF is always sent as a PDF, whatever OneDrive called it */
+function _readyFile(){ const r=window.__readyBlob; if(!r) return null; const nm=r.dl||r.name||"file";
+  const type=/\.pdf$/i.test(nm)?"application/pdf":(r.blob.type||"application/octet-stream");
+  return new File([r.blob],nm,{type}); }
+/* Download that works everywhere: iPhone/iPad (and the home-screen app) get the share sheet — Save to Files or Markup to sign;
+   computers get a normal download; if neither works, the file opens in a new tab */
+async function _readySave(){
+  const f=_readyFile(); if(!f) return;
+  const touch=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)||window.navigator.standalone===true;
+  if(touch&&navigator.canShare&&navigator.canShare({files:[f]})){
+    try{ await navigator.share({files:[f],title:f.name}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+  try{ const u=URL.createObjectURL(f); const a=document.createElement("a"); a.href=u; a.download=f.name; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),120000);
+    toast("Downloading "+f.name); }
+  catch(e){ _blobOpenIn(window.open("about:blank","_blank"),f,f.name); }
+}
 async function _flDownloadStored(name, dlName){
-  const x=_flItems().find(i=>i.name===name); if(!x){ toast("That file is no longer in the filing folder.",true); return; }
+  const x=_flItems().find(i=>i.name===name)||{name};      // the folder list may not be loaded yet — fetch the file by its path anyway
   _progressModal("Fetching…","Fetching "+name+"…");
   try{ const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size},(g,t)=>_progressSet(null,t?g/t:null)); closeModal(); _blobReady(b,name,"From the filing folder.",dlName); }
-  catch(e){ closeModal(); toast(e.message,true); }
+  catch(e){ closeModal(); toast(/404|not ?found|itemNotFound/i.test(e.message)?"That file is no longer in the filing folder.":e.message,true); }
 }
 /* the cured parts, in paper-book order; replace parts may not overlap */
 async function _curedPieces(rec, ctx){
@@ -22252,7 +22267,7 @@ function _aiApprove(did){
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
 try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
-try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
+try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -25517,7 +25532,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1530";
+  window.APP_VERSION = "2026.10.09-1600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
