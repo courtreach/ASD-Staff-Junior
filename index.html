@@ -19406,7 +19406,10 @@ async function _uploadPaper(relPath, blob, onProgress, opts){
   if(!data&&blob.stream){ try{ const rd=blob.stream().getReader(), parts=[]; let n=0; for(;;){ const {done,value}=await rd.read(); if(done) break; parts.push(value); n+=value.length; } data=new Uint8Array(n); let o=0; parts.forEach(p=>{ data.set(p,o); o+=p.length; }); }catch(e){ data=null; why+=" / stream: "+((e&&e.name)||e); } }
   if(!data&&typeof FileReader!=="undefined"){ data=await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(new Uint8Array(fr.result)); fr.onerror=()=>{ why+=" / reader: "+((fr.error&&fr.error.name)||"error"); res(null); }; fr.readAsArrayBuffer(blob); }); }
   if(!data||data.length!==blob.size){ const nm=blob.name||relPath.split("/").pop(); const br=(/Edg\//.test(navigator.userAgent)?"Edge":/Chrome\//.test(navigator.userAgent)?"Chrome":/Firefox\//.test(navigator.userAgent)?"Firefox":/Safari\//.test(navigator.userAgent)?"Safari":"this browser");
-    throw new Error(`${br} could not read “${nm}” from this computer${data?` (read ${data.length} of ${blob.size} bytes)`:""}, so nothing was sent and nothing was saved. Usually the file was still downloading or changed after it was chosen, or the browser has no permission for that folder. Try: open the file once, copy it to the Desktop and choose it from there${br==="Safari"?", or use Chrome":""}. (Browser said: ${why||"no reason given"})`); }
+    const mac=/Mac/.test(navigator.platform||navigator.userAgent), perm=/NotReadable/i.test(why);
+    throw new Error(`${br} could not read “${nm}” from this computer${data?` (read ${data.length} of ${blob.size} bytes)`:""}, so nothing was sent and nothing was saved. `+
+      (mac&&perm?`macOS has not allowed ${br} to open files in that folder. Fix: System Settings → Privacy & Security → Files and Folders → ${br} → turn on Downloads, Desktop and Documents (or add ${br} under Full Disk Access), then quit ${br} with ⌘Q, reopen it and try again.`
+        :`Usually the file was still downloading or changed after it was chosen, or the browser has no permission for that folder. Try: open the file once, copy it to the Desktop and choose it from there${br==="Safari"?", or use Chrome":""}.`)+` (Browser said: ${why||"no reason given"})`); }
   blob=new Blob([data],{type:blob.type||"application/octet-stream"});
   const srcPath=window.__srcMap&&__srcMap.get(_srcKey(blob));
   if(srcPath&&!opts.replace){ const dir=relPath.split("/").slice(0,-1).join("/"), sdir=srcPath.split("/").slice(0,-1).join("/"), sname=srcPath.split("/").pop(), nn=relPath.split("/").pop();
@@ -26350,7 +26353,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0130";
+  window.APP_VERSION = "2026.10.10-0145";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
