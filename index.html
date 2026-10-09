@@ -19414,6 +19414,12 @@ async function _uploadPaper(relPath, blob, onProgress, opts){
     off=end; onProgress&&onProgress(off,size);
     if(r.status===200||r.status===201) last=await r.json().catch(()=>null);
   }
+  // OneDrive says how big the saved file is: never report success for an empty or short copy (case 389, Oct 2026)
+  if(last&&last.size!=null&&+last.size!==size){
+    const nm=last.name||relPath.split("/").pop(); const dir=relPath.split("/").slice(0,-1).join("/");
+    try{ await _gkTrash(dir+"/"+nm); }catch(e){}
+    throw new Error(`OneDrive saved “${nm}” incomplete (${+last.size} of ${size} bytes)${viaGk?" — this computer could not reach Microsoft directly and the route through the gatekeeper needs its update (see SETUP.md)":""}. Nothing was kept; please try again.`); }
+  if(!last&&viaGk) throw new Error("OneDrive did not confirm the upload. Please check the folder and try again.");
   return (last&&last.name)||relPath.split("/").pop();
 }
 function _progressModal(title, msg){ openModal(title, `<div class="hint" id="upMsg" style="margin-bottom:8px">${esc(msg||"")}</div><div class="up-bar"><div id="upBar" style="width:0%"></div></div>`); }
@@ -26273,7 +26279,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-2300";
+  window.APP_VERSION = "2026.10.09-2330";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
