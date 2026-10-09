@@ -2711,6 +2711,8 @@
       FB.SHARED.forEach(n=>{ _lastPushedIds[n]=new Set((DB[n]||[]).map(r=>r.id)); _lastPushedSig[n]=JSON.stringify(DB[n]||[]); });
     }catch(e){ console.warn("staff pullAll failed", e); }
 
+    // every AD Chamber case in the owner's register (number, name, folder) — so staff can find and open any AD case
+    try{ const ac=await _withTimeout(FB.getMeta("adCases"), 6000, null); window.__adCases=(ac&&ac.cases)||[]; }catch(e){ window.__adCases=[]; }
     // Enter shell now (never hang).
     hideCloudLogin();
     try{ if(window.enterAppShell) window.enterAppShell(); }catch(e){ console.warn("enterAppShell", e); }
@@ -19131,8 +19133,9 @@ function openFiles(serial, q, sub, view){
   const r=(DB.register||[]).find(x=>+x.serial===serial);
   const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===serial);
   const hint=(window.__fvHint&&window.__fvHint.serial===serial)?window.__fvHint:null; window.__fvHint=null;
-  const hf=hint?hint.folder:(((DB.filings||[]).find(x=>x&&+x.serial===serial&&x.folder)||{}).folder||"").split("/").slice(0,2).join("/");
-  _fv={serial, folder:(r&&r.folder)||(m&&m.folder)||hf||"", title:(r&&r.title)||(m&&(m.parties||m.client))||_caseNameOfFolder(hf)||"", chamber:(r&&r.chamber)||(m&&m.chamber)||(/^SD Chamber\//.test(hf)?"SD":hf?"AD":""),
+  const ac=(window.__adCases||[]).find(c=>+c.s===serial)||null;
+  const hf=hint?hint.folder:((ac&&ac.f)||(((DB.filings||[]).find(x=>x&&+x.serial===serial&&x.folder)||{}).folder||"").split("/").slice(0,2).join("/"));
+  _fv={serial, folder:(r&&r.folder)||(m&&m.folder)||hf||"", title:(r&&r.title)||(m&&(m.parties||m.client))||(ac&&ac.t)||_caseNameOfFolder(hf)||"", chamber:(r&&r.chamber)||(m&&m.chamber)||(/^SD Chamber\//.test(hf)?"SD":hf?"AD":""),
        sub:sub||"", idx:null, q:q||"", type:"all", sort:"num", loading:true, err:""};
   if(sub) _fv.fl={sub, stage:0, view:view||"stages"};
   if(isStaffView()){
@@ -23643,6 +23646,8 @@ function _phoneCases(){
   (DB.matters||[]).forEach(m=>{ if(isVoided(m)||!m.serial||!_canFiles(m)) return;
     const pn=[m.caseNo,m.diaryNo?("Diary No. "+m.diaryNo):""].concat(m.petitionNos||[]).filter(Boolean);
     out.set(+m.serial,{serial:+m.serial,title:m.parties||m.client||"",chamber:m.chamber||(/^SD /.test(m.folder||"")?"SD":"AD"),next:m.nextDate||"",code:m.code||"",nums:pn.join(" "),first:pn[0]||""}); });
+  if(staff) (window.__adCases||[]).forEach(c=>{ if(!c.s||out.has(+c.s)) { const o=out.get(+c.s); if(o&&!o.title) o.title=c.t||""; return; }
+    out.set(+c.s,{serial:+c.s,title:c.t||"",chamber:"AD",next:"",code:"",nums:(c.n||[]).join(" "),first:(c.n||[])[0]||""}); });
   if(!staff) (DB.register||[]).forEach(r=>{ if(!r.serial||r.status==="removed"||r.status==="merged") return;
     const o=out.get(+r.serial); if(o){ o.title=r.title||o.title; o.chamber=r.chamber||o.chamber; o.nums=(o.nums+" "+(r.petitionNos||[]).join(" ")).trim(); o.first=o.first||(r.petitionNos||[])[0]||""; }
     else out.set(+r.serial,{serial:+r.serial,title:r.title||"",chamber:r.chamber||"",next:"",code:"",nums:(r.petitionNos||[]).join(" "),first:(r.petitionNos||[])[0]||""}); });
@@ -23687,6 +23692,7 @@ function _caseTitle(serial){
   const r=(DB.register||[]).find(x=>+x.serial===+serial); if(r&&r.title) return r.title;
   const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+serial); if(m&&(m.parties||m.client)) return m.parties||m.client;
   // a case kept only in the owner's register (no app case record): its filing still knows the case folder
+  const a=(window.__adCases||[]).find(c=>+c.s===+serial); if(a&&a.t) return a.t;
   const f=(DB.filings||[]).find(x=>x&&+x.serial===+serial&&x.folder); return f?_caseNameOfFolder(f.folder):"";
 }
 function _caseNameOfFolder(folder){ return (String(folder||"").split("/")[1]||"").replace(/\s*\(\d{3,}\)$/,""); }
@@ -25303,7 +25309,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1230";
+  window.APP_VERSION = "2026.10.09-1300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
