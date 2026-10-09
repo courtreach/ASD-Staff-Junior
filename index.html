@@ -19499,7 +19499,7 @@ async function _decChkGo(which, toFolder, asPdf){
     const rec=_inFiling()?_filingRec(_filingFolderRel(),true):null;
     if(rec&&(rec.diaryNo!==no||rec.diaryYear!==yr)){ rec.diaryNo=no; rec.diaryYear=yr; _filingTouch(rec); }
     if(toFolder&&rec){
-      let up=blob, name=`5.${_stageNext(5,_currentNames())} ${lab} - Diary ${no}-${yr}.docx`;
+      let up=blob, name=`5.${_stageNext(5,_currentNames())} ${lab} Diary ${no} ${yr}.docx`;
       if(asPdf){ _progressModal("Saving…","Making the PDF…"); up=await _docxSimplePdf(blob); name=name.replace(/\.docx$/,".pdf"); }
       _progressModal("Saving…","Saving "+name+"…");
       const got=await _uploadPaper(_filingFolderRel()+"/"+name,up,(g,t)=>_progressSet(null,g/t));
@@ -19583,9 +19583,14 @@ function _flNextHTML(rec, st, fc){
       <div class="fn-s">Collated${who}${when}: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}. Go through them; once you approve, they can be downloaded for filing and the final copy compiled.</div>${back}
       <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_refApprove()","✓ Approve for filing","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
   }
-  if(!fin) return `<div class="fn"><div class="fn-t">4 · File the defect pages, then compile the final copy</div>
-      <div class="fn-s">Defect pages ready: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}${last.ok?` · <span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:""}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
-      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+  const base=_flCleanBase(rec), sg=last.signed;
+  const okLine=last.ok?` · <span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:"";
+  if(!fin&&!sg) return `<div class="fn"><div class="fn-t">4 · Sign the defect pages</div>
+      <div class="fn-s"><b>${esc(last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}${okLine}. Download them for signature; once signed, upload the signed copy — it is saved as <b>Final Defect Pages</b>. If no signature is needed, make this the final as it is.</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
+  if(!fin) return `<div class="fn"><div class="fn-t">4 · File the final defect pages, then compile the final copy</div>
+      <div class="fn-s">Final defect pages: <b>${esc(sg.file)}</b>${sg.nosign?" (no signature needed)":` · signed copy uploaded${sg.by?" by "+esc(sg.by):""}`}${sg.at?" on "+esc(fmtDate(_localISO(new Date(sg.at)))):""}${okLine}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download final defect pages")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
   return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s">${esc(fin.dl||fin.file)}${fin.pages?" · "+fin.pages+" pages":""}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
@@ -19788,7 +19793,7 @@ async function _dlStartGo(){
     _filingTouch(rec);
     _fv.sub=sub; _fv.idx={folder:rel,items:[],bundles:[]}; _fv.fl={sub, stage:0, view:"defects"}; _flCtx=null;
     _progressSet("Saving the defect list…",0.2);
-    const name=await _uploadPaper(rel+"/"+`4.1 Defect List - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet(null,0.2+0.2*g/t));
+    const name=await _uploadPaper(rel+"/"+`4.1 Defect List ${_fnDate()}.pdf`,blob,(g,t)=>_progressSet(null,0.2+0.2*g/t));
     await _defIngest(rec, blob, name);
     closeModal(); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); }
@@ -20259,7 +20264,7 @@ async function _defReadGo(existing){
     if(!existing){
       const f=(document.getElementById("dlFile")||{}).files; if(!f||!f[0]){ toast("Choose the defect list PDF.",true); return; }
       blob=f[0]; _progressModal("Reading…","Saving the defect list in stage 4…");
-      name=await _uploadPaper(_filingFolderRel()+"/"+`4.${_stageNext(4,_currentNames())} Defect List - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet(null,g/t));
+      name=await _uploadPaper(_filingFolderRel()+"/"+`4.${_stageNext(4,_currentNames())} Defect List ${_fnDate()}.pdf`,blob,(g,t)=>_progressSet(null,g/t));
     }else{
       _progressModal("Reading…","Fetching "+existing+"…");
       const x=_flItems().find(i=>i.name===existing);
@@ -20366,7 +20371,7 @@ async function _defTrueCopyGo(did,pid){
       const tw=bold.widthOfTextAtSize("TRUE COPY",12); pg.drawText("TRUE COPY",{x:x+75-tw/2,y:y+5,size:12,font:bold,color:rgb(0,0,0)}); }
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     _progressSet("Saving in stage 5…",0.85);
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy - ${_safeName(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
     if(idx.length<all.idx.length){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=idx.map(i=>ctx.labelOf[i]||("p"+(i+1))).join(", "); }   // only these pages are refiled
     else if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; }
     p.cure={file:name,pages:"all",how:"stamp"}; _defCheckDone(d); _filingTouch(rec);
@@ -20528,7 +20533,11 @@ async function _docxSimplePdf(blob){
 function _defDefaultMode(d){ return /TRANSLAT|TYPED\s+COPY|ENGLISH\s+VERSION/i.test((d&&d.text)||"")?"add":"replace"; }
 function _sfx(k){ let s=""; k=k+1; while(k>0){ const r=(k-1)%26; s=String.fromCharCode(65+r)+s; k=Math.floor((k-1)/26); } return s; }
 function _partAnchor(p){ const t=_expandLabels(p.pages||""); return t.length?t[t.length-1].replace(/^p/,""):""; }
-function _cleanFileName(){ return [...arguments].filter(Boolean).join("_").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,120)+".pdf"; }
+// file names (owner, Oct 2026): letters, digits and spaces only — no "_" or other special characters
+function _fnSafe(s){ return String(s||"").replace(/[^A-Za-z0-9 ]+/g," ").replace(/\s+/g," ").trim(); }
+function _fnDate(d){ d=d?new Date(d):new Date(); return d.getDate()+" "+["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getFullYear(); }
+function _fnDiary(rec){ return rec&&rec.diaryNo?("Diary "+rec.diaryNo+" "+(rec.diaryYear||"")).trim():_fnDate(); }
+function _cleanFileName(){ return _fnSafe([...arguments].filter(Boolean).join(" ")).slice(0,120)+".pdf"; }
 function _flCleanBase(rec){
   const t=String(_caseTitle(rec.serial)||"").split(/\s+v\.?s?\.?\s+/i)[0].split(/\s+/).slice(0,4).join(" ");
   return [rec.kind||"Filing", rec.diaryNo?("Diary "+rec.diaryNo+" "+(rec.diaryYear||"")):("File "+String(rec.serial).padStart(3,"0")+" "+rec.n), t];
@@ -20567,14 +20576,14 @@ async function _defAttachGo(did,pid){
     if(!file){ if(!f||!f[0]){ toast("Choose a PDF.",true); return; }
       if(!/\.pdf$/i.test(f[0].name)){ toast("It must be a PDF.",true); return; }
       _progressModal("Saving…","Saving in stage 5…");
-      file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${mode==="add"?"Added":"Corrected"} - ${_safeName(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
+      file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${mode==="add"?"Added":"Corrected"} ${_fnSafe(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
     p.cure={file,pages,how:"attach",mode}; _defCheckDone(d); _filingTouch(rec); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 function _defRescan(did,pid){
   const {d,p}=_defFind(did,pid); if(!p) return;
   const mode=p.whole?"replace":_defDefaultMode(d);
-  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added - ":"Better copy - ")+p.label, onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan",mode}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
+  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added ":"Better copy ")+_fnSafe(p.label), onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan",mode}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
 }
 function _blobReady(blob,name,note,dlName){
   window.__readyBlob={blob,name,dl:dlName||name};
@@ -20714,7 +20723,7 @@ async function _flDeclAttachGo(which){
   const f=(document.getElementById("sdFile")||{}).files; if(!f||!f[0]){ toast("Choose the PDF.",true); return; }
   const lab=which==="chk"?"Checklist":"Declaration"; const rec=_flRec();
   try{ _progressModal("Saving…","Saving in stage 5…");
-    const got=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${lab} (signed) - ${fmtDate(_localISO())}.pdf`,f[0],(g,t)=>_progressSet(null,g/t));
+    const got=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${lab} Signed ${_fnDate()}.pdf`,f[0],(g,t)=>_progressSet(null,g/t));
     _defectsAutoCure(rec, which==="chk"?/CHECK ?LIST/:/DECLARATION/, got);
     closeModal(); toast(lab+" attached."); _fv.live=true; _filesLoad();
     if(window.__collateAfter) setTimeout(_collateAsk,600);
@@ -20765,9 +20774,9 @@ async function _collateGo(){
     _progressSet("Saving…",0.92);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     const rnd=(rec.refilings||[]).length+1;
-    const nm=`5.${_stageNext(5,_currentNames())} Defect Pages${rnd>1?" "+rnd:""} - ${rec.diaryNo?"Diary "+rec.diaryNo+"-"+rec.diaryYear:fmtDate(_localISO())}.pdf`;
+    const nm=`5.${_stageNext(5,_currentNames())} Draft Defect Pages for Sign ${_fnDiary(rec)}${rnd>1?" Round "+rnd:""}.pdf`;
     const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage 5 — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
-    const dl=_cleanFileName("Defect Pages",..._flCleanBase(rec));
+    const dl=_cleanFileName("Draft Defect Pages for Sign",..._flCleanBase(rec));
     rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount(),by:_aiWho()}]); _filingTouch(rec);
     if(isStaffView()){ closeModal(); toast(`Defect pages collated (${out.getPageCount()} page${out.getPageCount()===1?"":"s"}) — sent to the Head of Chamber for approval.`+(warn.length?" Check: "+warn.join(" · "):"")); _fv.live=true; _filesLoad(); return; }
     closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages${decl?", declaration "+(declFirst?"first":"last"):", no declaration"}. Saved in stage 5.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
@@ -20806,7 +20815,7 @@ async function _finalGo(){
     }
     _progressSet("Saving…",0.93);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Copy - ${fmtDate(_localISO())}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Copy ${_fnDiary(rec)}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
     const dl=_cleanFileName("Final Copy",..._flCleanBase(rec));
     rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount()}]); _filingTouch(rec);
     closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages (filing copy had ${total}). Saved in stage 6.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
@@ -21122,7 +21131,7 @@ async function _fsAddGo(k, i){
   if(s.title&&!title&&s.annex){ toast("Give the annexure a short description — it goes into the index.",true); return; }
   const stage=(s.word||k==="index"||k==="cover")?2:1, base=_filingFolderRel();
   const label=s.annex?`Annexure P-${list.length+1}`:s.l.replace(/\s*\(.*\)$/,"");
-  const nm=st=>`${st}.${_stageNext(st,_currentNames())} ${_safeName(label)}${title&&!s.annex?" - "+_safeName(title).slice(0,70):""}`;
+  const nm=st=>`${st}.${_stageNext(st,_currentNames())} ${_fnSafe(label)}${title&&!s.annex?" "+_fnSafe(title).slice(0,70):""}`;
   _progressModal("Adding…","Uploading…");
   try{
     let file=pick, word="";
@@ -21237,7 +21246,7 @@ async function _fsSaveCopy(){
   _progressModal("Saving…","Saving the Filing Copy in stage 3…");
   try{
     const short=(_fv.title||_caseTitle(r.serial)||"").replace(/[\\/:*?"<>|]+/g," ").slice(0,60).trim();
-    const nm=`3.${_stageNext(3,_currentNames())} Filing Copy - ${short||"Paper Book"}.pdf`;
+    const nm=`3.${_stageNext(3,_currentNames())} Filing Copy ${_fnSafe(short)||"Paper Book"}.pdf`;
     const name=await _uploadPaper(_filingFolderRel()+"/"+nm,b.blob,(g,t)=>_progressSet(null,g/t));
     const dl=_cleanFileName("Filing Copy",..._flCleanBase(r));
     r.fs.copies=(r.fs.copies||[]).concat([{file:name,dl,at:new Date().toISOString(),by:_aiWho(),pages:b.pages,fills:b.fills.length}]); _filingTouch(r);
@@ -21420,7 +21429,7 @@ async function _fsAiApply(){
     _progressSet("Saving…",0.85);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     const short=(_fv.title||_caseTitle(r.serial)||"").replace(/[\\/:*?"<>|]+/g," ").slice(0,60).trim();
-    const name=await _uploadPaper(base+"/"+`3.${_stageNext(3,_currentNames())} Filing Copy (final) - ${short||"Paper Book"}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
+    const name=await _uploadPaper(base+"/"+`3.${_stageNext(3,_currentNames())} Filing Copy Final ${_fnSafe(short)||"Paper Book"}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
     r.fs.copies=(r.fs.copies||[]).concat([{file:name,dl:_cleanFileName("Filing Copy",..._flCleanBase(r)),at:new Date().toISOString(),by:_aiWho(),pages:out.getPageCount(),final:true,ai:items.length}]);
     _fsAiSet(x=>{ x.status="applied"; x.applied=items.map(i=>i.id); x.out=name; x.msg=`${items.length} AI change${items.length===1?"":"s"} applied`; });
     closeModal(); toast("Final Filing Copy saved."+(warn.length?" "+warn.join(" "):"")); _fv.live=true; _filesLoad();
@@ -21831,7 +21840,8 @@ async function _peSaveFile(){
     const list=E.kind==="final"?(rec.finals||[]):(rec.refilings||[]); const ent=list.find(x=>x.file===E.file);
     let note="";
     if(ent){ ent.file=final; ent.pages=out.getPageCount(); ent.edited={by:_aiWho(),at:new Date().toISOString()};
-      if(E.kind!=="final"&&ent.ok&&isStaffView()){ delete ent.ok; note=" They need the Head of Chamber's approval again."; } }
+      if(E.kind!=="final"&&ent.ok&&isStaffView()){ delete ent.ok; note=" They need the Head of Chamber's approval again."; }
+      if(E.kind!=="final"&&ent.signed&&!ent.signed.nosign){ delete ent.signed; note+=" The signed copy no longer matches — sign and upload again."; } }
     _filingTouch(rec);
     closeModal(); _peClose(true); toast(`Saved — ${out.getPageCount()} pages.`+note); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
@@ -21870,7 +21880,7 @@ async function _peSave(){
     const blob=new Blob([await out.save()],{type:"application/pdf"});
     _progressSet("Saving in stage 5…",0.6);
     const old=p.cure&&p.cure.how==="edit"?p.cure.file:"";
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected - ${_safeName(p.label).replace(/[—–]/g,"-")}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
+    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
     const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},E.ctx).idx;
     if(E.idx.length<all.length||E.idx.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.idx.map(i=>E.ctx.labelOf[i]||("p"+(i+1))).join(", "); }
     p.cure={file:name,pages:"all",how:"edit",mode:"replace",edit:{pages:E.idx,ops:E.ops,by:_aiWho(),at:new Date().toISOString()}};
@@ -22011,7 +22021,7 @@ function _rvDiff(a,b){
     if(area<0.55*w*h) g.strokeRect(Math.max(0,x0-8),Math.max(0,y0-8),Math.min(w,x1-x0+16),Math.min(h,y1-y0+16));
     else { g.strokeRect(2,2,w-4,h-4); } });
 }
-try{ Object.assign(window,{_rvOpen,_rvClose,_rvRender,_rvDraw,_rvDiff}); }catch(e){}
+try{ Object.assign(window,{_fnSafe,_fnDate,_fnDiary,_refSignedAsk,_refSignedGo,_refNoSign,_rvOpen,_rvClose,_rvRender,_rvDraw,_rvDiff}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -22023,6 +22033,30 @@ function _refApprove(){
   if(!confirm(`Approve "${last.dl||last.file}" (${last.pages||"?"} pages) for filing?`)) return;
   last.ok={by:headLabel(), at:new Date().toISOString()}; delete last.back; _filingTouch(rec); toast("Approved — the defect pages can now be filed."); renderFilesPage();
 }
+function _refSignedAsk(){
+  openModal("Upload the signed copy", `<div class="hint" style="margin-bottom:8px">The defect pages after signing — a scan, or the PDF signed digitally. It is saved as <b>Final Defect Pages</b>.</div>
+    <input type="file" id="sgFile" class="in" accept="application/pdf,.pdf">
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_refSignedGo()">Upload</button></div>`); }
+async function _refSignedGo(){
+  const f=(document.getElementById("sgFile")||{}).files; if(!(f&&f[0])){ toast("Choose the signed PDF.",true); return; }
+  if(!/\.pdf$/i.test(f[0].name)){ toast("That is not a PDF.",true); return; }
+  const rec=_flRec(); const last=(rec.refilings||[]).slice(-1)[0]; if(!last) return;
+  const old=last.signed&&!last.signed.nosign?last.signed.file:"";
+  _progressModal("Uploading…","Saving the signed copy…");
+  try{ const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Final Defect Pages ${_fnDiary(rec)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t));
+    last.signed={file:name,at:new Date().toISOString(),by:_aiWho()}; _filingTouch(rec);
+    if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }
+    closeModal(); toast("Signed copy saved as Final Defect Pages."); _fv.live=true; _filesLoad(); }
+  catch(e){ closeModal(); toast(e.message,true); } }
+async function _refNoSign(){
+  const rec=_flRec(); const last=(rec.refilings||[]).slice(-1)[0]; if(!last) return;
+  if(!confirm("No signature needed — make these approved pages the Final Defect Pages?")) return;
+  const m=/^(5\.\d+) /.exec(last.file); const name=`${m?m[1]:"5."+_stageNext(5,_currentNames())} Final Defect Pages ${_fnDiary(rec)}.pdf`;
+  _progressModal("Saving…","Naming them Final Defect Pages…");
+  try{ const r=await _gkNew("/api/rename",{path:_filingFolderRel()+"/"+last.file,name}); const nm=(r&&r.name)||name;
+    last.file=nm; last.dl=_cleanFileName("Final Defect Pages",..._flCleanBase(rec)); last.signed={file:nm,at:new Date().toISOString(),by:_aiWho(),nosign:true}; _filingTouch(rec);
+    closeModal(); toast("These are now the Final Defect Pages."); _fv.live=true; _filesLoad(); }
+  catch(e){ closeModal(); toast(e.message,true); } }
 function _refBackAsk(){
   openModal("Send the defect pages back", `<label class="fld">What needs fixing?</label><textarea class="in" id="refBack" rows="3" placeholder="e.g. Annexure P-4 is still faint — rescan page 47"></textarea>
     <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_refBackGo()">Send back</button></div>`);
