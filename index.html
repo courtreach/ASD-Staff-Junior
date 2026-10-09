@@ -1659,9 +1659,11 @@
   .viewtoggle:active{transform:translateY(0)}
   .viewtoggle svg{display:block}
   body.desktop-view .viewtoggle{top:16px;right:64px}
-  .themebtn{position:absolute;top:12px;right:104px;background:var(--paper2);border:1px solid var(--line);border-radius:50%;width:38px;height:38px;display:grid;place-items:center;color:var(--ink);cursor:pointer;transition:background .15s,transform .15s}
-  .themebtn:hover{background:var(--seal-soft);transform:translateY(-1px)} .themebtn svg{display:block}
-  body.desktop-view .themebtn{top:16px;right:116px}
+  /* dark-mode switch: the mirror of the refresh button — same size, height and spacing (46px steps from the edge) */
+  .themebtn{position:absolute;top:12px;right:104px;background:var(--paper2);border:1px solid var(--line);border-radius:50%;
+    width:38px;height:38px;cursor:pointer;z-index:20;display:inline-flex;align-items:center;justify-content:center;padding:0;color:var(--ink);transition:background .15s,transform .15s}
+  .themebtn:hover{background:var(--seal-soft);transform:translateY(-1px)} .themebtn:active{transform:translateY(0)} .themebtn svg{display:block}
+  body.desktop-view .themebtn{top:16px;right:110px}
   .logoutbtn{position:absolute;top:12px;right:12px;background:var(--paper2);border:1px solid var(--line);border-radius:50%;
     width:38px;height:38px;cursor:pointer;z-index:20;display:inline-flex;align-items:center;justify-content:center;padding:0;
     color:var(--seal);transition:background .15s,transform .15s}
@@ -1712,6 +1714,7 @@
     body.desktop-view .searchbtn{ top:14px; left:54px; }
     body.desktop-view .logoutbtn{ top:14px; right:8px; }
     body.desktop-view .viewtoggle{ top:14px; right:54px; }
+    body.desktop-view .themebtn{ top:14px; right:100px; }
   }
   .act-list{display:flex;flex-direction:column}
   .act-row{display:flex;gap:11px;align-items:flex-start;padding:11px 2px;border-bottom:1px solid var(--line);position:relative}
@@ -26620,7 +26623,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0230";
+  window.APP_VERSION = "2026.10.10-0245";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
