@@ -2103,6 +2103,7 @@
   .src-n{display:block;font-size:13px;word-break:break-word} .src-w{display:block;font-size:11px;color:var(--muted)} .src-chosen{font-size:12.5px;margin-top:6px}
   .ap-drop{border:1.5px dashed var(--line);border-radius:10px;padding:8px;transition:background .15s} .ap-drop.on{background:var(--line2);border-color:var(--seal)} .ap-list{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-word}
   .anx-rows{display:flex;flex-direction:column;gap:6px} .anx-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap} .anx-p{font-weight:700} .anx-n{width:58px} .anx-f{width:64px} .anx-l{color:var(--muted);font-size:12px} .anx-t{flex:1;min-width:180px}
+  .anx-err{color:#b3261e;font-size:13px;margin-top:6px;min-height:0} .anx-t.bad{border-color:#b3261e;box-shadow:0 0 0 2px rgba(179,38,30,.15)}
   .anx-th{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:260px;overflow:auto;padding:6px;background:var(--line2);border-radius:8px} .anx-tc{display:flex;flex-direction:column;align-items:center;font-size:10.5px;color:var(--muted)} .anx-tc canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff}
   .fsec-big{margin:12px 0 14px} .fsec-big .fsec-b{padding:13px 16px} .fsec-big .fsec-b b{font-size:16px}
   .fh-slim{padding-bottom:10px} .fh-slim .fh-meta{margin-top:6px} .fh-ref{margin-bottom:10px;padding-top:10px}
@@ -21791,13 +21792,7 @@ async function _fsReadDetails(r, quiet){
   // prayers and applications
   d.interim=/PRAYER\s+FOR\s+INTERIM\s+RELIEF\s*:?\s*\n?\s*(?!N\.?A\.?|NIL)/i.test(T)||/GROUNDS\s+FOR\s+INTERIM\s+RELIEF/i.test(T);
   // annexures — from the List of Dates
-  const L=lod.replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/ /g," ").replace(/[–—]/g,"-");
-  const anx=[]; const rxA=/(?:has\s+been\s+attached|is\s+annexed|are\s+annexed)\s+(?:herewith,?\s*)?(?:and\s+)?(?:marked\s+)?(?:as\s+)?["']*\s*ANNEXURE\s*-?\s*P\s*[-\/]?\s*(\d+[A-Z]?)\b/gi;
-  while((m=rxA.exec(L))){ const before=L.slice(Math.max(0,m.index-700),m.index); const flat=before.replace(/\s+/g," ");
-    let k=-1; const rs=/(?:^|[.;:\n]\s*|\s)((?:A|The|Certified|True|Translated|Typed)\s+(?:true\s+|translated\s+|typed\s+|certified\s+|photo\s*)*cop(?:y|ies)\s+of\b|Cop(?:y|ies)\s+of\b)/gi; let mm;
-    while((mm=rs.exec(flat))) k=mm.index+mm[0].indexOf(mm[1]);
-    let desc=k>=0?flat.slice(k):flat.split(/[.:]\s+/).pop(); desc=desc.replace(/[,\s]+$/,"").replace(/\s+is$/i,"").trim();
-    const n=m[1].toUpperCase(); if(!anx.some(a=>a.n===n)) anx.push({n,desc:desc.charAt(0).toUpperCase()+desc.slice(1)}); }
+  const anx=_fsLodAnnexures(lod);
   anx.sort((a,b)=>_fsAnxCmp(a.n,b.n)); d.annexures=anx; src("annexures",anx.length?"List of Dates":"none found");
   const r5=/Annexures?\s+numbered\s+P\s*[-\/]?\s*1\s+to\s+P\s*[-\/]?\s*(\d+)/i.exec(T); d.rule5=r5?+r5[1]:null;
   // which applications
@@ -21818,6 +21813,17 @@ async function _fsReadDetails(r, quiet){
   return d;
 }
 /* what the person typed is never overwritten by a re-read */
+/* "A copy of … is annexed herewith as ANNEXURE P-3 …" in the List of Dates → [{n:"3", desc:"A copy of …"}] */
+function _fsLodAnnexures(lod){
+  const L=lod.replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/ /g," ").replace(/[–—]/g,"-");
+  let m; const anx=[]; const rxA=/(?:has\s+been\s+attached|is\s+annexed|are\s+annexed)\s+(?:herewith,?\s*)?(?:and\s+)?(?:marked\s+)?(?:as\s+)?["']*\s*ANNEXURE\s*-?\s*P\s*[-\/]?\s*(\d+[A-Z]?)\b/gi;
+  while((m=rxA.exec(L))){ const before=L.slice(Math.max(0,m.index-700),m.index); const flat=before.replace(/\s+/g," ");
+    let k=-1; const rs=/(?:^|[.;:\n]\s*|\s)((?:A|The|Certified|True|Translated|Typed)\s+(?:true\s+|translated\s+|typed\s+|certified\s+|photo\s*)*cop(?:y|ies)\s+of\b|Cop(?:y|ies)\s+of\b)/gi; let mm;
+    while((mm=rs.exec(flat))) k=mm.index+mm[0].indexOf(mm[1]);
+    let desc=k>=0?flat.slice(k):flat.split(/[.:]\s+/).pop(); desc=desc.replace(/[,\s]+$/,"").replace(/\s+is$/i,"").trim();
+    const n=m[1].toUpperCase(); if(!anx.some(a=>a.n===n)) anx.push({n,desc:desc.charAt(0).toUpperCase()+desc.slice(1)}); }
+  anx.sort((a,b)=>_fsAnxCmp(a.n,b.n)); return anx;
+}
 function _fsMergeDetails(old, nw){
   if(!old){ nw.u={}; return nw; } const u=old.u||{}; const out=JSON.parse(JSON.stringify(nw)); out.u=u;
   const keep=(path)=>{ const g=(o,p)=>p.split(".").reduce((a,k)=>a==null?a:a[k],o); const s=(o,p,v)=>{ const ks=p.split("."); let a=o; ks.slice(0,-1).forEach(k=>{ if(a[k]==null) a[k]=/^\d+$/.test(k)?[]:{}; a=a[k]; }); a[ks[ks.length-1]]=v; }; s(out,path,g(old,path)); };
@@ -22091,7 +22097,14 @@ function _fsEditAsk(k,i){ _fsAddAsk(k,i); }
    save each as its own file with "ANNEXURE P-n" in bold at the top right (unless it already says so) ---- */
 function _fsAnxNo(x,i){ return String(x&&x.n?x.n:i+1).toUpperCase(); }
 function _fsAnxCmp(a,b){ const pa=/^(\d+)(.*)$/.exec(a)||[0,0,a], pb=/^(\d+)(.*)$/.exec(b)||[0,0,b]; return (+pa[1]-+pb[1])||String(pa[2]).localeCompare(String(pb[2])); }
-function _fsAnxExpected(r){ return ((r.fs&&r.fs.details&&r.fs.details.annexures)||[]).filter(a=>a&&a.n); }
+function _fsAnxExpected(r){ const d=(r.fs&&r.fs.details&&r.fs.details.annexures)||[]; return (d.length?d:(r.fs&&r.fs.lodAnx)||[]).filter(a=>a&&a.n); }
+async function _fsLodAnxLoad(r){ if((r.fs.details&&(r.fs.details.annexures||[]).length)||!_fsList(r,"lod").length) return;
+  const key=_fsList(r,"lod").map(x=>x.file+"|"+(x.word||"")).join(","); if(r.fs.lodAnxKey===key) return;
+  try{ const t=await _fsTextOf(r,"lod"); r.fs.lodAnx=_fsLodAnnexures(t); r.fs.lodAnxKey=key; _filingTouch(r); }catch(e){} }
+/* "F388.3 Shankar … - Annexure P1 Judgment dated 15.12.2021.pdf" → number 1, "Judgment dated 15.12.2021" */
+function _fsAnxFromName(name){ let b=_baseOf(String(name||"")).replace(/^[NLSCFD]\d{3,}(?:\.\d+)?\s+.*?\s-\s/,"").replace(/^\d+\.\d+\s+/,"").replace(/_/g," ").trim();
+  const m=/\bAnnex(?:ure)?\s*[-–.]?\s*P\s*[-–.]?\s*(\d+[A-Z]?)\b[\s:.\-–]*/i.exec(b); let n=""; if(m){ n=m[1].toUpperCase(); b=(b.slice(0,m.index)+" "+b.slice(m.index+m[0].length)).trim(); }
+  b=b.replace(/^(?:copy of|true copy of)\s+/i,"").replace(/\s{2,}/g," ").trim(); return {n, desc:b?b.charAt(0).toUpperCase()+b.slice(1):""}; }
 function _fsAnxAsk(){
   const r=_fsRec(); const have=_fsList(r,"annex").map((x,i)=>_fsAnxNo(x,i));
   const exp=_fsAnxExpected(r); const missing=exp.filter(a=>!have.includes(String(a.n).toUpperCase()));
@@ -22104,14 +22117,14 @@ function _fsAnxAsk(){
 async function _fsAnxPicked(){
   const f=(document.getElementById("anxFile")||{}).files; if(!(f&&f[0])) return; const A=window.__anx; A.file=f[0];
   const body=document.getElementById("anxBody"); body.innerHTML=`<div class="hint" style="margin:8px 0">Reading…</div>`;
-  try{ const td=await _pdfTextDoc(f[0]); A.n=td.numPages; A.doc=td.doc;
+  try{ await _fsLodAnxLoad(_fsRec()); const td=await _pdfTextDoc(f[0]); A.n=td.numPages; A.doc=td.doc; const fn=_fsAnxFromName(f[0].name);
     // a page that already says "ANNEXURE P-n" near the top starts that annexure — suggest the split from those
     const heads=[]; td.pages.forEach((pg,i)=>{ const top=(pg.rows||[]).filter(rw=>rw[0].y<140).map(rw=>rw.map(it=>it.s).join(" ")).join(" "); const m=/ANNEXURE\s*[-–]?\s*P\s*[-–]?\s*(\d+[A-Z]?)/i.exec(top); if(m) heads.push({i,n:m[1].toUpperCase()}); });
     let rows;
     if(heads.length) rows=heads.map((h,j)=>({n:h.n,from:h.i+1,to:(heads[j+1]?heads[j+1].i:A.n)}));
-    else { const nx=A.missing[0]?String(A.missing[0].n):String(A.have.length?Math.max(...A.have.map(x=>parseInt(x)||0))+1:1); rows=[{n:nx,from:1,to:A.n}]; }
+    else { const nx=fn.n||(A.missing[0]?String(A.missing[0].n):String(A.have.length?Math.max(...A.have.map(x=>parseInt(x)||0))+1:1)); rows=[{n:nx,from:1,to:A.n}]; }
     if(heads.length&&heads[0].i>0) rows.unshift({n:"",from:1,to:heads[0].i});
-    rows.forEach(rw=>{ const e=_fsAnxExpected(_fsRec()).find(a=>String(a.n).toUpperCase()===rw.n); rw.t=e?e.desc:""; });
+    rows.forEach(rw=>{ const e=_fsAnxExpected(_fsRec()).find(a=>String(a.n).toUpperCase()===rw.n); rw.t=e?e.desc:(rows.length===1&&fn.desc?fn.desc:""); });
     A.rows=rows; _fsAnxDraw(heads.length>0);
   }catch(e){ body.innerHTML=`<div class="co-warn">That PDF could not be read: ${esc(e.message)}</div>`; }
 }
@@ -22121,10 +22134,11 @@ function _fsAnxDraw(found){
   body.innerHTML=`<div class="hint" style="margin:10px 0 6px"><b>${esc(A.file.name)}</b> · ${A.n} page${A.n===1?"":"s"}${found?" · split where the pages already say “ANNEXURE P-…” — check it":""}</div>
     <div class="anx-rows">${A.rows.map((rw,j)=>`<div class="anx-r"><span class="anx-p">P-</span><input class="in mono anx-n" value="${esc(rw.n)}" oninput="window.__anx.rows[${j}].n=this.value.trim().toUpperCase()" placeholder="no.">
       <span class="anx-l">pages</span><input class="in mono anx-f" type="number" min="1" max="${A.n}" value="${rw.from}" oninput="window.__anx.rows[${j}].from=+this.value"><span>–</span><input class="in mono anx-f" type="number" min="1" max="${A.n}" value="${rw.to}" oninput="window.__anx.rows[${j}].to=+this.value">
-      <input class="in anx-t" value="${esc(rw.t||"")}" placeholder="Description, as in the index" oninput="window.__anx.rows[${j}].t=this.value">
+      <input class="in anx-t ${A.bad===j?"bad":""}" value="${esc(rw.t||"")}" placeholder="Description, as in the index" oninput="window.__anx.rows[${j}].t=this.value">
       ${A.rows.length>1?`<button class="row-act" title="Remove this row" onclick="window.__anx.rows.splice(${j},1);_fsAnxDraw()">✕</button>`:""}</div>`).join("")}</div>
     <button class="link-btn" style="margin-top:6px" onclick="_fsAnxMore()">+ another annexure in this file</button>
     ${exp.length?`<div class="hint" style="margin-top:8px">From the List of Dates: ${exp.map(a=>`P-${esc(a.n)}${A.have.includes(String(a.n).toUpperCase())?" ✓":""}`).join(" · ")}</div>`:""}
+    <div class="anx-err" id="anxErr">${esc(A.err||"")}</div>
     <div class="anx-th" id="anxTh"></div>
     <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAnxGo()">Save annexures</button></div>`;
   _fsAnxThumbs();
@@ -22138,10 +22152,12 @@ async function _fsAnxGo(){
   const A=window.__anx; if(!A||!A.file) { toast("Choose the PDF.",true); return; }
   const r=_fsRec(); const list=(r.fs.slots.annex=_fsList(r,"annex"));
   const rows=A.rows.map(rw=>({n:String(rw.n||"").replace(/^P\s*[-–]?\s*/i,"").toUpperCase(),from:+rw.from,to:+rw.to,t:(rw.t||"").trim()}));
-  for(const rw of rows){ if(!/^\d+[A-Z]?$/.test(rw.n)){ toast("Give each annexure its number (e.g. 3 or 3A).",true); return; }
-    if(!(rw.from>=1&&rw.to<=A.n&&rw.from<=rw.to)){ toast(`Annexure P-${rw.n}: pages must be between 1 and ${A.n}.`,true); return; }
-    if(!rw.t){ toast(`Annexure P-${rw.n}: add a short description — it goes into the index.`,true); return; } }
-  const nums=rows.map(rw=>rw.n); if(new Set(nums).size!==nums.length){ toast("The same annexure number is used twice.",true); return; }
+  const bad=(j,msg)=>{ A.err=msg; A.bad=j; _fsAnxDraw(); const e=document.querySelectorAll("#modal .anx-r")[j]; if(e){ e.scrollIntoView({block:"center"}); const i=e.querySelector(".anx-t"); if(i&&/description/.test(msg)) i.focus(); } };
+  A.err=""; A.bad=-1;
+  for(let j=0;j<rows.length;j++){ const rw=rows[j]; if(!/^\d+[A-Z]?$/.test(rw.n)) return bad(j,"Give each annexure its number (e.g. 3 or 3A).");
+    if(!(rw.from>=1&&rw.to<=A.n&&rw.from<=rw.to)) return bad(j,`Annexure P-${rw.n}: pages must be between 1 and ${A.n}.`);
+    if(!rw.t) return bad(j,`Annexure P-${rw.n}: type a short description (it goes into the index), e.g. “A copy of the judgment dated …”.`); }
+  const nums=rows.map(rw=>rw.n); if(new Set(nums).size!==nums.length) return bad(0,"The same annexure number is used twice.");
   const taken=rows.filter(rw=>list.some((x,i)=>_fsAnxNo(x,i)===rw.n)).map(rw=>"P-"+rw.n);
   if(taken.length&&!confirm(`${taken.join(", ")} ${taken.length===1?"is":"are"} already in. Replace with these pages? (The earlier file goes to _to_delete.)`)) return;
   _progressModal("Saving annexures…","Cutting the pages…");
@@ -22425,7 +22441,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -26723,7 +26739,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0500";
+  window.APP_VERSION = "2026.10.10-0545";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
