@@ -2022,6 +2022,16 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  #rvOverlay{position:fixed;inset:0;z-index:2000;background:#e9e7e3;display:none;flex-direction:column} #rvOverlay.show{display:flex}
+  #rvOverlay .pe-top{gap:8px} .rv-body{flex:1;overflow:auto;padding:16px 16px 60px}
+  .rv-d{max-width:1100px;margin:0 auto 22px;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px 18px}
+  .rv-no{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)} .rv-ok{color:#2e7d32;margin-left:6px} .rv-open{color:var(--seal);margin-left:6px}
+  .rv-rem{font-size:20px;font-weight:800;line-height:1.35;color:#1f1b18;margin:6px 0 4px;letter-spacing:.01em} .rv-rule{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .rv-part{margin-top:12px;border-top:1px solid var(--line2);padding-top:10px} .rv-pl{font-size:13.5px;margin-bottom:8px}
+  .rv-row{display:flex;gap:14px;margin-bottom:12px;align-items:flex-start} .rv-pg{flex:1;min-width:0} .rv-cap{font-size:11.5px;color:var(--muted);margin-bottom:4px}
+  .rv-c{width:100%;height:auto;border:1px solid #ccc;box-shadow:0 1px 3px rgba(0,0,0,.1);background:#fafafa;min-height:120px}
+  .rv-none{border:1px dashed #ccc;border-radius:6px;padding:28px 8px;text-align:center;font-size:12px;color:var(--muted)} .rv-np{margin-top:10px} .rv-err{color:#b23a3a;font-size:13px;margin-top:8px}
+  @media (max-width:760px){ .rv-body{padding:10px 8px 60px} .rv-d{padding:12px} .rv-rem{font-size:17px} .rv-row{gap:6px} }
   .pe-cap{display:flex;align-items:center;gap:10px} .pe-capb{border:1px solid var(--line);background:#fff;border-radius:7px;padding:2px 8px;font:inherit;font-size:11.5px;cursor:pointer;color:var(--ink)} .pe-capb:hover{background:var(--line2)}
   .pe-deleted{opacity:.35} .pe-deleted::after{content:"Will be left out";position:absolute;top:40%;left:0;right:0;text-align:center;font:600 22px/1 Inter,system-ui,sans-serif;color:#b23a3a}
   .fv-plus{min-width:30px;font-size:15px;font-weight:600;line-height:1} .fv-more{min-width:34px;font-size:16px;line-height:1;letter-spacing:1px} .fv-menu{position:fixed;z-index:9000;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;min-width:190px}
@@ -19568,14 +19578,14 @@ function _flNextHTML(rec, st, fc){
     const back=last.back?`<div class="fn-back">Sent back by ${esc(last.back.by||"the Head of Chamber")}: <i>${esc(last.back.note||"")}</i> — fix it and collate again.</div>`:"";
     if(isStaffView()) return `<div class="fn"><div class="fn-t">4 · Waiting for the Head of Chamber's approval</div>
       <div class="fn-s">Defect pages collated${who}${when}: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}. They can be downloaded for filing once the Head of Chamber approves them.</div>${back}
-      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
+      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
     return `<div class="fn"><div class="fn-t">4 · Your approval — the complete defect pages</div>
       <div class="fn-s">Collated${who}${when}: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}. Go through them; once you approve, they can be downloaded for filing and the final copy compiled.</div>${back}
-      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_refApprove()","✓ Approve for filing")}${btn("_refBackAsk()","Send back","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
+      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_refApprove()","✓ Approve for filing","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
   }
   if(!fin) return `<div class="fn"><div class="fn-t">4 · File the defect pages, then compile the final copy</div>
       <div class="fn-s">Defect pages ready: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}${last.ok?` · <span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:""}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
-      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
   return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s">${esc(fin.dl||fin.file)}${fin.pages?" · "+fin.pages+" pages":""}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
@@ -21924,6 +21934,84 @@ async function _fvRemoveFilingGo(path){ _progressModal("Removing…",path.split(
   catch(e){ closeModal(); toast(e.message,true); } }
 function _fsMenu(btn,k,i){ const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; _fvMenu(btn,[{l:"Edit description",on:`_fsEditAsk('${k}',${i})`},{l:"Replace with a new copy…",on:`_fsReplaceAsk('${k}',${i})`},"-",{l:"Remove…",on:`_fsRemoveAsk('${k}',${i})`,danger:true}]); }
 try{ Object.assign(window,{_fvSelOn,_fvSelToggle,_fvSelAll,_fvSelBar,_fvSelRemoveAsk,_fvSelRemoveGo,_filingRecGone,_fvMenuClose,_fvMenuOut,_fvMenu,_fvFileMenu,_fvDirMenu,_fvRemoveFilingAsk,_fvRemoveFilingGo,_fsMenu}); }catch(e){}
+/* ---------- REVIEW the defect pages before approving (owner, Oct 2026) ----------
+   "Show me the comparison of before and after, and the registry's comment on the defect on top in bigger and
+   bold font." One full-screen page, defect by defect in the registry's order: the remark (large, bold, as the
+   registry wrote it), then each filed page beside its cured page with what changed boxed in red; added pages
+   (44A…) beside the original pages they are a better copy / translation of; new documents on their own.
+   Approve for filing / Send back sit on the same screen (owner); staff see it without them. */
+async function _rvOpen(){
+  const rec=_flRec(); const last=(rec.refilings||[]).slice(-1)[0];
+  _progressModal("Preparing the review…","Fetching the filing copy…");
+  let ctx; try{ ctx=await _flLoadCtx(); }catch(e){ closeModal(); toast(e.message,true); return; }
+  const {PDFDocument}=await _libPdfLib(); const lib=await _qlPdfLib(); const cache={}, pdfjs={};
+  const pieces=(await _curedPieces(rec,ctx)).pieces;
+  const sections=[];
+  const all=(rec.defects||[]).filter(d=>d.status!=="na").sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no);
+  for(const d of all){
+    const items=[];
+    for(const p of (d.parts||[])){ if(!p.cure) continue;
+      try{
+        _progressSet(`Reading ${p.label}…`,null);
+        const lc=await _loadCure(PDFDocument,p,cache);
+        if(!pdfjs[p.cure.file]){ const x=_flItems().find(i=>i.name===p.cure.file); const b=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file,size:x?x.size:0}); pdfjs[p.cure.file]=await lib.getDocument({data:new Uint8Array(await b.arrayBuffer())}).promise; }
+        const pc=pieces.find(x=>x.p===p);
+        const before=(d.kind==="new"||!pc)?[]:pc.idx;
+        items.push({p,mode:pc?pc.mode:"new",before,after:lc.idx,file:p.cure.file,how:p.cure.how,labs:pc?_pieceLabels(pc,lc.idx.length,ctx,{}):[]});
+      }catch(e){ items.push({p,err:e.message}); }
+    }
+    sections.push({d,items});
+  }
+  closeModal();
+  const owner=!isStaffView(), waiting=last&&!last.ok;
+  let ov=document.getElementById("rvOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="rvOverlay"; document.body.appendChild(ov); }
+  const howW={edit:"edited in the app",attach:"added from outside",scan:"rescanned",stamp:"TRUE COPY stamped",ai:"corrected by the AI clerk",made:"made by the app"};
+  const lab=i=>ctx.labelOf[i]||("PDF "+(i+1));
+  ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_rvClose()" title="Close">✕</button>
+      <div class="pe-ttl"><b>Review the defect pages</b><span>${esc(_fv.title||"")}${rec.diaryNo?" · Diary "+esc(rec.diaryNo+"/"+rec.diaryYear):""}${last?" · "+esc(last.dl||last.file)+(last.pages?" · "+last.pages+" pages":""):""}</span></div>
+      ${owner&&waiting?`<button class="btn ghost sm" onclick="_rvClose();_refBackAsk()">Send back</button><button class="btn seal sm" onclick="_rvClose();_refApprove()">✓ Approve for filing</button>`:""}</div>
+    <div class="rv-body" id="rvBody">${sections.map(S=>{ const d=S.d;
+      const pages=S.items.map(it=>{
+        if(it.err) return `<div class="rv-err">${esc(it.p.label)}: ${esc(it.err)}</div>`;
+        const kind=it.mode==="add"?`added after page ${esc(lab(it.before[it.before.length-1]))} (${esc(it.labs[0]||"")}–${esc(it.labs[it.labs.length-1]||"")})`:it.mode==="new"?"new document":`replaces page${it.before.length===1?"":"s"} ${esc(it.before.map((b,k)=>ctx.labelOf[b]||it.labs[k]||lab(b)).join(", "))}`;
+        const n=Math.max(it.after.length, it.mode==="new"?0:it.before.length);
+        let rows="";
+        for(let j=0;j<n;j++){ const bi=it.mode==="new"?null:it.before[j], ai=it.after[j];
+          rows+=`<div class="rv-row">${it.mode==="new"?"":`<div class="rv-pg"><div class="rv-cap">${bi!=null?"Filed · page "+esc(ctx.labelOf[bi]||(it.mode==="replace"&&it.labs[j])||lab(bi)):""}</div>${bi!=null?`<canvas class="rv-c" data-src="fc" data-i="${bi}" data-pair="${esc(it.file)}|${ai!=null?ai:""}"></canvas>`:`<div class="rv-none">—</div>`}</div>`}
+            <div class="rv-pg"><div class="rv-cap">${ai!=null?(it.mode==="new"?"":"Cured · ")+"page "+esc(it.labs[j]||String(j+1)):""}</div>${ai!=null?`<canvas class="rv-c" data-src="${esc(it.file)}" data-i="${ai}" data-pair="fc|${bi!=null?bi:""}"></canvas>`:`<div class="rv-none">left out</div>`}</div></div>`; }
+        return `<div class="rv-part"><div class="rv-pl"><b>${esc(it.p.label)}</b> — ${kind} · ${esc(howW[it.how]||it.how||"")}${it.p.cure&&it.p.cure.edit&&it.p.cure.edit.by?" by "+esc(it.p.cure.edit.by):""}</div>${rows}</div>`; }).join("");
+      return `<section class="rv-d ${d.status}"><div class="rv-no">Defect ${d.no}${d.status==="cured"?` <span class="rv-ok">✓ cured</span>`:` <span class="rv-open">${esc(d.status)}</span>`}</div>
+        <div class="rv-rem">${esc(String(d.text||"").trim())}</div>${d.rule?`<div class="rv-rule">${esc(_flSentence(d.rule))}</div>`:""}
+        ${pages||`<div class="rv-none rv-np">${d.kind==="general"?"No pages — dealt with outside the paper book (e.g. court fee).":"No cured pages attached."}</div>`}</section>`; }).join("")}</div>`;
+  ov.classList.add("show"); document.body.style.overflow="hidden";
+  window.__rv={ctx,pdfjs,done:new Set()};
+  const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io.unobserve(e.target); _rvDraw(e.target); } }),{root:document.getElementById("rvBody"),rootMargin:"600px"});
+  ov.querySelectorAll(".rv-c").forEach(c=>io.observe(c));
+}
+function _rvClose(){ const ov=document.getElementById("rvOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; window.__rv=null; }
+async function _rvRender(src,i,W){ const R=window.__rv; const doc=src==="fc"?R.ctx.doc:R.pdfjs[src]; if(!doc) return null;
+  const pg=await doc.getPage(+i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:W/v0.width});
+  const c=document.createElement("canvas"); c.width=Math.round(vp.width); c.height=Math.round(vp.height); await pg.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise; return c; }
+// draw one page; when its partner is drawn too, box in red what changed between them
+async function _rvDraw(el){
+  const R=window.__rv; if(!R) return; const W=Math.min(520,Math.max(260,(el.parentElement.clientWidth||400)))*(window.devicePixelRatio>1?1.5:1);
+  const c=await _rvRender(el.dataset.src,el.dataset.i,W); if(!c||!window.__rv) return;
+  el.width=c.width; el.height=c.height; el.getContext("2d").drawImage(c,0,0); el.dataset.drawn="1";
+  const [ps,pi]=String(el.dataset.pair||"").split("|"); if(pi===""||pi==null) return;
+  const mate=[...document.querySelectorAll(".rv-c")].find(x=>x!==el&&x.dataset.src===ps&&x.dataset.i===pi&&x.dataset.drawn==="1"&&(x.dataset.pair||"").split("|")[0]===el.dataset.src);
+  if(mate) _rvDiff(el,mate);
+}
+function _rvDiff(a,b){
+  if(a.width!==b.width) return; const h=Math.min(a.height,b.height), w=a.width; if(!h||!w) return;
+  const da=a.getContext("2d").getImageData(0,0,w,h).data, db=b.getContext("2d").getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1, n=0; const step=2;
+  for(let y=0;y<h;y+=step) for(let x=0;x<w;x+=step){ const k=(y*w+x)*4; if(Math.abs(da[k]-db[k])+Math.abs(da[k+1]-db[k+1])+Math.abs(da[k+2]-db[k+2])>90){ n++; if(x<x0)x0=x; if(y<y0)y0=y; if(x>x1)x1=x; if(y>y1)y1=y; } }
+  if(x1<0) return; const area=(x1-x0)*(y1-y0);
+  [a,b].forEach(cv=>{ const g=cv.getContext("2d"); g.strokeStyle="rgba(214,40,40,.9)"; g.lineWidth=Math.max(2,w/250);
+    if(area<0.55*w*h) g.strokeRect(Math.max(0,x0-8),Math.max(0,y0-8),Math.min(w,x1-x0+16),Math.min(h,y1-y0+16));
+    else { g.strokeRect(2,2,w-4,h-4); } });
+}
+try{ Object.assign(window,{_rvOpen,_rvClose,_rvRender,_rvDraw,_rvDiff}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -25395,7 +25483,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1430";
+  window.APP_VERSION = "2026.10.09-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
