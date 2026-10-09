@@ -2089,6 +2089,7 @@
   @media (max-width:640px){ .fd-r{grid-template-columns:1fr;gap:2px} .fd-r>label{padding-top:2px} }
   .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px} .fp-c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)} .fp-t{font-weight:700} .fp-s{font-size:12px;color:var(--muted);margin:3px 0 8px}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
+  .ap-drop{border:1.5px dashed var(--line);border-radius:10px;padding:8px;transition:background .15s} .ap-drop.on{background:var(--line2);border-color:var(--seal)} .ap-list{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-word}
   .anx-rows{display:flex;flex-direction:column;gap:6px} .anx-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap} .anx-p{font-weight:700} .anx-n{width:58px} .anx-f{width:64px} .anx-l{color:var(--muted);font-size:12px} .anx-t{flex:1;min-width:180px}
   .anx-th{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:260px;overflow:auto;padding:6px;background:var(--line2);border-radius:8px} .anx-tc{display:flex;flex-direction:column;align-items:center;font-size:10.5px;color:var(--muted)} .anx-tc canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff}
   .fsec-big{margin:12px 0 14px} .fsec-big .fsec-b{padding:13px 16px} .fsec-big .fsec-b b{font-size:16px}
@@ -16125,7 +16126,7 @@ function renderMatters(){
     <div class="card">
       <div class="card-head">
         <div><h2>Cases</h2><div class="hint">${cnt.all} open in the app${cnt.listed?` · <b style="color:var(--green)">${cnt.listed} listed</b>`:""}.${staff?"":` Every case of both chambers by file number: <a href="#" onclick="openCaseRegister();return false" style="color:var(--seal)">Case register</a>.`}</div></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">${staff?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${staff?"":`<button class="btn ghost sm" onclick="openCaseRegister()">Case register</button>`}<button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="_ncAsk()">📁 New case folder</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
         ${fbtn("all","All")}${fbtn("listed","Listed")}${fbtn("week","This week")}${fbtn("caveat","Caveats")}${fbtn("query","Queries")}${fbtn("ia","I.A.s")}
@@ -19296,7 +19297,8 @@ function renderFilesPage(){
           <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>`}
         <div style="display:flex;gap:6px">${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
       </div>
-      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_fvMenu(this,[{l:'Upload a paper…',on:'_addPaperAsk(0)'},{l:'Scan with the camera…',on:'_scanOpen({})'},'-',{l:'Start a new filing…',on:'_newFilingAsk()'},{l:'Add a defect list…',on:'_dlStartAsk()'}])">＋ Add</button></div>`:""}
+      ${f.sub&&!_inFiling()&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">＋ Upload papers</button></div>`:""}
+      ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_fvMenu(this,[{l:'Upload papers…',on:'_addPaperAsk(0)'},{l:'Scan with the camera…',on:'_scanOpen({})'},'-',{l:'Start a new filing…',on:'_newFilingAsk()'},{l:'Add a defect list…',on:'_dlStartAsk()'}])">＋ Add</button></div>`:""}
       ${f.loading&&!f.idx?`<div class="fv-empty">Loading papers…</div>`:(f.err&&!f.idx?`<div class="fv-empty">${esc(f.err)}</div>`:_inFiling()?_filingViewHTML():`
       <div class="fv-tools">
         <input class="fv-search" id="fvQ" placeholder="Search papers — name, number, date" value="${esc(f.q)}" oninput="_fvSetQ(this.value)">
@@ -19344,6 +19346,41 @@ function _extOf(n){ return ((/\.[A-Za-z0-9]{2,5}$/.exec(n||"")||[""])[0]).toLowe
 function _baseOf(n){ return String(n||"").replace(/\.[A-Za-z0-9]{2,5}$/,""); }
 function _looksFinancial(n){ return /\b(invoice|receipt|memorandum of fees|fee memo|fee bill|salary)\b/i.test(n)||/\bINV[\/\-]\d/i.test(n)||/\bR\/\d{4}/.test(n); }
 function _caseFolderPath(){ return _fv.folder||""; }
+(function(){ if(window.__fvDropWired) return; window.__fvDropWired=true;
+  const ok=e=>{ try{ return e.dataTransfer&&[...e.dataTransfer.types].includes("Files")&&_fv&&_fv.folder&&_fv.idx&&_gkUrl()&&document.querySelector(".fv-head")&&document.querySelector(".fv-head").offsetParent; }catch(x){ return false; } };
+  document.addEventListener("dragover",e=>{ if(ok(e)) e.preventDefault(); });
+  document.addEventListener("drop",e=>{ if(!ok(e)||e.target.closest&&e.target.closest("#apDrop")) return; e.preventDefault(); const fs=e.dataTransfer.files; if(!fs||!fs.length) return;
+    if(document.getElementById("apFile")) _apAddFiles(fs); else { window.__apDropped=fs; _addPaperAsk(_inFiling()?1:0); } });
+})();
+/* ---- the chamber's register numbering, given the moment a paper is saved through the app (owner, Oct 2026) ----
+   Same rules as the Mac helper's auto-filing: F (filed / received PDFs and pictures), C (compilations),
+   L (synopsis / list of dates), S (submissions), N (notes, with their date), D (other documents);
+   "F388" for the first, "F388.2" for the second — the Mac turns the first into "F388.1" and enters
+   every paper in the Case Register. Numbers run per folder: the one the paper is saved in. */
+const _REG_IMG=/\.(jpe?g|png|heic|heif|tiff?|gif|webp|bmp)$/i, _REG_DOC=/\.(docx?|rtf|odt|txt|pages)$/i;
+function _regLetter(name){ const n=String(name||"").toLowerCase();
+  if(/\.pdf$/.test(n)||_REG_IMG.test(n)) return /compilation/.test(n)?"C":"F";
+  if(_REG_DOC.test(n)){ if(/compilation/.test(n)) return "C"; if(/list of dates|synopsis/.test(n)) return "L"; if(/written submission|line of argument|proposition/.test(n)) return "S";
+    if(/^note|[\s\-_]note/.test(n)) return "N"; if(/submission/.test(n)) return "S"; return "D"; }
+  return "D"; }
+function _regCase(rel){ const segs=String(rel||"").split("/"); for(let i=segs.length-1;i>=0;i--){ const m=/^(.*) \((\d{3,})\)$/.exec(segs[i]); if(m) return {serial:m[2], title:m[1]}; } return null; }
+function _regDesc(s){ return String(s||"").replace(/["*:<>?\/\\|]/g,"-").replace(/_/g," ").replace(/\s+/g," ").trim().replace(/^[ .\-]+|[ .]+$/g,""); }
+function _regNoteDesc(desc){ const m=/(\d{1,2})[.\-\/_](\d{1,2})[.\-\/_](\d{4})/.exec(desc);
+  if(m){ const before=desc.slice(0,m.index).replace(/[\s\-_,]*\b(?:dated|dt\.?|date|on)?[\s\-_,]*$/i,""); const kind=_regDesc((before+" "+desc.slice(m.index+m[0].length)).replace(/^[\s\-_,]+|[\s\-_,]+$/g,""))||"Note";
+    return `${kind} - ${String(+m[1]).padStart(2,"0")}.${String(+m[2]).padStart(2,"0")}.${m[3]}`; }
+  return `${_regDesc(desc)||"Note"} - ${fmtDate(_localISO())}`; }
+function _regName(rel, names, fileName, typed){
+  const c=_regCase(rel); if(!c) return null; const ext=_extOf(fileName)||".pdf";
+  let desc=String(typed||_baseOf(fileName)).replace(/^[NLSCFD]\d{3,}(?:\.\d+)?\s+/,"");
+  const L=_regLetter(desc+ext);
+  const tm=names.map(n=>new RegExp("^[NLSCFD]"+c.serial+"(?:\\.\\d+)? (.+?) - ").exec(n)).find(Boolean); const title=tm?tm[1]:c.title;
+  if(desc.toLowerCase().startsWith(title.toLowerCase()+" - ")) desc=desc.slice(title.length+3);
+  desc=L==="N"?_regNoteDesc(desc):(_regDesc(desc)||"Document");
+  const rxDot=new RegExp("^"+L+c.serial+"\\.(\\d+)[ .]"), rxPlain=new RegExp("^"+L+c.serial+"[ .]");
+  let mx=0, plain=0; names.forEach(n=>{ const m=rxDot.exec(n); if(m) mx=Math.max(mx,+m[1]); else if(rxPlain.test(n)) plain++; });
+  if(!mx&&!plain) return `${L}${c.serial} ${title} - ${desc}${ext}`;
+  let k=Math.max(mx,plain?1:0)+1; while(names.some(n=>n.startsWith(`${L}${c.serial}.${k} `))) k++;
+  return `${L}${c.serial}.${k} ${title} - ${desc}${ext}`; }
 function _inFiling(){ const s=_fv.sub||""; return !!s && s.indexOf("/")<0 && _FILING_RX.test(s); }
 function _filingFolderRel(){ return _fv.folder+"/"+_fv.sub; }
 async function _libPdfLib(){ if(!window.PDFLib) await _qlLoadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"); if(!window.PDFLib) throw new Error("Could not load the PDF tools (offline?)."); return window.PDFLib; }
@@ -19393,31 +19430,40 @@ function _currentNames(){ const fx=_fv.idx||{}; return (fx.items||[]).map(i=>i.n
 function _addPaperAsk(stage){
   if(!_gkUrl()){ toast("Documents are not set up yet (Settings → Documents).",true); return; }
   if(!_fv.folder){ toast("This case has no folder yet.",true); return; }
-  const fil=_inFiling(); stage=+stage||0;
+  const fil=_inFiling(); stage=+stage||0; const here=_fv.sub?_fv.sub.split("/").pop():(_fv.folder||"").split("/").pop();
   const stageSel=fil?`<label class="fld" style="margin-top:10px">Stage</label><select class="in" id="apStage">${_STG.map(s=>`<option value="${s.n}" ${s.n===(stage||1)?"selected":""}>${s.n} · ${esc(s.l)}</option>`).join("")}</select>`:"";
   openModal("Add paper", `
-    <div class="hint" style="margin-bottom:10px">${fil?`Into <b>${esc(_fv.sub)}</b>. The app numbers it by stage.`:`Into <b>${esc(_fv.folder.split("/").pop())}</b>. Your Mac helper gives it its number (N, L, S, C, F, D) within a few minutes.`}</div>
-    <label class="fld">File(s)</label>
-    <input class="in" type="file" id="apFile" multiple>
-    <label class="fld" style="margin-top:10px">Title <span style="color:var(--muted);font-weight:400">(optional — e.g. Signed Vakalatnama)</span></label>
-    <input class="in" id="apTitle" placeholder="Leave blank to keep the file's own name">
+    <div class="hint" style="margin-bottom:10px">Into <b>${esc(here)}</b>. ${fil?"Each paper is numbered by its stage (5.1, 5.2…).":"Each paper gets its number in this folder as it is saved (F, D, N, L, S, C — e.g. F388.3)."}</div>
+    <label class="fld">Files <span style="color:var(--muted);font-weight:400">— choose as many as you like</span></label>
+    <div class="ap-drop" id="apDrop"><input class="in" type="file" id="apFile" multiple onchange="_apShow()"><div class="hint">or drag them here</div><div id="apList" class="ap-list"></div></div>
+    <label class="fld" style="margin-top:10px">Title <span style="color:var(--muted);font-weight:400">(optional — for one file; leave blank to keep each file's own name)</span></label>
+    <input class="in" id="apTitle" placeholder="e.g. Signed Vakalatnama">
     ${stageSel}
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_addPaperGo()">Add</button></div>`);
+  const dz=document.getElementById("apDrop"), inp=document.getElementById("apFile");
+  if(dz&&inp){ dz.addEventListener("dragover",e=>{ e.preventDefault(); dz.classList.add("on"); }); dz.addEventListener("dragleave",()=>dz.classList.remove("on"));
+    dz.addEventListener("drop",e=>{ e.preventDefault(); dz.classList.remove("on"); _apAddFiles(e.dataTransfer&&e.dataTransfer.files); }); }
+  if(window.__apDropped){ const f=window.__apDropped; window.__apDropped=null; _apAddFiles(f); }
 }
+/* several files — chosen in one go, chosen again (added to the list) or dragged in */
+function _apAddFiles(list){ const inp=document.getElementById("apFile"); if(!inp||!list||!list.length) return; const dt=new DataTransfer();
+  [...(inp.files||[])].forEach(f=>dt.items.add(f)); [...list].forEach(f=>{ if(![...dt.files].some(g=>g.name===f.name&&g.size===f.size)) dt.items.add(f); }); inp.files=dt.files; _apShow(); }
+function _apShow(){ const inp=document.getElementById("apFile"), box=document.getElementById("apList"); if(!inp||!box) return; const fs=[...(inp.files||[])];
+  box.innerHTML=fs.length>1?`<b>${fs.length} files</b> · ${fs.map(f=>esc(f.name)).join(" · ")}`:""; }
 async function _addPaperGo(){
   const inp=document.getElementById("apFile"); const files=inp&&inp.files?Array.from(inp.files):[];
   if(!files.length){ toast("Choose a file.",true); return; }
   const title=_safeName((document.getElementById("apTitle")||{}).value||"");
   const st=document.getElementById("apStage"); const stage=st?+st.value:0;
-  const staff=isStaffView(); const fil=_inFiling(); const base=fil?_filingFolderRel():_caseFolderPath();
-  const names=_currentNames(); const today=fmtDate(_localISO());
+  const staff=isStaffView(); const fil=_inFiling(); const base=fil?_filingFolderRel():(_fv.folder+(_fv.sub?"/"+_fv.sub:""));
+  const names=_currentNames();
   const plan=files.map((f,i)=>{
     const ext=_extOf(f.name)||".pdf";
     let desc=title?(files.length>1?title+" "+(i+1):title):_safeName(_baseOf(f.name))||"Paper";
-    if(title&&!/\d{2}\.\d{2}\.\d{4}/.test(desc)&&!fil) desc=desc+" - "+today;
     let name;
-    if(fil){ const k=_stageNext(stage,names); name=`${stage}.${k} ${desc}${ext}`; names.push(name); }
-    else name=desc+ext;
+    if(fil){ const k=_stageNext(stage,names); name=`${stage}.${k} ${desc}${ext}`; }
+    else name=_regName(base,names,f.name,title?desc:"")||(desc+ext);
+    names.push(name);
     return {f,name};
   });
   if(staff&&plan.some(p=>_looksFinancial(p.name))){ toast("Financial papers are for the Head of Chamber only.",true); return; }
@@ -21633,7 +21679,7 @@ function _fsAddAsk(k, i){
   const n=_fsList(r,k).length;
   const pdfs=_flItems().filter(x=>/\.pdf$/i.test(x.name)&&x.stage!==3&&x.stage!==4).map(x=>x.name);
   openModal(cur?`Edit — ${s.l}`:`${s.l}${s.annex?" — Annexure P-"+(n+1):""}`, `
-    ${cur?"":`<label class="fld">PDF</label><input type="file" id="fsPdf" accept="application/pdf,.pdf" class="in">
+    ${cur?"":`<label class="fld">PDF${s.many?` <span style="color:var(--muted);font-weight:400">— several at once if you like</span>`:""}</label><input type="file" id="fsPdf" accept="application/pdf,.pdf" class="in" ${s.many?"multiple":""}>
       ${pdfs.length?`<div class="hint" style="margin:6px 0 2px">or one already in this filing folder:</div><select class="in" id="fsPick"><option value="">—</option>${pdfs.map(p=>`<option>${esc(p)}</option>`).join("")}</select>`:""}`}
     ${s.word&&!cur?`<label class="fld" style="margin-top:10px">Word draft (.docx) — kept with it for record</label><input type="file" id="fsWord" accept=".doc,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="in">
       <div class="hint">Save the PDF from Word itself (File → Save As → PDF) so the layout is exactly as drafted.</div>`:""}
@@ -21725,7 +21771,8 @@ async function _fsAddGo(k, i){
   if(i!=null){ Object.assign(list[i],{title,kind}); _filingTouch(r); closeModal(); renderFilesPage(); return; }
   const f=(document.getElementById("fsPdf")||{}).files, w=(document.getElementById("fsWord")||{}).files, pick=((document.getElementById("fsPick")||{}).value||"");
   if(!(f&&f[0])&&!pick){ toast("Choose the PDF.",true); return; }
-  if(f&&f[0]&&!/\.pdf$/i.test(f[0].name)){ toast("That is not a PDF.",true); return; }
+  if(f&&[...f].some(x=>!/\.pdf$/i.test(x.name))){ toast("Only PDFs here.",true); return; }
+  if(f&&f.length>1&&s.many) return _fsAddMany(k,[...f],kind);
   if(s.title&&!title&&s.annex){ toast("Give the annexure a short description — it goes into the index.",true); return; }
   const stage=(s.word||k==="index"||k==="cover")?2:1, base=_filingFolderRel();
   const label=s.annex?`Annexure P-${list.length+1}`:s.l.replace(/\s*\(.*\)$/,"");
@@ -21739,6 +21786,20 @@ async function _fsAddGo(k, i){
     _filingTouch(r); closeModal(); toast("Added."); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
+/* several PDFs into one slot (impugned orders, applications…): each keeps its own name as its description;
+   an application's kind is read from its file name when it says so */
+async function _fsAddMany(k, files, kind){
+  const s=_FS_SLOTS.find(x=>x.k===k); const r=_fsRec(); const list=(r.fs.slots[k]=_fsList(r,k)); const base=_filingFolderRel(); const names=_currentNames();
+  const stage=(s.word||k==="index"||k==="cover")?2:1; const label=s.l.replace(/\s*\(.*\)$/,"");
+  _progressModal("Adding…","Uploading…");
+  try{ for(let q=0;q<files.length;q++){ const f=files[q]; const t=_baseOf(f.name).replace(/_/g," ").trim();
+      let kd=kind; if(s.kind){ const g=_FS_APPS.find(a=>{ const w=a.toLowerCase().split(/\W+/).filter(x=>x.length>5); return w.length&&w.some(x=>t.toLowerCase().includes(x)); }); if(g) kd=g; }
+      const nm=`${stage}.${_stageNext(stage,names)} ${_fnSafe(label)} ${_fnSafe(t).slice(0,70)}.pdf`; names.push(nm);
+      _progressSet(`Uploading ${f.name} (${q+1} of ${files.length})…`,q/files.length);
+      const file=await _uploadPaper(base+"/"+nm,f,(g,tt)=>_progressSet(null,(q+g/tt)/files.length));
+      list.push({file, word:"", title:t, kind:s.kind?kd:"", at:new Date().toISOString(), by:_aiWho()}); }
+    _filingTouch(r); closeModal(); toast(`${files.length} added.`); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); } }
 function _fsMove(k,i,d){ const r=_fsRec(); const l=_fsList(r,k); const j=i+d; if(j<0||j>=l.length) return; [l[i],l[j]]=[l[j],l[i]]; r.fs.slots[k]=l; _filingTouch(r); renderFilesPage(); }
 function _fsUnlink(k,i){ const r=_fsRec(); const l=_fsList(r,k); if(!confirm(`Take "${(l[i]||{}).title||(l[i]||{}).file}" out of this slot? The file stays in the folder.`)) return; l.splice(i,1); r.fs.slots[k]=l; _filingTouch(r); renderFilesPage(); }
 /* ---- page labels ---- */
@@ -21965,7 +22026,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -22054,6 +22115,50 @@ try{ Object.assign(window,{_fsAiSet,_fsAiHTML,_fsAiQueue,_fsAiCancel,_fsAiDismis
    pending until the owner's app next syncs — the existing rule), then the Mac helper makes its folder
    "AD Chamber/<Title> (NNN)" as it does for every new case (and records it on the case), and the app makes
    the filing folder "<Kind> Filing (NNN-1)" inside it the moment the folder is there. */
+/* ---- a case folder without a filing (owner, Oct 2026): a client sends papers for an opinion or advice ----
+   The case gets its file number and its folder ("Title (NNN)", named exactly as the Mac names it), and the
+   papers go straight in, each numbered as it is saved. Nothing is filed; a filing can be started later. */
+const _NC_KINDS=["Opinion","Advice","Client's documents","Not yet filed","Other"];
+function _ncTitle(t){ t=String(t||"").normalize("NFC").trim().replace(/\s+(v\.|vs\.?|Vs\.?|V\.|VS\.?|versus|Versus)\s+/g," v ").replace(/["*:<>?\/\\|]/g,"").replace(/\s+/g," ").trim().replace(/\.+$/,""); return t.slice(0,120)||"Untitled"; }
+function _ncAsk(){
+  const staff=isStaffView();
+  openModal("New case folder", `
+    <div class="hint" style="margin-bottom:10px">For papers a client has sent — for an opinion, advice, or a matter not filed yet. The case gets its file number and its own folder; nothing is filed. ${staff?"(The file number is given when the Head of Chamber's app next opens; the papers can be added then.)":""}</div>
+    <label class="fld">Name of the matter</label><input class="in" id="ncTitle" placeholder="e.g. Ramesh Patil v State of Maharashtra, or Ramesh Patil — opinion">
+    <label class="fld" style="margin-top:8px">Client</label><input class="in" id="ncClient" placeholder="Who sent the papers">
+    ${staff?"":`<label class="fld" style="margin-top:8px">Chamber</label><select class="in" id="ncCh"><option value="AD">AD Chamber</option><option value="SD">SD Chamber</option></select>`}
+    <label class="fld" style="margin-top:8px">For</label><select class="in" id="ncKind">${_NC_KINDS.map(k=>`<option>${esc(k)}</option>`).join("")}</select>
+    ${staff?"":`<label class="fld" style="margin-top:8px">The client's papers <span style="color:var(--muted);font-weight:400">— as many as you like (can be added later too)</span></label>
+    <div class="ap-drop" id="apDrop"><input class="in" type="file" id="apFile" multiple onchange="_apShow()"><div class="hint">or drag them here</div><div id="apList" class="ap-list"></div></div>`}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_ncGo()">Create the folder</button></div>`);
+  const dz=document.getElementById("apDrop"); if(dz){ dz.addEventListener("dragover",e=>{ e.preventDefault(); dz.classList.add("on"); }); dz.addEventListener("dragleave",()=>dz.classList.remove("on")); dz.addEventListener("drop",e=>{ e.preventDefault(); dz.classList.remove("on"); _apAddFiles(e.dataTransfer&&e.dataTransfer.files); }); }
+  setTimeout(()=>{ const i=document.getElementById("ncTitle"); if(i) i.focus(); },60);
+}
+async function _ncGo(){
+  const title=((document.getElementById("ncTitle")||{}).value||"").replace(/\s+/g," ").trim(), client=((document.getElementById("ncClient")||{}).value||"").trim();
+  const kind=((document.getElementById("ncKind")||{}).value||"Opinion"), chamber=isStaffView()?"AD":((document.getElementById("ncCh")||{}).value||"AD");
+  const files=[...(((document.getElementById("apFile")||{}).files)||[])];
+  if(title.length<3){ toast("Type the name of the matter.",true); return; }
+  if(!client){ toast("Type the client's name.",true); return; }
+  if(isStaffView()&&files.some(f=>_looksFinancial(f.name))){ toast("Financial papers are for the Head of Chamber only.",true); return; }
+  const norm=t=>String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b/g,"v").replace(/[^a-z0-9]+/g," ").trim();
+  const dup=(DB.matters||[]).find(m=>!isVoided(m)&&norm(m.parties||m.client)===norm(title));
+  if(dup&&!confirm(`“${dup.parties||dup.client}” is already in the app${dup.serial?" as "+String(dup.serial).padStart(3,"0"):""}. Make a separate new case anyway?`)) return;
+  const m={id:uid(), code:nextMatterCode(), kind:"case", opened:todayISO(), client, parties:title, matterType:kind, court:"", status:"Active", chamber, notes:kind+" — papers sent by the client"};
+  _stampSerial(m); DB.matters.push(m);
+  try{ logActivity("matter", `New case ${m.code} — ${title} (${kind.toLowerCase()})`, {refId:m.id}); }catch(e){}
+  if(!m.serial){ save(); closeModal(); toast("Case created. It gets its file number when the Head of Chamber's app next opens; its folder follows and the papers can be added then."); return; }
+  const ser=String(m.serial).padStart(3,"0"); const folder=`${chamber==="SD"?"SD":"AD"} Chamber/${_ncTitle(title)} (${ser})`;
+  m.folder=folder; save();
+  if(!files.length||!_gkUrl()){ closeModal(); toast(`Case ${ser} created — your Mac makes its folder within two minutes.`); setTimeout(()=>{ try{ openFiles(m.serial); }catch(e){} },400); return; }
+  _progressModal("Saving the papers…","Making the folder…");
+  const names=[], done=[]; let waited=0;
+  try{ for(let q=0;q<files.length;q++){ const f=files[q]; const name=_regName(folder,names,f.name,"")||_safeName(f.name); names.push(name);
+      for(;;){ try{ _progressSet(`Uploading ${f.name} (${q+1} of ${files.length})…`,q/files.length); done.push(await _uploadPaper(folder+"/"+name,f,(g,t)=>_progressSet(null,(q+g/t)/files.length))); break; }
+        catch(e){ if(waited>=300) throw e; _progressSet(`Waiting for the case folder — your Mac makes it (${Math.round(waited/60)} min)…`,null); await new Promise(r=>setTimeout(r,20000)); waited+=20; } } }
+    closeModal(); toast(`Case ${ser} created with ${done.length} paper${done.length===1?"":"s"}.`); setTimeout(()=>{ try{ openFiles(m.serial); }catch(e){} },300);
+  }catch(e){ closeModal(); toast(`Case ${ser} created; ${done.length} of ${files.length} papers saved — add the rest from its folder. (${e.message})`,true); }
+}
 function _pfNewCaseAsk(){
   const staff=isStaffView();
   openModal("New case — start its filing", `
@@ -22118,7 +22223,7 @@ async function _pfPendingTick(){
   if(changed){ save(); try{ if(document.querySelector("#panel-home .fsec-big")) renderPhoneDefects(); }catch(e){} }
 }
 setInterval(()=>{ try{ if(window.DB&&_pfPending().length) _pfPendingTick(); }catch(e){} },20000);
-try{ Object.assign(window,{_FILING_KINDS,_pfNewCaseAsk,_pfNewCaseGo,_pfPending,_pfFolderOf,_pfState,_pfPendingHTML,_pfPendingTick}); }catch(e){}
+try{ Object.assign(window,{_ncAsk,_ncGo,_ncTitle,_FILING_KINDS,_pfNewCaseAsk,_pfNewCaseGo,_pfPending,_pfFolderOf,_pfState,_pfPendingHTML,_pfPendingTick}); }catch(e){}
 /* ---------- Remove / Replace — every "add" comes with these (owner, Oct 2026) ----------
    Remove never deletes: the gatekeeper ("trash") MOVES the paper to Master Cases Folder/_to_delete/<same folders>/,
    named with the date and who removed it. Replace = the new copy goes in, the old one to _to_delete.
@@ -24711,7 +24816,8 @@ function renderPhoneCreate(){
     ${big("_sendInstructionsOnly()","📝","Instructions for the client","How to sign and notarise — English or English + Marathi")}
     <div class="fv-group" style="margin-top:16px">Papers into a case</div>
     ${big("_pickCase('scan')","📷","Scan a paper","Camera → clean PDF → saved in the case")}
-    ${big("_pickCase('add')","📎","Add a paper","From this phone or computer")}
+    ${big("_pickCase('add')","📎","Add papers","From this phone or computer — several at once")}
+    ${big("_ncAsk()","📁","New case folder","Client's papers for an opinion or advice — no filing")}
     ${big("_pickCase('filing')","⚖️","Start a filing","SLP, counter, rejoinder… with stages 1–6")}
     <div class="fv-group" style="margin-top:16px">${staff?"Other":"Billing &amp; letters"}</div>
     <div class="mlist">${staff?[
@@ -24730,6 +24836,7 @@ function _pickCase(action){
   window.__pcAction=action;
   openModal(action==="scan"?"Scan into which case?":action==="add"?"Add to which case?":action==="defects"?"Defect list for which case?":"Start a filing in which case?", `
     <div class="dr-head" style="margin-bottom:8px"><input class="fv-search" id="pcQ" placeholder="Search — name, number, diary/SLP no." oninput="_pickCaseList(this.value)" style="flex:1;min-width:0">${_adToggleHTML("_pickCaseList((document.getElementById('pcQ')||{}).value)")}</div>
+    ${action==="add"?`<button class="btn ghost" style="width:100%;margin:0 0 10px" onclick="closeModal();_ncAsk()">📁 New case folder — client's papers, not yet in the app</button>`:""}
     ${action==="filing"?`<button class="btn seal" style="width:100%;margin:0 0 10px" onclick="_pfNewCaseAsk()">＋ New case — not yet in the app</button><div class="hint" style="margin:0 2px 6px">or pick a case already in the app:</div>`:""}
     <div id="pcList" style="max-height:55vh;overflow:auto"></div>
     <div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
@@ -26166,7 +26273,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-2100";
+  window.APP_VERSION = "2026.10.09-2300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
