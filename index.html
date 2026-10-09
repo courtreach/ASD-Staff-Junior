@@ -20597,13 +20597,13 @@ async function _loadCure(PDFDocument, p, cache){
     if(!x) throw new Error(`"${name}" is no longer in the filing folder.`);
     const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size});
     const doc=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true});
-    let labels=[]; try{ const td=await _pdfTextDoc(b); labels=td.pages.map(_pageLabel); }catch(e){}
-    cache[name]={doc,labels}; }
-  const {doc,labels}=cache[name]; const n=doc.getPageCount();
+    let labels=[], tops=[]; try{ const td=await _pdfTextDoc(b); labels=td.pages.map(_pageLabel); tops=td.pages.map(_pageTop); }catch(e){}
+    cache[name]={doc,labels,tops}; }
+  const {doc,labels,tops}=cache[name]; const n=doc.getPageCount();
   let idx=[]; if(!p.cure.pages||p.cure.pages==="all") idx=Array.from({length:n},(_,i)=>i);
   else String(p.cure.pages).split(",").forEach(t=>{ const m=/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(t); if(m){ for(let k=+m[1];k<=+(m[2]||m[1]);k++) if(k>=1&&k<=n) idx.push(k-1); } });
   if(!idx.length) throw new Error(`No pages to use from "${name}".`);
-  return {doc,idx,shown:idx.map(i=>labels[i]||"")};
+  return {doc,idx,shown:idx.map(i=>labels[i]||""),tops:idx.map(i=>(tops||[])[i]||"")};
 }
 // The numbers a cured part's pages should carry.
 function _pieceLabels(pc, n, ctx, used){
@@ -20633,11 +20633,35 @@ function _stampLabel(pg, label, font, rgb, top){
   pg.drawText(label,{x:W/2-tw/2,y,size:sz,font,color:rgb(0,0,0)});
 }
 // add a cured part's pages to `out`, numbering any page that doesn't already show its number
-async function _addPieceTo(out, pc, ctx, cache, font, rgb, used, numOn, warn, PDFDocument){
-  const {doc,idx,shown}=await _loadCure(PDFDocument,pc.p,cache);
+// the top quarter of a page's text — where an annexure heading ("ANNEXURE P-5") is written
+function _pageTop(pg){ return ((pg&&pg.rows)||[]).filter(r=>r[0].y<pg.h*0.28).map(r=>_joinItems(r)).join(" "); }
+const _ANX_RX=n=>new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+n+"\\b","i");
+// which annexure a cured part belongs to: its label, the heading on its first filed page, or the index
+function _pieceAnnex(pc, ctx){
+  const lm=/annexure\s*[-–]?\s*p\s*[-–]?\s*(\d+)/i.exec(pc.p.label||""); if(lm) return +lm[1];
+  const first=ctx.pages[pc.mode==="add"?pc.idx[0]:pc.start]; const hm=/ANNEXURE\s*[-–]?\s*P\s*[-–]?\s*(\d+)/i.exec(_pageTop(first)); if(hm) return +hm[1];
+  const lab=ctx.labelOf[pc.start]; const rec=_flRec();
+  const e=(rec&&Array.isArray(rec.index)?rec.index:[]).find(x=>/annexure\s*[-–]?\s*p\s*[-–]?\s*\d+/i.test(x.label||"")&&lab&&_expandLabels(x.pages||"").includes(lab));
+  const em=e&&/annexure\s*[-–]?\s*p\s*[-–]?\s*(\d+)/i.exec(e.label); return em?+em[1]:0;
+}
+// add a cured part's pages to `out`, numbering any page that doesn't already show its number, and
+// (owner, Oct 2026) writing "ANNEXURE P-n" in bold at the top right of an annexure's first page when the
+// cured copy does not show it. stage "final": only where the filed page it replaces carried that heading.
+async function _addPieceTo(out, pc, ctx, cache, font, rgb, used, numOn, warn, PDFDocument, stage){
+  const {doc,idx,shown,tops}=await _loadCure(PDFDocument,pc.p,cache);
   const cp=await out.copyPages(doc,idx); const labels=_pieceLabels(pc,cp.length,ctx,used); const top=_ctxLabelTop(ctx);
   cp.forEach((pg,i)=>{ out.addPage(pg); const L=labels[i];
     if(numOn&&L&&shown[i]!==L&&pc.p.cure.how!=="stamp") _stampLabel(pg,L,font,rgb,top); });
+  const an=_pieceAnnex(pc,ctx);
+  if(an&&cp.length&&!_ANX_RX(an).test((tops||[])[0]||"")){
+    const filedHad=_ANX_RX(an).test(_pageTop(ctx.pages[pc.start]));
+    if(stage!=="final"||(pc.mode!=="add"&&filedHad)){
+      const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const txt="ANNEXURE P-"+an, sz=15, tw=font.widthOfTextAtSize(txt,sz);
+      pg.drawRectangle({x:W-40-tw-6,y:H-58,width:tw+12,height:22,color:rgb(1,1,1)});
+      pg.drawText(txt,{x:W-40-tw,y:H-52,size:sz,font,color:rgb(0,0,0)});
+      warn.push(`${txt} written at the top of ${pc.p.label}${labels[0]?" (page "+labels[0]+")":""}`);
+    }
+  }
   if(pc.mode==="replace"&&cp.length!==pc.idx.length) warn.push(`${pc.p.label}: ${cp.length} page${cp.length===1?"":"s"} in place of ${pc.idx.length}`);
   return labels;
 }
@@ -20756,9 +20780,9 @@ async function _finalGo(){
     let i=0;
     while(i<total){
       const r=reps.find(x=>x.start===i); let upto=i;
-      if(r){ _progressSet(`Putting in ${r.p.label}…`,0.2+0.7*i/total); await _addPieceTo(out,r,ctx,cache,font,rgb,used,numOn,warn,PDFDocument); upto=r.end; }
+      if(r){ _progressSet(`Putting in ${r.p.label}…`,0.2+0.7*i/total); await _addPieceTo(out,r,ctx,cache,font,rgb,used,numOn,warn,PDFDocument,"final"); upto=r.end; }
       else out.addPage(byIdx[i]);
-      for(let j=i;j<=upto;j++) for(const a of (addsAt[j]||[])){ _progressSet(`Adding ${a.p.label}…`,0.2+0.7*j/total); await _addPieceTo(out,a,ctx,cache,font,rgb,used,numOn,warn,PDFDocument); }
+      for(let j=i;j<=upto;j++) for(const a of (addsAt[j]||[])){ _progressSet(`Adding ${a.p.label}…`,0.2+0.7*j/total); await _addPieceTo(out,a,ctx,cache,font,rgb,used,numOn,warn,PDFDocument,"final"); }
       i=upto+1;
     }
     _progressSet("Saving…",0.93);
@@ -21161,8 +21185,8 @@ async function _fsCollateGo(){
           if(fixed<=12) warn.push(`${p.s.l}${p.x.title?" ("+p.x.title+")":""}: page showed “${have.t}”, now “${L}”.`); }
         else { _stampLabel(pg,L,fR,rgb,true); stamped++; } });
       if(o.anx&&p.s.annex){ const t0=((p.tx.pages[0]||{}).text||"").slice(0,400); const want="ANNEXURE P-"+(p.i+1);
-        if(!new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+(p.i+1)+"\\b","i").test(t0)){ const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const tw=fB.widthOfTextAtSize(want,13);
-          pg.drawRectangle({x:W-tw-46,y:H-60,width:tw+12,height:20,color:rgb(1,1,1)}); pg.drawText(want,{x:W-tw-40,y:H-55,size:13,font:fB,color:rgb(0,0,0)}); fills.push({where:want,what:"heading written at the top"}); } } }
+        if(!new RegExp("ANNEXURE\\s*[-–]?\\s*P\\s*[-–]?\\s*"+(p.i+1)+"\\b","i").test(t0)){ const pg=cp[0]; const {width:W,height:H}=pg.getSize(); const tw=fB.widthOfTextAtSize(want,15);
+          pg.drawRectangle({x:W-40-tw-6,y:H-58,width:tw+12,height:22,color:rgb(1,1,1)}); pg.drawText(want,{x:W-40-tw,y:H-52,size:15,font:fB,color:rgb(0,0,0)}); fills.push({where:want,what:"heading written at the top"}); } } }
     // 4. index
     const rng=k=>{ const ps=parts.filter(p=>p.s.k===k); return ps.length?_fsRange(ps[0].from,ps[ps.length-1].to):""; };
     const P=k=>parts.filter(p=>p.s.k===k);
@@ -22043,7 +22067,7 @@ function _aiApprove(did){
   d.ai.history=(d.ai.history||[]).slice(-11).concat([{status:"approved",at:d.ai.at,by:d.ai.by,msg:d.ai.mode==="check"?"Used the AI's copy instead of the staff's":""}]);
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
-try{ Object.assign(window,{_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
+try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
@@ -25309,7 +25333,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1300";
+  window.APP_VERSION = "2026.10.09-1330";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
