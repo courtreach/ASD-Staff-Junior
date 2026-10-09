@@ -19130,7 +19130,9 @@ function openFiles(serial, q, sub, view){
   serial=+serial; try{ _pfRemember(serial); }catch(e){}
   const r=(DB.register||[]).find(x=>+x.serial===serial);
   const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===serial);
-  _fv={serial, folder:(r&&r.folder)||(m&&m.folder)||"", title:(r&&r.title)||(m&&(m.parties||m.client))||"", chamber:(r&&r.chamber)||(m&&m.chamber)||"",
+  const hint=(window.__fvHint&&window.__fvHint.serial===serial)?window.__fvHint:null; window.__fvHint=null;
+  const hf=hint?hint.folder:(((DB.filings||[]).find(x=>x&&+x.serial===serial&&x.folder)||{}).folder||"").split("/").slice(0,2).join("/");
+  _fv={serial, folder:(r&&r.folder)||(m&&m.folder)||hf||"", title:(r&&r.title)||(m&&(m.parties||m.client))||_caseNameOfFolder(hf)||"", chamber:(r&&r.chamber)||(m&&m.chamber)||(/^SD Chamber\//.test(hf)?"SD":hf?"AD":""),
        sub:sub||"", idx:null, q:q||"", type:"all", sort:"num", loading:true, err:""};
   if(sub) _fv.fl={sub, stage:0, view:view||"stages"};
   if(isStaffView()){
@@ -22038,7 +22040,7 @@ function _aiApprove(did){
   d.ai.history=(d.ai.history||[]).slice(-11).concat([{status:"approved",at:d.ai.at,by:d.ai.by,msg:d.ai.mode==="check"?"Used the AI's copy instead of the staff's":""}]);
   _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
 }
-try{ Object.assign(window,{_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
+try{ Object.assign(window,{_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
@@ -23683,11 +23685,15 @@ function renderPhoneFiles(listOnly){
 /* ---------- Defects: every filing, open defects first ---------- */
 function _caseTitle(serial){
   const r=(DB.register||[]).find(x=>+x.serial===+serial); if(r&&r.title) return r.title;
-  const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+serial); return m?(m.parties||m.client||""):"";
+  const m=(DB.matters||[]).find(x=>!isVoided(x)&&+x.serial===+serial); if(m&&(m.parties||m.client)) return m.parties||m.client;
+  // a case kept only in the owner's register (no app case record): its filing still knows the case folder
+  const f=(DB.filings||[]).find(x=>x&&+x.serial===+serial&&x.folder); return f?_caseNameOfFolder(f.folder):"";
 }
+function _caseNameOfFolder(folder){ return (String(folder||"").split("/")[1]||"").replace(/\s*\(\d{3,}\)$/,""); }
 function _allFilingRecs(){ return [].concat((DB.filings||[]).filter(f=>f&&f.bundle), isStaffView()?[]:(DB.sdFilings||[]).filter(f=>f&&f.bundle)); }
 function _openFiling(folder, view, sec){
   const name=String(folder||"").split("/").pop(); const m=/^(.+?) Filing \((\d{3})-(\d+)\)$/.exec(name); if(!m) return;
+  window.__fvHint={serial:+m[2], folder:String(folder).split("/").slice(0,-1).join("/")};
   window.__fsSecWant=sec||(view==="defects"||view==="check"?"refiling":null);
   openFiles(+m[2], "", name, view||"stages");
 }
@@ -25297,7 +25303,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1200";
+  window.APP_VERSION = "2026.10.09-1230";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
