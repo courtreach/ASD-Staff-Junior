@@ -2089,6 +2089,9 @@
   @media (max-width:640px){ .fd-r{grid-template-columns:1fr;gap:2px} .fd-r>label{padding-top:2px} }
   .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px} .fp-c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)} .fp-t{font-weight:700} .fp-s{font-size:12px;color:var(--muted);margin:3px 0 8px}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
+  .src{margin-bottom:8px} .src-tabs{display:flex;gap:4px;margin-bottom:6px} .src-t{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink)} .src-t.on{background:var(--seal);border-color:var(--seal);color:#fff}
+  .src-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:6px} .src-r{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line2);background:transparent;padding:7px 10px;font:inherit;cursor:pointer;color:var(--ink)} .src-r:first-child{border-top:0} .src-r:hover{background:var(--line2)} .src-r.on{background:#e8f3ea}
+  .src-n{display:block;font-size:13px;word-break:break-word} .src-w{display:block;font-size:11px;color:var(--muted)} .src-chosen{font-size:12.5px;margin-top:6px}
   .ap-drop{border:1.5px dashed var(--line);border-radius:10px;padding:8px;transition:background .15s} .ap-drop.on{background:var(--line2);border-color:var(--seal)} .ap-list{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-word}
   .anx-rows{display:flex;flex-direction:column;gap:6px} .anx-r{display:flex;align-items:center;gap:6px;flex-wrap:wrap} .anx-p{font-weight:700} .anx-n{width:58px} .anx-f{width:64px} .anx-l{color:var(--muted);font-size:12px} .anx-t{flex:1;min-width:180px}
   .anx-th{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:260px;overflow:auto;padding:6px;background:var(--line2);border-radius:8px} .anx-tc{display:flex;flex-direction:column;align-items:center;font-size:10.5px;color:var(--muted)} .anx-tc canvas{box-shadow:0 1px 3px rgba(0,0,0,.18);background:#fff}
@@ -19395,6 +19398,11 @@ async function _gkNew(path, body){
 async function _uploadPaper(relPath, blob, onProgress, opts){
   if(!blob||!blob.size) throw new Error("The file is empty.");
   opts=opts||{};
+  const srcPath=window.__srcMap&&__srcMap.get(_srcKey(blob));
+  if(srcPath&&!opts.replace){ const dir=relPath.split("/").slice(0,-1).join("/"), sdir=srcPath.split("/").slice(0,-1).join("/"), sname=srcPath.split("/").pop(), nn=relPath.split("/").pop();
+    let used=false; try{ used=JSON.stringify(_filingRec(sdir,false)||{}).includes(JSON.stringify(sname)); }catch(e){}
+    if(dir===sdir&&_FILING_RX.test(dir.split("/").pop())&&!used&&_extOf(sname)===_extOf(nn)){
+      try{ const r=await _gkNew("/api/rename",{path:srcPath,name:nn}); __srcMap.delete(_srcKey(blob)); onProgress&&onProgress(blob.size,blob.size); return (r&&r.name)||nn; }catch(e){} } }
   const d=opts.owner&&!isStaffView()?await _gk("/api/uploadsession",{path:relPath}):await _gkNew("/api/addsession",{path:relPath, replace:!!opts.replace});
   const CH=320*1024*16, size=blob.size; let off=0, last=null, viaGk=false;
   const put=async(range,part)=>{
@@ -19445,7 +19453,7 @@ function _addPaperAsk(stage){
     <label class="fld" style="margin-top:10px">Title <span style="color:var(--muted);font-weight:400">(optional — for one file; leave blank to keep each file's own name)</span></label>
     <input class="in" id="apTitle" placeholder="e.g. Signed Vakalatnama">
     ${stageSel}
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_addPaperGo()">Add</button></div>`);
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_addPaperGo()">Add</button></div>`); if(fil) _srcAll();
   const dz=document.getElementById("apDrop"), inp=document.getElementById("apFile");
   if(dz&&inp){ dz.addEventListener("dragover",e=>{ e.preventDefault(); dz.classList.add("on"); }); dz.addEventListener("dragleave",()=>dz.classList.remove("on"));
     dz.addEventListener("drop",e=>{ e.preventDefault(); dz.classList.remove("on"); _apAddFiles(e.dataTransfer&&e.dataTransfer.files); }); }
@@ -19904,7 +19912,7 @@ async function _dlStartAsk(){
         <select class="in" id="dsKind">${fils.map(n=>`<option value="@${esc(n)}">${esc(n)}</option>`).join("")}${_FILING_KINDS.map(k=>`<option value="${esc(k)}">${fils.length?"New: ":""}${esc(k)}</option>`).join("")}</select></div>
       <div style="flex:1.3"><label class="fld">Diary No.</label><input class="in mono" id="dsNo" value="${esc(dn.no||"")}" inputmode="numeric"></div>
       <div style="flex:1"><label class="fld">Year</label><input class="in mono" id="dsYr" value="${esc(dn.year||"")}" inputmode="numeric"></div></div>
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_dlStartGo()">Read defects</button></div>`);
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_dlStartGo()">Read defects</button></div>`); _srcAll();
 }
 async function _dlStartGo(){
   const lf=(document.getElementById("dsList")||{}).files; if(!lf||!lf[0]){ toast("Choose the defect list PDF.",true); return; }
@@ -20387,7 +20395,7 @@ function _defReadAsk(){
     <label class="fld" style="margin-top:8px">${lists.length?"Or a new one from this device":"From this device"}</label>
     <input class="in" type="file" id="dlFile" accept="application/pdf,.pdf">
     <div class="hint" style="margin-top:6px">A new list is saved in stage 4 as well.</div>
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defReadGo('')">Read</button></div>`);
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defReadGo('')">Read</button></div>`); _srcAll();
 }
 async function _defReadGo(existing){
   const rec=_flRec(); let blob=null, name=existing;
@@ -20694,7 +20702,7 @@ function _defAttachAsk(did,pid){
     ${p.whole?"":`<label class="fld" style="margin-top:10px">How they go in</label>
     <div class="mode-r"><label><input type="radio" name="caMode" value="replace" ${dm==="replace"?"checked":""}> <span><b>Replace</b> the original pages${p.pages?" "+esc(p.pages):""}</span></label>
       <label><input type="radio" name="caMode" value="add" ${dm==="add"?"checked":""}> <span><b>Add after</b> the document — translation or additional better copy, numbered ${esc(a?a+"A, "+a+"B…":"…A, …B")}</span></label></div>`}
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Add</button></div>`);
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAttachGo('${did}','${pid}')">Add</button></div>`); _srcAll();
 }
 async function _defAttachGo(did,pid){
   const {rec,d,p}=_defFind(did,pid); if(!p) return;
@@ -20863,7 +20871,7 @@ function _flDeclAttachAsk(which){
   const lab=which==="chk"?"Checklist":"Declaration";
   openModal("Signed "+lab.toLowerCase(), `<div class="hint" style="margin-bottom:10px">The signed ${lab.toLowerCase()} as a PDF — or scan it.</div>
     <input class="in" type="file" id="sdFile" accept="application/pdf,.pdf">
-    <div class="btn-row" style="margin-top:12px;gap:8px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn ghost" onclick="closeModal();_scanOpen({stage:5,title:'${lab} (signed)'})">📷 Scan instead</button><button class="btn seal" onclick="_flDeclAttachGo('${which}')">Attach</button></div>`);
+    <div class="btn-row" style="margin-top:12px;gap:8px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn ghost" onclick="closeModal();_scanOpen({stage:5,title:'${lab} (signed)'})">📷 Scan instead</button><button class="btn seal" onclick="_flDeclAttachGo('${which}')">Attach</button></div>`); _srcAll();
 }
 async function _flDeclAttachGo(which){
   const f=(document.getElementById("sdFile")||{}).files; if(!f||!f[0]){ toast("Choose the PDF.",true); return; }
@@ -21679,6 +21687,43 @@ function _fsFrontAsk(k){ const r=_fsRec(); const x=_fsList(r,k)[0];
   if(x&&(!x.gen||x.edited)&&!confirm(`${_FS_FRONT[k]}: ${x.gen?"it was edited by hand":"this is your own upload"}. Make a fresh one from the case details instead? (The current file goes to _to_delete.)`)) return;
   _fsFrontMake([k],true); }
 
+
+/* ---- "Choose the paper" in Filing and Refiling (owner, Oct 2026): the case folder first, this computer second ----
+   Papers are often already saved in the case folder (a Synopsis & LoD, a cured application). Picking one fills the
+   same upload box with that paper, so every step works as before: it is saved in the filing folder under its stage
+   number and the original keeps its register number in the case folder. A paper already inside THIS filing folder
+   and not used anywhere is simply renamed (renumbered) instead of being copied. */
+var __srcMap=new Map(), __srcSeq=0;
+function _srcKey(f){ return f?(f.name+"|"+f.size+"|"+f.lastModified):""; }
+function _srcEnhance(inputId){
+  const inp=document.getElementById(inputId); if(!inp||!_fv||!_fv.folder||inp.dataset.src) return; inp.dataset.src="1";
+  const acc=String(inp.getAttribute("accept")||""); const rx=/pdf/i.test(acc)&&!/doc/i.test(acc)?/\.pdf$/i:/\.doc/i.test(acc)&&!/pdf/i.test(acc)?/\.docx?$/i:/\.[A-Za-z0-9]{2,5}$/;
+  const id="s"+(++__srcSeq); const box=document.createElement("div"); box.className="src"; box.id=id;
+  box.innerHTML=`<div class="src-tabs"><button type="button" class="src-t on" data-t="case">From the case folder</button><button type="button" class="src-t" data-t="dev">From this computer</button></div>
+    <div class="src-case"><input class="fv-search" placeholder="Search this case's papers"><div class="src-list"><div class="hint">Looking in the case folder…</div></div></div><div class="src-chosen"></div>`;
+  inp.parentNode.insertBefore(box,inp); inp.style.display="none"; const devBox=document.createElement("div"); devBox.className="src-dev"; devBox.style.display="none"; inp.parentNode.insertBefore(devBox,inp); devBox.appendChild(inp); inp.style.display="";
+  const S={inp,rx,list:null,box,devBox};
+  const tab=t=>{ box.querySelectorAll(".src-t").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); box.querySelector(".src-case").style.display=t==="case"?"":"none"; devBox.style.display=t==="dev"?"":"none"; };
+  box.querySelectorAll(".src-t").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+  const draw=()=>{ const q=(box.querySelector(".fv-search").value||"").toLowerCase().trim(); const L=box.querySelector(".src-list");
+    if(!S.list){ return; }
+    const xs=S.list.filter(x=>!q||(x.name+" "+x.where).toLowerCase().includes(q));
+    L.innerHTML=xs.length?xs.slice(0,80).map((x,i)=>`<button type="button" class="src-r" data-i="${S.list.indexOf(x)}"><span class="src-n">${esc(x.name)}</span><span class="src-w">${esc(x.where||"case folder")}${x.size?" · "+esc(_fmtSize(x.size)):""}${x.modified?" · "+esc(fmtDate(x.modified.slice(0,10))):""}</span></button>`).join("")
+      :`<div class="hint">${S.list.length?"Nothing matches.":"No suitable paper in the case folder — use “From this computer”."}</div>`;
+    L.querySelectorAll(".src-r").forEach(b=>b.onclick=()=>pick(S.list[+b.dataset.i],b)); };
+  const pick=async(x,btn)=>{ const ch=box.querySelector(".src-chosen"); box.querySelectorAll(".src-r").forEach(b=>b.classList.toggle("on",b===btn)); ch.innerHTML=`<span class="hint">Fetching ${esc(x.name)}…</span>`;
+    try{ const blob=await _paperBlob({path:x.path,name:x.name,size:x.size}); const f=new File([blob],x.name,{type:blob.type||(/\.pdf$/i.test(x.name)?"application/pdf":"application/octet-stream"),lastModified:Date.now()});
+      __srcMap.set(_srcKey(f),x.path); const dt=new DataTransfer(); dt.items.add(f); inp.files=dt.files; inp.dispatchEvent(new Event("change",{bubbles:true}));
+      ch.innerHTML=`✓ Using <b>${esc(x.name)}</b> from ${esc(x.where||"the case folder")}`; }
+    catch(e){ ch.innerHTML=`<span style="color:#b3261e">${esc(e.message)}</span>`; } };
+  box.querySelector(".fv-search").oninput=draw;
+  (async()=>{ const out=[]; const walk=async(rel,where,depth)=>{ const d=await _gk("/api/list",{folder:rel}).catch(()=>({items:[]}));
+      for(const i of (d.items||[])){ if(i.isFolder){ if(depth<1&&!/^_to_delete$/i.test(i.name)) await walk(rel+"/"+i.name,i.name,depth+1); } else if(rx.test(i.name)&&i.size>0) out.push({path:rel+"/"+i.name,name:i.name,where,size:i.size,modified:i.modified||""}); } };
+    try{ await walk(_fv.folder,"",0); }catch(e){}
+    out.sort((a,b)=>String(b.modified).localeCompare(String(a.modified))); S.list=out; if(!out.length) tab("dev"); draw(); })();
+}
+/* open a dialog, then give each of its upload boxes the case-folder choice */
+function _srcAll(){ setTimeout(()=>{ document.querySelectorAll('#modal input[type="file"]').forEach(i=>{ if(!i.id) i.id="srcIn"+(++__srcSeq); _srcEnhance(i.id); }); },0); }
 /* ---- upload into a slot ---- */
 function _fsAddAsk(k, i){
   const s=_FS_SLOTS.find(x=>x.k===k); if(!s) return; const r=_fsRec(); const cur=i!=null?_fsList(r,k)[i]:null;
@@ -21691,7 +21736,7 @@ function _fsAddAsk(k, i){
       <div class="hint">Save the PDF from Word itself (File → Save As → PDF) so the layout is exactly as drafted.</div>`:""}
     ${s.kind?`<label class="fld" style="margin-top:10px">Which application</label><select class="in" id="fsKind">${_FS_APPS.map(a=>`<option ${cur&&cur.kind===a?"selected":""}>${esc(a)}</option>`).join("")}</select>`:""}
     ${s.title?`<label class="fld" style="margin-top:10px">${s.annex?"Description (as in the index)":s.k==="impugned"?"Description (e.g. Judgment dated 04.03.2026 in C.R.P. No. 1042 of 2026)":"Description"}</label><input class="in" id="fsTitle" value="${esc(cur?cur.title||"":"")}">`:""}
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAddGo('${k}'${i!=null?","+i:""})">${cur?"Save":"Add"}</button></div>`);
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_fsAddGo('${k}'${i!=null?","+i:""})">${cur?"Save":"Add"}</button></div>`); _srcAll();
 }
 function _fsEditAsk(k,i){ _fsAddAsk(k,i); }
 /* ---- annexures (owner, Oct 2026): one PDF may hold several annexures — ask which annexure is on which pages,
@@ -21705,7 +21750,7 @@ function _fsAnxAsk(){
   window.__anx={file:null,n:0,have,missing};
   openModal("Add annexures", `<div class="hint" style="margin-bottom:8px">Choose the PDF. If it holds more than one annexure, say which pages are which — each is saved as its own annexure with its number at the top right.</div>
     <input type="file" id="anxFile" accept="application/pdf,.pdf" class="in" onchange="_fsAnxPicked()">
-    <div id="anxBody"></div>`);
+    <div id="anxBody"></div>`); _srcAll();
   document.getElementById("modal").classList.add("m-wide");
 }
 async function _fsAnxPicked(){
@@ -22257,7 +22302,7 @@ function _paperReplaceAsk(path){
   openModal("Replace with a new copy", `<div style="margin-bottom:8px"><b>${esc(name)}</b></div>
     <label class="fld">The new copy</label><input type="file" id="rpFile" class="in">
     <div class="hint" style="margin-top:6px">The new copy takes the same name and place; the old one is moved to <b>_to_delete</b> (not deleted). Everything in the app that used it now uses the new copy.</div>
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_paperReplaceGo(${_fvQuote(path)})">Replace</button></div>`);
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_paperReplaceGo(${_fvQuote(path)})">Replace</button></div>`); if(/ Filing \(\d{3,}-\d+\)\//.test(String(arguments[0]||""))) _srcAll();
 }
 async function _paperReplaceGo(path){
   const f=(document.getElementById("rpFile")||{}).files; if(!(f&&f[0])){ toast("Choose the new copy.",true); return; }
@@ -22796,7 +22841,7 @@ function _refApprove(){
 function _refSignedAsk(){
   openModal("Upload the signed copy", `<div class="hint" style="margin-bottom:8px">The defect pages after signing — a scan, or the PDF signed digitally. It is saved as <b>Final Defect Pages</b>.</div>
     <input type="file" id="sgFile" class="in" accept="application/pdf,.pdf">
-    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_refSignedGo()">Upload</button></div>`); }
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_refSignedGo()">Upload</button></div>`); _srcAll(); }
 async function _refSignedGo(){
   const f=(document.getElementById("sgFile")||{}).files; if(!(f&&f[0])){ toast("Choose the signed PDF.",true); return; }
   if(!/\.pdf$/i.test(f[0].name)){ toast("That is not a PDF.",true); return; }
@@ -26279,7 +26324,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-2330";
+  window.APP_VERSION = "2026.10.10-0000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
