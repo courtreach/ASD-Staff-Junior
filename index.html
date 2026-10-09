@@ -2049,7 +2049,7 @@
   .fsb-n{font-size:13.5px;margin-right:6px;white-space:nowrap} .fsb-b{border:0;border-radius:9px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer;background:rgba(255,255,255,.12);color:#fff;white-space:nowrap}
   .fsb-b:disabled{opacity:.4;cursor:default} .fsb-rm{background:#b23a3a} .fsb-done{background:#fff;color:#1f1b18}
   @media (max-width:760px){ #fvSelBar{bottom:calc(76px + env(safe-area-inset-bottom))} }
-  #peOverlay{position:fixed;inset:0;z-index:2000;background:#e9e7e3;display:none;flex-direction:column} #peOverlay.show{display:flex}
+  #peOverlay{position:fixed;inset:0;z-index:2100;background:#e9e7e3;display:none;flex-direction:column} #peOverlay.show{display:flex}
   .pe-top{display:flex;align-items:center;gap:6px;height:52px;padding:0 10px;background:#fff;border-bottom:1px solid var(--line)}
   .pe-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2} .pe-ttl b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pe-ttl span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pe-ib{width:34px;height:34px;border-radius:8px;border:0;background:none;font-size:17px;cursor:pointer;color:var(--ink)} .pe-ib:hover{background:var(--line2)} .pe-ib:disabled{opacity:.3;cursor:default}
@@ -2096,6 +2096,7 @@
   .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px} .fp-c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)} .fp-t{font-weight:700} .fp-s{font-size:12px;color:var(--muted);margin:3px 0 8px}
   .dd-new{animation:ddnew 2.6s ease-out 1} @keyframes ddnew{0%,40%{box-shadow:0 0 0 3px var(--brass);} 100%{box-shadow:0 0 0 0 transparent}}
   .dl-l{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:6px 0;border-top:1px solid var(--line2);font-size:13px} .dl-l:first-child{border-top:0} .dl-l>span:last-child{color:var(--muted);font-size:12px} .dl-l.ok>span:last-child{color:#2e7d32;font-weight:600}
+  .rv-ai{margin:6px 0 10px} .rv-ai-s{font-size:13.5px;color:var(--muted)} .rv-ai-s.q{color:var(--ink)} .rv-ai-s.ok{color:#2e7d32} .rv-ai-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .src{margin-bottom:8px} .src-tabs{display:flex;gap:4px;margin-bottom:6px} .src-t{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink)} .src-t.on{background:var(--seal);border-color:var(--seal);color:#fff}
   .src-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:6px} .src-r{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line2);background:transparent;padding:7px 10px;font:inherit;cursor:pointer;color:var(--ink)} .src-r:first-child{border-top:0} .src-r:hover{background:var(--line2)} .src-r.on{background:#e8f3ea}
@@ -20017,8 +20018,8 @@ function _rfWizardHTML(rec, stg, fc, listDate){
       (stg.tot?`<div class="fv-box">${_defectsHTML(rec)}</div>`:"");
   } else if(open==="pages"){
     const decl=_flStage5(/Declaration/i);
-    const rNow=Math.max(1,...ds.map(d=>+d.round||1)), stale=last&&rNow>(+last.round||1);
-    body=head("Defect pages", stale?`<span class="co-warn" style="display:block;margin-top:4px">The defect pages on file (<b>${esc(last.file)}</b>, ${last.at?esc(fmtDate(_localISO(new Date(last.at)))):""}) were made for the earlier defect list. A new list came since — cure its defects, then <b>collate again</b>; the new defect pages include every defect still listed.</span>`:last?`Collated${last.by?" by "+esc(last.by):""}${last.at?" on "+esc(fmtDate(_localISO(new Date(last.at)))):""} · <b>${esc(last.file)}</b>`:blocking?`${blocking} defect${blocking===1?"":"s"} still to cure — collate when all are done.`:"All defects are cured. Put the pages together, numbered as in the paper book.")+
+    const rNow=Math.max(1,...ds.map(d=>+d.round||1)), stale=last&&(rNow>(+last.round||1)||!!last.outdated);
+    body=head("Defect pages", stale?`<span class="co-warn" style="display:block;margin-top:4px">The defect pages on file (<b>${esc(last.file)}</b>, ${last.at?esc(fmtDate(_localISO(new Date(last.at)))):""}) are out of date — ${last.outdated&&!(rNow>(+last.round||1))?esc(last.outdated.why||"a cure changed")+" after they were collated":"they were made for the earlier defect list; a new list came since"}. <b>Collate again</b>: the new defect pages include every defect still listed, with its latest cure.</span>`:last?`Collated${last.by?" by "+esc(last.by):""}${last.at?" on "+esc(fmtDate(_localISO(new Date(last.at)))):""} · <b>${esc(last.file)}</b>`:blocking?`${blocking} defect${blocking===1?"":"s"} still to cure — collate when all are done.`:"All defects are cured. Put the pages together, numbered as in the paper book.")+
       (decl?"":`<div class="co-warn" style="margin-bottom:10px">No declaration yet — the defect pages must include one. ${btn("window.__collateAfter=false;_decChkAsk('decl',true)","Add declaration","ghost")}</div>`)+
       `<div class="fn-b">${btn("_collateAsk()",last?"Collate again":"Collate defect pages",last&&!stale?"ghost":"seal")}${last?btn("_rvOpen()","Review — before &amp; after")+btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")+btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost"):""}${btn("_flSet('view',_flState().view==='check'?'defects':'check')",st.view==="check"?"Hide page check":"Check pages","ghost")}</div>`+
       (st.view==="check"?`<div class="fv-box" style="margin-top:12px">${_checkHTML(rec)}</div>`:"");
@@ -20042,7 +20043,8 @@ function _rfTailHTML(rec){
     if(isStaffView()) return `<div class="fn"><div class="fn-t">Waiting for the Head of Chamber's approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}
       <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
     return `<div class="fn"><div class="fn-t">Your approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}
-      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn("_refApprove()","✓ Approve","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
+      ${last.outdated?`<div class="co-warn" style="margin:6px 0">${esc(last.outdated.why||"A cure changed")} after these pages were collated — <button class="link-btn" onclick="_collateAsk()">collate again</button> before approving.</div>`:""}
+      <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn("_refApprove()","✓ Approve","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div>${_aiSummaryHTML(rec)}</div>`;
   }
   if(!fin&&!sg) return `<div class="fn"><div class="fn-t">Sign the defect pages</div><div class="fn-s"><b>${esc(last.file)}</b>${pg} ${okLine}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
@@ -20078,8 +20080,8 @@ function _defState(d){ if(d.status==="na") return "na";
     if(a==="review") return "approve"; if(a==="question") return "question"; if(a==="error") return "error";
     if(a==="queued"||a==="working") return "ai"; if(a==="staff"&&d.status!=="cured") return "staff"; }
   return d.status==="cured"?"cured":"open"; }
-function _staffCured(d){ return d.status==="cured"&&(d.parts||[]).some(p=>p.cure&&p.cure.file&&p.cure.how!=="ai"); }
-function _aiCanCheck(d){ const st=(d.ai||{}).status; return !isStaffView()&&_staffCured(d)&&(!st||st==="checked"||st==="rejected"||st==="error"); }
+function _staffCured(d){ return d.status==="cured"&&(d.parts||[]).some(p=>p.cure&&p.cure.file); }
+function _aiCanCheck(d){ const st=(d.ai||{}).status; return !isStaffView()&&_staffCured(d)&&(!st||st==="checked"||st==="rejected"||st==="error"||st==="approved"||st==="done"); }
 const _DS_LAB={open:"To do",ai:"With AI",approve:"To approve",question:"Question",staff:"For staff",error:"AI failed",cured:"Cured",na:"Not needed"};
 window.__aiDraft=window.__aiDraft||{};
 function _ddOpen(did, focus){ _flState().openD=did; renderFilesPage();
@@ -23130,7 +23132,7 @@ async function _rvOpen(){
   const lab=i=>ctx.labelOf[i]||("PDF "+(i+1));
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_rvClose()" title="Close">✕</button>
       <div class="pe-ttl"><b>Review the defect pages</b><span>${esc(_fv.title||"")}${rec.diaryNo?" · Diary "+esc(rec.diaryNo+"/"+rec.diaryYear):""}${last?" · "+esc(last.dl||last.file)+(last.pages?" · "+last.pages+" pages":""):""}</span></div>
-      ${owner&&waiting?`<button class="btn ghost sm" onclick="_rvClose();_refBackAsk()">Send back</button><button class="btn seal sm" onclick="_rvClose();_refApprove()">✓ Approve for filing</button>`:""}</div>
+      ${owner?`<button class="btn ghost sm" onclick="_aiCheckAllAsk()">✨ Check all with AI</button>`:""}${owner&&waiting?`<button class="btn ghost sm" onclick="_rvClose();_refBackAsk()">Send back</button><button class="btn seal sm" onclick="_rvClose();_refApprove()">✓ Approve for filing</button>`:""}</div>
     <div class="rv-body" id="rvBody">${sections.map(S=>{ const d=S.d;
       const pages=S.items.map(it=>{
         if(it.err) return `<div class="rv-err">${esc(it.p.label)}: ${esc(it.err)}</div>`;
@@ -23143,13 +23145,29 @@ async function _rvOpen(){
         return `<div class="rv-part"><div class="rv-pl"><b>${esc(it.p.label)}</b> — ${kind} · ${esc(howW[it.how]||it.how||"")}${it.p.cure&&it.p.cure.edit&&it.p.cure.edit.by?" by "+esc(it.p.cure.edit.by):""}</div>${rows}</div>`; }).join("");
       return `<section class="rv-d ${d.status}"><div class="rv-no">Defect ${d.no}${d.status==="cured"?` <span class="rv-ok">✓ cured</span>`:` <span class="rv-open">${esc(d.status)}</span>`}</div>
         <div class="rv-rem">${esc(String(d.text||"").trim())}</div>${d.rule?`<div class="rv-rule">${esc(_flSentence(d.rule))}</div>`:""}
+        ${owner?`<div class="rv-ai" id="rvai_${d.id}">${_rvAiHTML(d)}</div>`:""}
         ${pages||`<div class="rv-none rv-np">${d.kind==="general"?"No pages — dealt with outside the paper book (e.g. court fee).":"No cured pages attached."}</div>`}</section>`; }).join("")}</div>`;
   ov.classList.add("show"); document.body.style.overflow="hidden";
   window.__rv={ctx,pdfjs,done:new Set()};
+  clearInterval(window.__rvAiT); if(owner) window.__rvAiT=setInterval(()=>{ if(!window.__rv){ clearInterval(window.__rvAiT); return; } (_flRec().defects||[]).forEach(d=>_rvAiUpdate(d.id)); },6000);   // the AI clerk's answers appear as they come
   const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io.unobserve(e.target); _rvDraw(e.target); } }),{root:document.getElementById("rvBody"),rootMargin:"600px"});
   ov.querySelectorAll(".rv-c").forEach(c=>io.observe(c));
 }
-function _rvClose(){ const ov=document.getElementById("rvOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; window.__rv=null; }
+/* the AI on the review screen (owner): check this defect's cure, or review / edit / use the AI's better copy */
+function _rvAiHTML(d){
+  const a=d.ai||{}, st=a.status||""; const b=(on,l,c)=>`<button class="btn ${c||"ghost"} sm" onclick="${on}">${l}</button>`;
+  if(st==="queued"||st==="working") return `<div class="rv-ai-s">✨ With the AI clerk — ${st==="queued"?"starting":"checking"}… ${_aiRunHTML()}</div>`;
+  if(st==="review"){ const P=a.proposal||{};
+    return `<div class="rv-ai-s q">✨ <b>The AI clerk has a better copy.</b> ${esc(P.reason||P.summary||"")}</div>
+      <div class="rv-ai-b">${b(`_aiCompare('${d.id}')`,"Review its copy","seal")}${b(`_aiEditCopy('${d.id}')`,"✏️ Edit its copy")}${b(`_aiApprove('${d.id}')`,"Use it — replace the cure")}${a.mode==="check"?b(`_aiKeepStaff('${d.id}');_rvAiUpdate('${d.id}')`,"Keep the current cure"):b(`_aiReject('${d.id}');_rvAiUpdate('${d.id}')`,"Reject")}</div>`; }
+  if(st==="question") return `<div class="rv-ai-s q">✨ The AI clerk asks: ${esc(a.question||a.msg||"")}</div><div class="rv-ai-b">${b(`_rvClose();_ddOpen('${d.id}')`,"Answer it")}</div>`;
+  if(st==="staff") return `<div class="rv-ai-s">✨ For staff: ${esc(a.msg||"")}</div>`;
+  if(st==="error") return `<div class="rv-ai-s q">✨ The AI clerk could not check it: ${esc(a.msg||"")}</div>${_aiCanCheck(d)?`<div class="rv-ai-b">${b(`_aiCheckOneAsk('${d.id}')`,"Try again")}</div>`:""}`;
+  const okLine=st==="checked"?(a.verdict==="kept"?"You kept the current cure.":`✓ The AI clerk found it cured${a.msg?": "+esc(a.msg):"."}`):st==="approved"?"✓ The AI's copy is the cure now.":"";
+  return (okLine?`<div class="rv-ai-s ok">${okLine}</div>`:"")+(_aiCanCheck(d)?`<div class="rv-ai-b">${b(`_aiCheckOneAsk('${d.id}')`,okLine?"✨ Check again with AI":"✨ Check this cure with AI")}</div>`:"");
+}
+function _rvAiUpdate(did){ const el=document.getElementById("rvai_"+did); if(!el) return; const {d}=_defFind(did); if(d){ const h=_rvAiHTML(d); if(el.innerHTML!==h) el.innerHTML=h; } }
+function _rvClose(){ clearInterval(window.__rvAiT); const ov=document.getElementById("rvOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; window.__rv=null; }
 async function _rvRender(src,i,W){ const R=window.__rv; const doc=src==="fc"?R.ctx.doc:R.pdfjs[src]; if(!doc) return null;
   const pg=await doc.getPage(+i+1); const v0=pg.getViewport({scale:1}); const vp=pg.getViewport({scale:W/v0.width});
   const c=document.createElement("canvas"); c.width=Math.round(vp.width); c.height=Math.round(vp.height); await pg.render({canvasContext:c.getContext("2d"),viewport:vp,intent:"print"}).promise; return c; }
@@ -23172,7 +23190,7 @@ function _rvDiff(a,b){
     if(area<0.55*w*h) g.strokeRect(Math.max(0,x0-8),Math.max(0,y0-8),Math.min(w,x1-x0+16),Math.min(h,y1-y0+16));
     else { g.strokeRect(2,2,w-4,h-4); } });
 }
-try{ Object.assign(window,{_fnSafe,_fnDate,_fnDiary,_refSignedAsk,_refSignedGo,_refNoSign,_rvOpen,_rvClose,_rvRender,_rvDraw,_rvDiff}); }catch(e){}
+try{ Object.assign(window,{_rvAiHTML,_rvAiUpdate,_aiCheckOne,_aiCheckOneAsk,_aiCheckAllAsk,_aiSummaryHTML,_aiEditCopy,_fnSafe,_fnDate,_fnDiary,_refSignedAsk,_refSignedGo,_refNoSign,_rvOpen,_rvClose,_rvRender,_rvDraw,_rvDiff}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -23277,14 +23295,14 @@ function _aiBlockHTML(d){
     return `<div class="ai-b question"><div class="ai-h">✨ The AI clerk says this is not fully cured${a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>
       <div class="ai-q">${esc(P.reason||P.summary||"")}</div>${P.reason&&P.summary&&P.summary!==P.reason?`<div class="ai-s">Its copy: ${esc(P.summary)}</div>`:""}
       ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}
-      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — staff's vs AI's","seal")}${btn(`_aiApprove('${d.id}')`,"Use AI's copy")}${btn(`_aiKeepStaff('${d.id}')`,"Keep staff's cure")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}</div></div>`;
+      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — current vs AI's","seal")}${btn(`_aiEditCopy('${d.id}')`,"✏️ Edit AI's copy")}${btn(`_aiApprove('${d.id}')`,"Use AI's copy (replace the cure)")}${btn(`_aiKeepStaff('${d.id}')`,"Keep the current cure")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}</div></div>`;
   }
   if(st==="review"){
     const P=a.proposal||{}; const items=P.items||[];
     const ch=items.map(it=>(it.changes||[]).map(c=>`<li>${c.page?`<span class="hint">p. ${esc(String(c.page))}</span> `:""}${c.before?`<s>${esc(c.before)}</s> → `:""}<b>${esc(c.after||"")}</b></li>`).join("")).join("");
     return `<div class="ai-b review">${head}${yours}${P.summary?`<div class="ai-s">${esc(P.summary)}</div>`:""}
       ${(P.warnings||[]).length?`<div class="ai-w">⚠ ${P.warnings.map(esc).join("<br>⚠ ")}</div>`:""}${ch?`<ul class="ai-ch">${ch}</ul>`:""}
-      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — filed vs corrected","seal")}${btn(`_aiApprove('${d.id}')`,"Approve &amp; attach")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}${btn(`_aiReject('${d.id}')`,"Reject")}</div></div>`;
+      <div class="dp-a">${btn(`_aiCompare('${d.id}')`,"Review — filed vs corrected","seal")}${btn(`_aiEditCopy('${d.id}')`,"✏️ Edit AI's copy")}${btn(`_aiApprove('${d.id}')`,"Approve &amp; attach")}${btn(`_aiChangeAsk('${d.id}')`,"Ask for a change")}${btn(`_aiReject('${d.id}')`,"Reject")}</div></div>`;
   }
   if(st==="approved"||st==="done") return `<div class="ai-b ok">${head}${a.by?`<div class="ai-s">by ${esc(a.by)}</div>`:""}${yours}</div>`;
   return "";
@@ -23295,6 +23313,25 @@ function _aiQueueCheck(did){
   _aiSet(did,a=>{ a.status="queued"; a.mode="check"; a.instruction=v; a.msg=""; a.question=""; a.answer=""; a.verdict=""; delete a.proposal; }); delete window.__aiDraft[did];
   toast("Sent to the AI clerk to check."); renderFilesPage();
 }
+function _aiCheckOne(did, instr){ if(isStaffView()) return; const {d}=_defFind(did); if(!d||!_aiCanCheck(d)){ toast("This defect has no cure to check yet.",true); return; }
+  _aiSet(did,a=>{ a.status="queued"; a.mode="check"; a.instruction=instr||""; a.msg=""; a.question=""; a.answer=""; a.verdict=""; delete a.proposal; });
+  toast(`Defect ${d.no} sent to the AI clerk to check.`); try{ _rvAiUpdate(did); }catch(e){} renderFilesPage(); }
+function _aiCheckOneAsk(did){ const {d}=_defFind(did); if(!d) return;
+  openModal(`Check defect ${d.no} with AI`, `<div class="hint" style="margin-bottom:8px">The AI clerk reads the cured pages against the registry's remark — <b>${esc(String(d.text).slice(0,140))}</b>. If anything is still wrong it makes a corrected copy for you to review, edit and use.</div>
+    <label class="fld">Anything particular to look for? <span style="color:var(--muted);font-weight:400">(optional)</span></label><textarea class="in" id="aiOneIn" rows="3"></textarea>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="const v=document.getElementById('aiOneIn').value.trim();closeModal();_aiCheckOne('${did}',v)">✨ Check with AI</button></div>`); }
+function _aiCheckAllAsk(){ if(isStaffView()) return; const rec=_flRec(); const xs=(rec.defects||[]).filter(d=>_aiCanCheck(d));
+  if(!xs.length){ toast("No cured defect to check (or they are already with the AI clerk).",true); return; }
+  if(!confirm(`Send all ${xs.length} cured defect${xs.length===1?"":"s"} to the AI clerk to check?\n\nIt reads every cure against its registry remark; where something is still wrong it makes a corrected copy for you to review, edit and use.`)) return;
+  xs.forEach(d=>_aiSet(d.id,a=>{ a.status="queued"; a.mode="check"; a.instruction=""; a.msg=""; a.question=""; a.answer=""; a.verdict=""; delete a.proposal; }));
+  toast(`${xs.length} defect${xs.length===1?"":"s"} sent to the AI clerk to check.`); try{ xs.forEach(d=>_rvAiUpdate(d.id)); }catch(e){} renderFilesPage(); }
+/* AI on the approval screen: what the clerk has done for each defect, and what can be done */
+function _aiSummaryHTML(rec){ if(isStaffView()) return ""; const ds=(rec.defects||[]);
+  const n=st=>ds.filter(d=>(d.ai||{}).status===st).length; const can=ds.filter(d=>_aiCanCheck(d)).length;
+  const rev=n("review"), wait=n("queued")+n("working"), q=n("question"), ok=ds.filter(d=>(d.ai||{}).status==="checked"&&(d.ai||{}).verdict!=="kept").length;
+  const bits=[rev?`<b>${rev} better cop${rev===1?"y":"ies"} from the AI to review</b>`:"", q?`<b>${q} question${q===1?"":"s"}</b>`:"", wait?`${wait} being checked`:"", ok?`${ok} found cured`:""].filter(Boolean);
+  return `<div class="fn-ai" style="margin-top:8px">✨ ${bits.length?bits.join(" · "):"AI check: not done yet"} <span class="ai-run-w">${_aiRunHTML()}</span></div>
+    <div class="fn-b" style="margin-top:6px">${can?`<button class="btn ghost sm" onclick="_aiCheckAllAsk()">✨ Check all with AI</button>`:""}<button class="btn ghost sm" onclick="_rvOpen()">${rev?"Review the AI's copies":"Check a particular defect"}</button></div>`; }
 function _aiQueueCheckAll(){
   if(isStaffView()) return; const rec=_flRec(); let n=0;
   (rec.defects||[]).forEach(d=>{ if(_aiCanCheck(d)&&(d.ai||{}).status!=="checked"){ _aiSet(d.id,a=>{ a.status="queued"; a.mode="check"; a.instruction=""; a.msg=""; a.verdict=""; delete a.proposal; }); n++; } });
@@ -23400,8 +23437,13 @@ function _aiApprove(did){
   if(d.kind==="general") d.kind="pages";
   d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()}, d.ai.mode==="check"?{verdict:"ai_used"}:{});
   d.ai.history=(d.ai.history||[]).slice(-11).concat([{status:"approved",at:d.ai.at,by:d.ai.by,msg:d.ai.mode==="check"?"Used the AI's copy instead of the staff's":""}]);
-  _defCheckDone(d); _filingTouch(rec); toast("Approved — the corrected pages are attached to this defect."); renderFilesPage();
+  const lastR=(rec.refilings||[]).slice(-1)[0]; if(lastR&&!(rec.finals||[]).length) lastR.outdated={at:new Date().toISOString(),why:"Defect "+d.no+": the AI's copy replaced the cure"};
+  _defCheckDone(d); _filingTouch(rec); toast("The AI's copy now cures this defect."+(lastR?" Collate the defect pages again.":"")); renderFilesPage(); try{ if(document.getElementById("rvOverlay")&&document.getElementById("rvOverlay").classList.contains("show")) _rvAiUpdate(did); }catch(e){}
 }
+/* open the AI's corrected copy in the PDF editor; it is saved under the same name, so "Use AI's copy" then uses the edited version */
+function _aiEditCopy(did){ const {d}=_defFind(did); const items=((d&&d.ai&&d.ai.proposal)||{}).items||[]; if(!items.length){ toast("No AI copy to edit.",true); return; }
+  if(items.length===1){ _peOpenFile(items[0].file,'aiprop'); return; }
+  openModal("Which AI copy?", `<div class="btn-row" style="flex-direction:column;align-items:stretch;gap:6px">${items.map(it=>`<button class="btn ghost" onclick="closeModal();_peOpenFile(${_fvQuote(it.file)},'aiprop')">${esc(it.label||it.file)}</button>`).join("")}</div>`); }
 try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
 try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
@@ -26681,7 +26723,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0415";
+  window.APP_VERSION = "2026.10.10-0500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
