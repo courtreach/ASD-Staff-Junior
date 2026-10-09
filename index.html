@@ -2094,6 +2094,8 @@
   .fd-a{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;padding:3px 0}
   @media (max-width:640px){ .fd-r{grid-template-columns:1fr;gap:2px} .fd-r>label{padding-top:2px} }
   .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px} .fp-c{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card)} .fp-t{font-weight:700} .fp-s{font-size:12px;color:var(--muted);margin:3px 0 8px}
+  .dd-new{animation:ddnew 2.6s ease-out 1} @keyframes ddnew{0%,40%{box-shadow:0 0 0 3px var(--brass);} 100%{box-shadow:0 0 0 0 transparent}}
+  .dl-l{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:6px 0;border-top:1px solid var(--line2);font-size:13px} .dl-l:first-child{border-top:0} .dl-l>span:last-child{color:var(--muted);font-size:12px} .dl-l.ok>span:last-child{color:#2e7d32;font-weight:600}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .src{margin-bottom:8px} .src-tabs{display:flex;gap:4px;margin-bottom:6px} .src-t{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink)} .src-t.on{background:var(--seal);border-color:var(--seal);color:#fff}
   .src-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:6px} .src-r{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line2);background:transparent;padding:7px 10px;font:inherit;cursor:pointer;color:var(--ink)} .src-r:first-child{border-top:0} .src-r:hover{background:var(--line2)} .src-r.on{background:#e8f3ea}
@@ -19995,18 +19997,19 @@ function _rfWizardHTML(rec, stg, fc, listDate){
   const steps=[
     {k:"list",l:"Defect list",done:stg.tot>0,sub:stg.tot?`${stg.tot} defect${stg.tot===1?"":"s"}${listDate?" · "+listDate:""}`:"not read yet"},
     {k:"cure",l:"Cure defects",done:stg.tot>0&&!blocking&&!(owner&&(aiRev||aiQ)),sub:stg.tot?(blocking?`${blocking} to go`:"all cured"):""},
-    {k:"pages",l:"Defect pages",done:!!last,sub:last?`${last.pages||""} pages`:""},
+    {k:"pages",l:"Defect pages",done:!!last&&!blocking,sub:last?(blocking?"collate again after curing":`${last.pages||""} pages`):""},
     {k:"sign",l:"Approve & sign",done:signed||!!fin,sub:last?(signed?"final":last.ok?"approved — to sign":last.back?"sent back":"awaiting approval"):""},
     {k:"final",l:"Final copy",done:!!fin,sub:fin?"compiled":""},
     {k:"files",l:"All files",muted:true,icon:"≡"}];
-  const auto=fin?"final":signed?"final":last?"sign":stg.tot&&!blocking&&!(owner&&(aiRev||aiQ))?"pages":stg.tot?"cure":"list";
+  const auto=fin?"final":blocking||(owner&&(aiRev||aiQ))?"cure":signed?"final":last?"sign":stg.tot?"pages":"list";
   const open=steps.some(x=>x.k===st.rstep)?st.rstep:auto;
   const head=(t,sub)=>`<div class="wz-h">${t}</div>${sub?`<div class="wz-sub">${sub}</div>`:""}`;
   let body="";
   if(open==="list"){
     body=head("Defect list", stg.tot?`Read on ${esc(listDate||"—")} · ${stg.tot} defect${stg.tot===1?"":"s"}`:"Save the Defects page from the Supreme Court site as a PDF, then read it here.")+
       `<div class="wz-card"><div class="wz-row"><span>Filing copy</span><span>${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>56?fc.name.slice(0,54)+"…":fc.name)}</button> <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> — <button class="link-btn" onclick="_flLinkFCAsk()">link it</button> so each defect finds its pages`}</span></div></div>
-      <div class="fn-b" style="margin-top:12px">${btn("_defReadAsk()",stg.tot?"Read a new defect list":"Read defect list",stg.tot?"ghost":"seal")}${btn("_defAddAsk()","Add a defect by hand","ghost")}</div>`;
+      ${stg.tot?`<div class="wz-card" style="margin-top:12px">${ds.slice().sort((a,b)=>(+a.no||0)-(+b.no||0)).map(d=>`<div class="dl-l ${d.status==="cured"?"ok":""}"><b>${esc(String(d.no))}</b><span>${esc(d.text)}${d.manual?` <span class="hint">· added by hand</span>`:""}</span><span>${d.status==="cured"?"✓ cured":d.status==="na"?"note":"open"}</span></div>`).join("")}</div>`:""}
+      <div class="fn-b" style="margin-top:12px">${btn("_defReadAsk()",stg.tot?"Read a new defect list":"Read defect list",stg.tot?"ghost":"seal")}${btn("_defAddAsk()","＋ Add defects by hand",stg.tot?"ghost":"ghost")}${stg.tot?btn("_rfGo('cure')","Cure them →"):""}</div>`;
   } else if(open==="cure"){
     const aiFree=ds.filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
     body=head("Cure the defects", !stg.tot?"Read the defect list first.":blocking?`${blocking} still to cure${owner&&(aiRev||aiQ)?` · <b>${aiRev+aiQ} from the AI clerk to look at</b>`:""}`:"Every defect is cured.")+
@@ -20119,7 +20122,7 @@ function _defectsHTML(rec){
       return `<div class="dp"><div class="dp-l">${esc(p.label)}</div>${where}${acts}</div>`; }).join("");
     const stBtns=d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
       :`<button class="btn ghost sm" onclick="_defSet('${d.id}','open')">Reopen</button>`;
-    return `<details class="dd ${d.status} s-${s}" id="dd_${d.id}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
+    return `<details class="dd ${d.status} s-${s} ${(_flState().flash||[]).includes(d.id)?"dd-new":""}" id="dd_${d.id}" data-did="${d.id}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
       <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}</span>
         <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
       <div class="dd-b">
@@ -20725,16 +20728,31 @@ async function _defReadGo(existing){
     closeModal(); _fv.live=true; _flState().view="defects"; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
+/* Adding defects by hand (Oct 2026): one or several at once (one per line, as numbered in the registry's list);
+   afterwards the Cure step opens with the new defects in view, so it is clear they were added. */
 function _defAddAsk(){
-  openModal("Add a defect", `<label class="fld">Registry's remark</label><textarea class="in" id="daText" rows="3" placeholder="e.g. ANNEXURE P-3 BETTER COPY"></textarea>
+  const rec=_flRec(); const nx=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>+d.no||0))+1:1;
+  openModal("Add defects by hand", `<div class="hint" style="margin-bottom:8px">Type the registry's remark. Several at once: one per line — a number at the start (e.g. “5. BLANKS IN AFFIDAVIT”) is used as the defect's number.</div>
+    <label class="fld">Registry's remark${""}</label><textarea class="in" id="daText" rows="5" placeholder="e.g. 4. BLANKS IN AFFIDAVIT&#10;5. DOUBLE PAGINATION AT PAGE 257"></textarea>
+    <label class="fld" style="margin-top:8px">Number <span style="color:var(--muted);font-weight:400">(for a single remark without a number)</span></label><input class="in mono" id="daNo" value="${nx}" style="max-width:90px">
     <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_defAddGo()">Add</button></div>`);
+  setTimeout(()=>{ const t=document.getElementById("daText"); if(t) t.focus(); },60);
 }
 function _defAddGo(){
-  const t=((document.getElementById("daText")||{}).value||"").trim(); if(!t){ toast("Type the remark.",true); return; }
+  const raw=((document.getElementById("daText")||{}).value||"").trim(); if(!raw){ toast("Type the remark.",true); return; }
   const rec=_flRec(); rec.defects=rec.defects||[];
-  const no=rec.defects.length?Math.max(...rec.defects.map(d=>+d.no||0))+1:1;
-  rec.defects.push(Object.assign(_defFromText(no,t,"",fmtDate(_localISO()).replace(/\./g,"-"),rec.index||[]),{manual:true}));
-  _filingTouch(rec); closeModal(); renderFilesPage();
+  let next=(rec.defects.length?Math.max(...rec.defects.map(d=>+d.no||0)):0)+1; const typedNo=parseInt((document.getElementById("daNo")||{}).value,10);
+  const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean); const added=[], today=fmtDate(_localISO()).replace(/\./g,"-");
+  lines.forEach((ln,i)=>{ const m=/^(\d{1,3})\s*[.):\-]\s+(.+)$/.exec(ln); let no=m?+m[1]:(lines.length===1&&typedNo>0?typedNo:next), t=m?m[2]:ln;
+    const norm=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();
+    if(rec.defects.some(d=>norm(d.text)===norm(t))) return;                                                     // the same remark is already there
+    if(rec.defects.some(d=>+d.no===no)) no=Math.max(next,Math.max(0,...rec.defects.map(d=>+d.no||0))+1);       // number taken → the next free one
+    const d=Object.assign(_defFromText(no,t,"",today,rec.index||[]),{manual:true,by:_aiWho()}); rec.defects.push(d); added.push(d); next=Math.max(next,no+1); });
+  if(!added.length){ toast("Those defects are already there.",true); return; }
+  _filingTouch(rec); closeModal();
+  const st=_flState(); st.rstep="cure"; st.flash=added.map(d=>d.id); renderFilesPage();
+  toast(added.length===1?`Defect ${added[0].no} added.`:`${added.length} defects added (${added.map(d=>d.no).join(", ")}).`);
+  setTimeout(()=>{ try{ const el=document.querySelector(`[data-did="${added[0].id}"]`)||document.querySelector(".wz"); el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} st.flash=[]; },150);
 }
 function _defEditAsk(did){
   const {d}=_defFind(did); if(!d) return;
@@ -26647,7 +26665,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0315";
+  window.APP_VERSION = "2026.10.10-0345";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
