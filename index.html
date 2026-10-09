@@ -2022,6 +2022,8 @@
   .ai-t{font-style:normal;font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(124,92,191,.12);color:#5b3fa0}
   .ai-t.review{background:rgba(47,125,79,.14);color:#23633e} .ai-t.question,.ai-t.staff{background:rgba(183,121,31,.15);color:#8a5a12} .ai-t.error{background:rgba(178,58,58,.12);color:#9b2c2c}
   .fn-ai{font-size:12.5px;margin:6px 0 2px}
+  .pe-cap{display:flex;align-items:center;gap:10px} .pe-capb{border:1px solid var(--line);background:#fff;border-radius:7px;padding:2px 8px;font:inherit;font-size:11.5px;cursor:pointer;color:var(--ink)} .pe-capb:hover{background:var(--line2)}
+  .pe-deleted{opacity:.35} .pe-deleted::after{content:"Will be left out";position:absolute;top:40%;left:0;right:0;text-align:center;font:600 22px/1 Inter,system-ui,sans-serif;color:#b23a3a}
   .fv-plus{min-width:30px;font-size:15px;font-weight:600;line-height:1} .fv-more{min-width:34px;font-size:16px;line-height:1;letter-spacing:1px} .fv-menu{position:fixed;z-index:9000;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;min-width:190px}
   .fv-menu button{display:block;width:100%;text-align:left;border:0;background:none;border-radius:7px;padding:9px 12px;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer} .fv-menu button:hover{background:var(--line2)} .fv-menu button.danger{color:#b23a3a}
   .fvm-sep{height:1px;background:var(--line2);margin:4px 6px}
@@ -19566,16 +19568,16 @@ function _flNextHTML(rec, st, fc){
     const back=last.back?`<div class="fn-back">Sent back by ${esc(last.back.by||"the Head of Chamber")}: <i>${esc(last.back.note||"")}</i> — fix it and collate again.</div>`:"";
     if(isStaffView()) return `<div class="fn"><div class="fn-t">4 · Waiting for the Head of Chamber's approval</div>
       <div class="fn-s">Defect pages collated${who}${when}: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}. They can be downloaded for filing once the Head of Chamber approves them.</div>${back}
-      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
+      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
     return `<div class="fn"><div class="fn-t">4 · Your approval — the complete defect pages</div>
       <div class="fn-s">Collated${who}${when}: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}. Go through them; once you approve, they can be downloaded for filing and the final copy compiled.</div>${back}
-      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn("_refApprove()","✓ Approve for filing")}${btn("_refBackAsk()","Send back","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
+      <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_refApprove()","✓ Approve for filing")}${btn("_refBackAsk()","Send back","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
   }
   if(!fin) return `<div class="fn"><div class="fn-t">4 · File the defect pages, then compile the final copy</div>
       <div class="fn-s">Defect pages ready: <b>${esc(last.dl||last.file)}</b>${last.pages?" · "+last.pages+(last.pages===1?" page":" pages"):""}${last.ok?` · <span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:""}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
-      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"⬇ Download defect pages","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
   return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s">${esc(fin.dl||fin.file)}${fin.pages?" · "+fin.pages+" pages":""}</div>
-      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
 function _filingViewHTML(){
   const st=_flState(); const rec=_filingRec(_filingFolderRel(),true);
@@ -20070,7 +20072,7 @@ function _joinItems(items){
   return s.replace(/\s+/g," ").trim();
 }
 function _pageLabel(pg){
-  const rows=(pg.rows||[]).filter(r=>r[0].y<62||r[0].y>pg.h-46);
+  const rows=(pg.rows||[]).filter(r=>r[0].y<84||r[0].y>pg.h-46);
   for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
     if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)) return t; }
   return "";
@@ -20597,13 +20599,13 @@ async function _loadCure(PDFDocument, p, cache){
     if(!x) throw new Error(`"${name}" is no longer in the filing folder.`);
     const b=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size});
     const doc=await PDFDocument.load(new Uint8Array(await b.arrayBuffer()),{ignoreEncryption:true});
-    let labels=[], tops=[]; try{ const td=await _pdfTextDoc(b); labels=td.pages.map(_pageLabel); tops=td.pages.map(_pageTop); }catch(e){}
-    cache[name]={doc,labels,tops}; }
-  const {doc,labels,tops}=cache[name]; const n=doc.getPageCount();
+    let labels=[], tops=[], pos=[]; try{ const td=await _pdfTextDoc(b); labels=td.pages.map(_pageLabel); tops=td.pages.map(_pageTop); pos=td.pages.map(pg=>{ try{ return _fsLabelAt(pg); }catch(e){ return null; } }); }catch(e){}
+    cache[name]={doc,labels,tops,pos}; }
+  const {doc,labels,tops,pos}=cache[name]; const n=doc.getPageCount();
   let idx=[]; if(!p.cure.pages||p.cure.pages==="all") idx=Array.from({length:n},(_,i)=>i);
   else String(p.cure.pages).split(",").forEach(t=>{ const m=/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(t); if(m){ for(let k=+m[1];k<=+(m[2]||m[1]);k++) if(k>=1&&k<=n) idx.push(k-1); } });
   if(!idx.length) throw new Error(`No pages to use from "${name}".`);
-  return {doc,idx,shown:idx.map(i=>labels[i]||""),tops:idx.map(i=>(tops||[])[i]||"")};
+  return {doc,idx,shown:idx.map(i=>labels[i]||""),tops:idx.map(i=>(tops||[])[i]||""),pos:idx.map(i=>(pos||[])[i]||null)};
 }
 // The numbers a cured part's pages should carry.
 function _pieceLabels(pc, n, ctx, used){
@@ -20648,10 +20650,17 @@ function _pieceAnnex(pc, ctx){
 // (owner, Oct 2026) writing "ANNEXURE P-n" in bold at the top right of an annexure's first page when the
 // cured copy does not show it. stage "final": only where the filed page it replaces carried that heading.
 async function _addPieceTo(out, pc, ctx, cache, font, rgb, used, numOn, warn, PDFDocument, stage){
-  const {doc,idx,shown,tops}=await _loadCure(PDFDocument,pc.p,cache);
+  const {doc,idx,shown,tops,pos}=await _loadCure(PDFDocument,pc.p,cache);
   const cp=await out.copyPages(doc,idx); const labels=_pieceLabels(pc,cp.length,ctx,used); const top=_ctxLabelTop(ctx);
-  cp.forEach((pg,i)=>{ out.addPage(pg); const L=labels[i];
-    if(numOn&&L&&shown[i]!==L&&pc.p.cure.how!=="stamp") _stampLabel(pg,L,font,rgb,top); });
+  cp.forEach((pg,i)=>{ out.addPage(pg); const L=labels[i], sh=shown[i];
+    if(!numOn||!L||pc.p.cure.how==="stamp"||sh===L) return;
+    if(sh&&pc.mode==="add") return;                       // 44A-series pages that already carry a number are left as they are (owner)
+    const at=pos&&pos[i]; const H=pg.getSize().height;
+    if(sh&&at){ // a different number is printed: cover it and write the right one in its place — never two numbers
+      pg.drawRectangle({x:at.x0-3,y:H-at.y-at.z*0.35,width:at.x1-at.x0+6,height:at.z*1.4,color:rgb(1,1,1)});
+      const sz=Math.min(14,Math.max(10,at.z||12)), tw=font.widthOfTextAtSize(L,sz); pg.drawText(L,{x:(at.x0+at.x1)/2-tw/2,y:H-at.y,size:sz,font,color:rgb(0,0,0)});
+      warn.push(`${pc.p.label}: page showed “${sh}”, now “${L}”`); return; }
+    _stampLabel(pg,L,font,rgb,top); });
   const an=_pieceAnnex(pc,ctx);
   if(an&&cp.length&&!_ANX_RX(an).test((tops||[])[0]||"")){
     const filedHad=_ANX_RX(an).test(_pageTop(ctx.pages[pc.start]));
@@ -21130,7 +21139,7 @@ async function _fsText(blob){
   return {doc,pages,n:doc.numPages};
 }
 function _fsLabelAt(pg){ // the page number already printed at the top/bottom centre, with where it is
-  const rows=(pg.rows||[]).filter(r=>r[0].y<62||r[0].y>pg.h-46);
+  const rows=(pg.rows||[]).filter(r=>r[0].y<84||r[0].y>pg.h-46);
   for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
     if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)){
       const x0=Math.min(...mid.map(i=>i.x)), x1=Math.max(...mid.map(i=>i.x+(i.w||8))), z=Math.max(...mid.map(i=>i.z||11));
@@ -21629,7 +21638,7 @@ async function _peOpenGo(did,pid){
 /* 2 · the editor */
 function _peStart(o){
   const prevOps=(o.prev&&JSON.stringify(o.prev.pages)===JSON.stringify(o.idx))?(o.prev.ops||[]):[];
-  _pe={did:o.did,pid:o.pid,ctx:o.ctx,idx:o.idx,label:o.label,ops:prevOps.map(x=>Object.assign({},x)),undo:[],redo:[],tool:"text",zoom:1,sel:null,dirty:false,pages:[]};
+  _pe={did:o.did,pid:o.pid,file:o.file||"",kind:o.kind||"",ctx:o.ctx,idx:o.idx,label:o.label,ops:prevOps.map(x=>Object.assign({},x)),undo:[],redo:[],tool:"text",zoom:1,sel:null,dirty:false,pages:[]};
   let ov=document.getElementById("peOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="peOverlay"; document.body.appendChild(ov); }
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_peClose()" title="Close (Esc)">✕</button><div class="pe-ttl"><b>${esc(o.label)}</b><span>${o.idx.map(i=>o.ctx.labelOf[i]||("p"+(i+1))).join(", ")}</span></div>
       <button class="pe-ib" id="peUndo" onclick="_peUndo()" title="Undo (⌘Z)">↶</button><button class="pe-ib" id="peRedo" onclick="_peRedo()" title="Redo (⇧⌘Z)">↷</button>
@@ -21656,7 +21665,9 @@ async function _peRender(){
     const wrap=document.createElement("div"); wrap.className="pe-pg"; wrap.dataset.k=k; wrap.dataset.tool=_pe.tool; wrap.style.width=vp.width+"px"; wrap.style.height=vp.height+"px";
     const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
     wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
-    const cap=document.createElement("div"); cap.className="pe-cap"; cap.textContent="Page "+(_pe.ctx.labelOf[i]||("PDF "+(i+1))); main.appendChild(cap); main.appendChild(wrap);
+    const del=_pe.ops.some(o=>o.k===k&&o.t==="del");
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span><button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete page"}</button>`;
+    if(del) wrap.classList.add("pe-deleted"); main.appendChild(cap); main.appendChild(wrap);
     await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
     const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
     _pe.pages.push({k,i,s,w:v0.width,h:v0.height,segs,wrap,lay});
@@ -21736,17 +21747,20 @@ function _peCommitInput(){
   if(o.ex>=0){ _pe.undo.push({set:o.ex,prev:Object.assign({},_pe.ops[o.ex])}); _pe.ops[o.ex]=op; _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
   else _pePush(op);
 }
+function _peTogglePage(k){ if(!_pe) return; _peCommitInput(); const ix=_pe.ops.findIndex(o=>o.k===k&&o.t==="del");
+  if(ix>=0){ const op=_pe.ops.splice(ix,1)[0]; _pe.undo.push({del:ix,op}); _pe.redo=[]; _pe.dirty=true; _peRender(); _peBtns(); }
+  else { if(_pe.idx.length-_pe.ops.filter(o=>o.t==="del").length<=1){ toast("At least one page must stay.",true); return; } _pePush({k,t:"del"}); _peRender(); } }
 function _pePush(op){ _pe.ops.push(op); _pe.undo.push({add:_pe.ops.length-1}); _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
 function _peUndo(){ if(!_pe) return; _peCommitInput(); const u=_pe.undo.pop(); if(!u) return;
   if(u.add!=null){ const op=_pe.ops.splice(u.add,1)[0]; _pe.redo.push({op}); }
   else if(u.set!=null){ const now=_pe.ops[u.set]; _pe.ops[u.set]=u.prev; _pe.redo.push({set:u.set,prev:now}); }
   else if(u.del!=null){ _pe.ops.splice(u.del,0,u.op); _pe.redo.push({redel:u.del}); }
-  _pe.sel=null; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+  _pe.sel=null; _pe.dirty=true; if(u.op&&u.op.t==="del"||(u.add!=null)) _peRender(); else _peDrawOps(); _peBtns(); }
 function _peRedo(){ if(!_pe) return; const r=_pe.redo.pop(); if(!r) return;
   if(r.op){ _pe.ops.push(r.op); _pe.undo.push({add:_pe.ops.length-1}); }
   else if(r.set!=null){ const now=_pe.ops[r.set]; _pe.ops[r.set]=r.prev; _pe.undo.push({set:r.set,prev:now}); }
   else if(r.redel!=null){ const op=_pe.ops.splice(r.redel,1)[0]; _pe.undo.push({del:r.redel,op}); }
-  _pe.dirty=true; _peDrawOps(); _peBtns(); }
+  _pe.dirty=true; _peRender(); _peBtns(); }
 function _peDelSel(){ if(!_pe||_pe.sel==null) return; const op=_pe.ops.splice(_pe.sel,1)[0]; _pe.undo.push({del:_pe.sel,op}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peDrawOps(); _peBtns(); }
 function _peBtns(){ const u=document.getElementById("peUndo"), r=document.getElementById("peRedo"); if(u) u.disabled=!_pe.undo.length; if(r) r.disabled=!_pe.redo.length; }
 // show the operations over the pages (the saved PDF is drawn the same way by pdf-lib)
@@ -21774,9 +21788,57 @@ function _peKey(e){ if(!_pe) return;
 function _peClose(force){ if(!_pe) return; _peCommitInput();
   if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes to these pages will be lost.")) return;
   document.removeEventListener("keydown",_peKey); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
+/* edit a stored PDF of this filing — the collated defect pages or the final copy (owner, Oct 2026):
+   every page, the same tools, plus Delete page. Saved back under the SAME name (revisions stay in the same
+   document): the new version is uploaded, the old one moved to _to_delete, then the new one takes the name. */
+async function _peOpenFile(name, kind){
+  const x=_flItems().find(i=>i.name===name); if(!x){ toast("That file is no longer in the filing folder.",true); return; }
+  _progressModal("Opening…","Fetching "+name+"…");
+  try{
+    const blob=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size},(g,t)=>_progressSet(null,t?g/t:null));
+    _progressSet("Reading the pages…",null);
+    const td=await _pdfTextDoc(blob);
+    const ctx={blob,doc:td.doc,labelOf:td.pages.map(_pageLabel)};
+    closeModal(); _peStart({file:name,kind,ctx,idx:[...Array(td.numPages).keys()],label:kind==="final"?"Final copy":"Defect pages"});
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+async function _peSaveFile(){
+  const E=_pe; const rec=_flRec(); const base=_filingFolderRel();
+  const keep=E.idx.map((i,k)=>k).filter(k=>!E.ops.some(o=>o.k===k&&o.t==="del"));
+  _progressModal("Saving…","Making the new version…");
+  try{
+    const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const fR=await out.embedFont(StandardFonts.TimesRoman), fB=await out.embedFont(StandardFonts.TimesRomanBold), fH=await out.embedFont(StandardFonts.HelveticaBold);
+    const pages=await out.copyPages(src,keep.map(k=>E.idx[k]));
+    pages.forEach((pg,j)=>{ out.addPage(pg); _peDrawOn(pg,E.ops.filter(o=>o.k===keep[j]),{fR,fB,fH,rgb}); });
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _progressSet("Saving in the filing folder…",0.5);
+    const tmp=E.file.replace(/\.pdf$/i,"")+" (edited).pdf";
+    const got=await _uploadPaper(base+"/"+tmp,blob,(g,t)=>_progressSet(null,0.5+0.35*g/t));
+    let final=got;
+    try{ await _gkTrash(base+"/"+E.file); const rn=await _gkNew("/api/rename",{path:base+"/"+got,name:E.file}); final=(rn&&rn.name)||E.file; }catch(e){}
+    const list=E.kind==="final"?(rec.finals||[]):(rec.refilings||[]); const ent=list.find(x=>x.file===E.file);
+    let note="";
+    if(ent){ ent.file=final; ent.pages=out.getPageCount(); ent.edited={by:_aiWho(),at:new Date().toISOString()};
+      if(E.kind!=="final"&&ent.ok&&isStaffView()){ delete ent.ok; note=" They need the Head of Chamber's approval again."; } }
+    _filingTouch(rec);
+    closeModal(); _peClose(true); toast(`Saved — ${out.getPageCount()} pages.`+note); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); }
+}
+function _peDrawOn(pg,ops,F){ const {fR,fB,fH,rgb}=F; const H=pg.getSize().height, W=pg.getSize().width;
+  ops.forEach(o=>{
+    if(o.t==="white"||o.t==="replace") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,color:rgb(1,1,1)});
+    if((o.t==="replace"||o.t==="text")&&o.str){ const f=o.bold?fB:fR; const clean=String(o.str).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-");
+      try{ pg.drawText(clean,{x:o.x,y:H-o.y,size:o.size,font:f,color:rgb(0,0,0)}); }catch(e){ pg.drawText(clean.replace(/[^\x20-\x7e\xa0-\xff]/g,""),{x:o.x,y:H-o.y,size:o.size,font:f,color:rgb(0,0,0)}); } }
+    if(o.t==="tick"){ const s=o.s, x=o.x, y=H-o.y; pg.drawLine({start:{x:x-s*0.35,y},end:{x:x-s*0.08,y:y-s*0.3},thickness:1.2,color:rgb(0,0,0)}); pg.drawLine({start:{x:x-s*0.08,y:y-s*0.3},end:{x:x+s*0.4,y:y+s*0.35},thickness:1.2,color:rgb(0,0,0)}); }
+    if(o.t==="truecopy"){ const x=o.x, y=H-o.y; pg.drawLine({start:{x:x+5,y:y-20},end:{x:x+145,y:y-20},thickness:0.8,color:rgb(0,0,0)}); const tw=fH.widthOfTextAtSize("TRUE COPY",12); pg.drawText("TRUE COPY",{x:x+75-tw/2,y:y-35,size:12,font:fH,color:rgb(0,0,0)}); }
+    if(o.t==="num"){ const tw=fR.widthOfTextAtSize(o.str,12); pg.drawRectangle({x:W/2-tw/2-7,y:H-41,width:tw+14,height:20,color:rgb(1,1,1)}); pg.drawText(o.str,{x:W/2-tw/2,y:H-36,size:12,font:fR,color:rgb(0,0,0)}); }
+  }); }
 /* 3 · save: copies of the pages + the operations, drawn with pdf-lib; attached to the defect */
 async function _peSave(){
   if(!_pe) return; _peCommitInput(); const E=_pe;
+  if(E.file) return _peSaveFile();
   if(!E.ops.length&&!confirm("Nothing has been changed. Save these pages as they are?")) return;
   const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
   _progressModal("Saving…","Making the corrected pages…");
@@ -21785,7 +21847,7 @@ async function _peSave(){
     const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
     const out=await PDFDocument.create(); const fR=await out.embedFont(StandardFonts.TimesRoman), fB=await out.embedFont(StandardFonts.TimesRomanBold), fH=await out.embedFont(StandardFonts.HelveticaBold);
     const pages=await out.copyPages(src,E.idx);
-    pages.forEach((pg,k)=>{ out.addPage(pg); const H=pg.getSize().height, W=pg.getSize().width;
+    pages.forEach((pg,k)=>{ if(E.ops.some(o=>o.k===k&&o.t==="del")) return; out.addPage(pg); const H=pg.getSize().height, W=pg.getSize().width;
       E.ops.filter(o=>o.k===k).forEach(o=>{
         if(o.t==="white"||o.t==="replace") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,color:rgb(1,1,1)});
         if((o.t==="replace"||o.t==="text")&&o.str){ const f=o.bold?fB:fR; let sz=o.size; const clean=String(o.str).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-");
@@ -21812,7 +21874,7 @@ async function _peSave(){
 function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
-try{ Object.assign(window,{_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
+try{ Object.assign(window,{_peTogglePage,_peOpenFile,_peSaveFile,_peDrawOn,_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -25333,7 +25395,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-1330";
+  window.APP_VERSION = "2026.10.09-1430";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
