@@ -20008,7 +20008,7 @@ function _rfWizardHTML(rec, stg, fc, listDate){
   if(open==="list"){
     body=head("Defect list", stg.tot?`Read on ${esc(listDate||"—")} · ${stg.tot} defect${stg.tot===1?"":"s"}`:"Save the Defects page from the Supreme Court site as a PDF, then read it here.")+
       `<div class="wz-card"><div class="wz-row"><span>Filing copy</span><span>${fc?`<button class="link-btn" style="font-weight:600" onclick="_flOpenFC()">${esc(fc.name.length>56?fc.name.slice(0,54)+"…":fc.name)}</button> <button class="link-btn" onclick="_flLinkFCAsk()">change</button>`:`<b>not linked</b> — <button class="link-btn" onclick="_flLinkFCAsk()">link it</button> so each defect finds its pages`}</span></div></div>
-      ${stg.tot?`<div class="wz-card" style="margin-top:12px">${ds.slice().sort((a,b)=>(+a.no||0)-(+b.no||0)).map(d=>`<div class="dl-l ${d.status==="cured"?"ok":""}"><b>${esc(String(d.no))}</b><span>${esc(d.text)}${d.manual?` <span class="hint">· added by hand</span>`:""}</span><span>${d.status==="cured"?"✓ cured":d.status==="na"?"note":"open"}</span></div>`).join("")}</div>`:""}
+      ${stg.tot?`<div class="wz-card" style="margin-top:12px">${ds.slice().sort((a,b)=>(+a.no||0)-(+b.no||0)).map(d=>`<div class="dl-l ${d.status==="cured"?"ok":""}"><b>${esc(String(d.no))}</b><span>${esc(d.text)}${d.manual?` <span class="hint">· added by hand</span>`:""}</span><span>${d.status==="cured"?"✓ cured":d.status==="na"?"not needed":"open"} <button class="row-act" title="Delete this defect" onclick="_defDelete('${d.id}')">✕</button></span></div>`).join("")}</div>`:""}
       <div class="fn-b" style="margin-top:12px">${btn("_defReadAsk()",stg.tot?"Read a new defect list":"Read defect list",stg.tot?"ghost":"seal")}${btn("_defAddAsk()","＋ Add defects by hand",stg.tot?"ghost":"ghost")}${stg.tot?btn("_rfGo('cure')","Cure them →"):""}</div>`;
   } else if(open==="cure"){
     const aiFree=ds.filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
@@ -20017,9 +20017,10 @@ function _rfWizardHTML(rec, stg, fc, listDate){
       (stg.tot?`<div class="fv-box">${_defectsHTML(rec)}</div>`:"");
   } else if(open==="pages"){
     const decl=_flStage5(/Declaration/i);
-    body=head("Defect pages", last?`Collated${last.by?" by "+esc(last.by):""}${last.at?" on "+esc(fmtDate(_localISO(new Date(last.at)))):""} · <b>${esc(last.file)}</b>`:blocking?`${blocking} defect${blocking===1?"":"s"} still to cure — collate when all are done.`:"All defects are cured. Put the pages together, numbered as in the paper book.")+
+    const rNow=Math.max(1,...ds.map(d=>+d.round||1)), stale=last&&rNow>(+last.round||1);
+    body=head("Defect pages", stale?`<span class="co-warn" style="display:block;margin-top:4px">The defect pages on file (<b>${esc(last.file)}</b>, ${last.at?esc(fmtDate(_localISO(new Date(last.at)))):""}) were made for the earlier defect list. A new list came since — cure its defects, then <b>collate again</b>; the new defect pages include every defect still listed.</span>`:last?`Collated${last.by?" by "+esc(last.by):""}${last.at?" on "+esc(fmtDate(_localISO(new Date(last.at)))):""} · <b>${esc(last.file)}</b>`:blocking?`${blocking} defect${blocking===1?"":"s"} still to cure — collate when all are done.`:"All defects are cured. Put the pages together, numbered as in the paper book.")+
       (decl?"":`<div class="co-warn" style="margin-bottom:10px">No declaration yet — the defect pages must include one. ${btn("window.__collateAfter=false;_decChkAsk('decl',true)","Add declaration","ghost")}</div>`)+
-      `<div class="fn-b">${btn("_collateAsk()",last?"Collate again":"Collate defect pages",last?"ghost":"seal")}${last?btn("_rvOpen()","Review — before &amp; after")+btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")+btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost"):""}${btn("_flSet('view',_flState().view==='check'?'defects':'check')",st.view==="check"?"Hide page check":"Check pages","ghost")}</div>`+
+      `<div class="fn-b">${btn("_collateAsk()",last?"Collate again":"Collate defect pages",last&&!stale?"ghost":"seal")}${last?btn("_rvOpen()","Review — before &amp; after")+btn(`_flOpenStored(${_fvQuote(last.file)})`,"Open","ghost")+btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost"):""}${btn("_flSet('view',_flState().view==='check'?'defects':'check')",st.view==="check"?"Hide page check":"Check pages","ghost")}</div>`+
       (st.view==="check"?`<div class="fv-box" style="margin-top:12px">${_checkHTML(rec)}</div>`:"");
   } else if(open==="sign"){
     body=head("Approve & sign", !last?"Collate the defect pages first.":"")+(last&&!fin?_rfTailHTML(rec):last?`<div class="hint">The final copy has been compiled.</div>`:"");
@@ -20120,8 +20121,8 @@ function _defectsHTML(rec){
           <details class="dd-more"><summary>More</summary><div class="dp-a">${more.join("")}</div></details></div>`;
       }
       return `<div class="dp"><div class="dp-l">${esc(p.label)}</div>${where}${acts}</div>`; }).join("");
-    const stBtns=d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
-      :`<button class="btn ghost sm" onclick="_defSet('${d.id}','open')">Reopen</button>`;
+    const stBtns=(d.status==="open"?`<button class="btn ghost sm" onclick="_defSet('${d.id}','cured')">${d.kind==="note"?"Noted":"Mark cured"}</button><button class="btn ghost sm" onclick="_defSet('${d.id}','na')">Not needed</button>`
+      :`<button class="btn ghost sm" onclick="_defSet('${d.id}','open')">Reopen</button>`)+`<button class="btn ghost sm" style="color:var(--seal)" onclick="_defDelete('${d.id}')">Delete</button>`;
     return `<details class="dd ${d.status} s-${s} ${(_flState().flash||[]).includes(d.id)?"dd-new":""}" id="dd_${d.id}" data-did="${d.id}" ${_flState().openD===d.id?"open":""} ontoggle="if(this.open)_flState().openD='${d.id}'">
       <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}</span>
         <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
@@ -20260,8 +20261,12 @@ async function _defIngest(rec, blob, name){
   let index=rec.index||[];
   if(_flFC()){ try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){} }
   const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
-  const fresh=rows.map(r=>Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name}));
-  const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.no===d.no&&f.text===d.text));
+  const norm=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();
+  const fresh=rows.map(r=>{ const f=Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name});
+    const o=(rec.defects||[]).find(d=>!d.manual&&+d.no===+f.no&&norm(d.text)===norm(f.text));
+    if(o){ ["id","parts","status","ai","note","kind","flags"].forEach(k=>{ if(o[k]!=null) f[k]=o[k]; }); f.firstRound=o.firstRound||o.round||1; }   // still listed: keep its cure
+    return f; });
+  const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.id===d.id||(f.no===d.no&&f.text===d.text)));
   rec.defects=keep.concat(fresh); _filingTouch(rec);
   toast(`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
   return fresh.length;
@@ -20685,7 +20690,8 @@ function _parseDefectList(td){
   return rows.filter(r=>r.text);
 }
 function _defFromText(no, text, rule, date, index){
-  const c=_classifyDefect(text);
+  let c=_classifyDefect(text);
+  if(rule&&(!c.parts.length||c.parts.every(p=>/cured document/i.test(p.label)))){ const c2=_classifyDefect(text+" "+rule); if(c2.parts.length&&!c2.parts.every(p=>/cured document/i.test(p.label))) c=c2; }
   const parts=c.parts.map(p=>{ const part={id:uid(), key:p.key, label:p.label, pages:"", cure:null, whole:!!p.whole};
     const e=p.ix&&(index||[]).find(x=>p.ix.test(x.label)); if(e&&e.pages) part.pages=e.pages;
     if(!part.pages&&p.key==="cover") part.pages="cover"; return part; });
@@ -20768,7 +20774,13 @@ function _defEditSave(did){
     d.parts=nd.parts.map(p=>{ const old=d.parts.find(o=>o.key===p.key&&o.label===p.label); return old||p; }); _defCheckDone(d); }
   _filingTouch(rec); closeModal(); renderFilesPage();
 }
-function _defDelete(did){ const rec=_flRec(); if(!confirm("Delete this defect from the list?")) return; rec.defects=(rec.defects||[]).filter(x=>x.id!==did); _filingTouch(rec); closeModal(); renderFilesPage(); }
+function _defDelete(did){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); if(!d) return;
+  const cured=(d.parts||[]).some(p=>p.cure);
+  if(!confirm(`Delete defect ${d.no} — “${String(d.text).slice(0,90)}”?${cured?"\n\nIts cured pages stay in the filing folder; they are only no longer linked to a defect.":""}`)) return;
+  rec.defects=(rec.defects||[]).filter(x=>x.id!==did);
+  rec.defectsRemoved=(rec.defectsRemoved||[]).concat([Object.assign({},d,{removedAt:new Date().toISOString(),removedBy:_aiWho()})]).slice(-50);
+  _filingTouch(rec); closeModal(); renderFilesPage();
+  toastUndo(`Defect ${d.no} deleted.`,()=>{ const r=_flRec(); r.defectsRemoved=(r.defectsRemoved||[]).filter(x=>x.id!==did); r.defects=(r.defects||[]).concat([d]); _filingTouch(r); renderFilesPage(); }); }
 function _defPagesAsk(did,pid){
   const {d,p}=_defFind(did,pid); if(!p) return;
   openModal(p.label, `<label class="fld">Pages in the paper book</label><input class="in mono" id="dpPages" value="${esc(p.pages||"")}" placeholder="e.g. 38-44 · A1-A2 · 62">
@@ -21040,6 +21052,10 @@ async function _defAttachGo(did,pid){
   const pages=((document.getElementById("caPages")||{}).value||"").trim()||"all";
   const mr=document.querySelector('input[name="caMode"]:checked'); const mode=mr?mr.value:"replace";
   if(pages!=="all"&&!/^\d+(\s*-\s*\d+)?(\s*,\s*\d+(\s*-\s*\d+)?)*$/.test(pages)){ toast("Pages like 2-3 or 1,4.",true); return; }
+  if(pages!=="all"){ try{ let blob=null; if(f&&f[0]) blob=f[0]; else if(pick){ const x=_flItems().find(i=>i.name===pick); blob=await _paperBlob({path:_filingFolderRel()+"/"+pick,name:pick,size:x?x.size:0}); }
+      if(blob){ const {PDFDocument}=await _libPdfLib(); const n=(await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()),{ignoreEncryption:true})).getPageCount();
+        const bad=pages.split(",").some(t=>{ const m=/(\d+)\s*(?:-\s*(\d+))?/.exec(t); return m&&(+(m[2]||m[1])>n||+m[1]<1); });
+        if(bad){ toast(`That PDF has ${n} page${n===1?"":"s"}. “Which pages of that PDF” means pages INSIDE the file you chose (1 to ${n}) — not the paper-book page numbers, which the app already knows for this defect. Leave it blank to use the whole file.`,true); return; } } }catch(e){} }
   let file=pick;
   try{
     if(!file){ if(!f||!f[0]){ toast("Choose a PDF.",true); return; }
@@ -21107,7 +21123,7 @@ async function _loadCure(PDFDocument, p, cache){
   const {doc,labels,tops,pos}=cache[name]; const n=doc.getPageCount();
   let idx=[]; if(!p.cure.pages||p.cure.pages==="all") idx=Array.from({length:n},(_,i)=>i);
   else String(p.cure.pages).split(",").forEach(t=>{ const m=/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/.exec(t); if(m){ for(let k=+m[1];k<=+(m[2]||m[1]);k++) if(k>=1&&k<=n) idx.push(k-1); } });
-  if(!idx.length) throw new Error(`No pages to use from "${name}".`);
+  if(!idx.length) throw new Error(`“${name}” has ${n} page${n===1?"":"s"}, but this cure is set to use its page${/[-,]/.test(String(p.cure.pages))?"s":""} ${p.cure.pages} — pages that are not in that file (probably the paper-book page numbers were typed in “Which pages of that PDF”). Open the defect “${p.label}”, remove this cure and add it again with that box left blank.`);
   return {doc,idx,shown:idx.map(i=>labels[i]||""),tops:idx.map(i=>(tops||[])[i]||""),pos:idx.map(i=>(pos||[])[i]||null)};
 }
 // The numbers a cured part's pages should carry.
@@ -21261,7 +21277,7 @@ async function _collateGo(){
     const nm=`5.${_stageNext(5,_currentNames())} Draft Defect Pages for Sign ${_fnDiary(rec)}${rnd>1?" Round "+rnd:""}.pdf`;
     const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage 5 — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
     const dl=_cleanFileName("Draft Defect Pages for Sign",..._flCleanBase(rec));
-    rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount(),by:_aiWho()}]); _filingTouch(rec);
+    rec.refilings=(rec.refilings||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount(),by:_aiWho(),round:Math.max(1,...(rec.defects||[]).map(d=>+d.round||1))}]); _filingTouch(rec);
     if(isStaffView()){ closeModal(); toast(`Defect pages collated (${out.getPageCount()} page${out.getPageCount()===1?"":"s"}) — sent to the Head of Chamber for approval.`+(warn.length?" Check: "+warn.join(" · "):"")); _fv.live=true; _filesLoad(); return; }
     closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages${decl?", declaration "+(declFirst?"first":"last"):", no declaration"}. Saved in stage 5.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
     _fv.live=true; _filesLoad();
@@ -26665,7 +26681,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0345";
+  window.APP_VERSION = "2026.10.10-0415";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
