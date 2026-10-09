@@ -19154,7 +19154,7 @@ function _fvRowHTML(x,base,q,can){
         <div class="fv-name">${_hl(x._label,q)}</div>
         <div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span></div>
       </div>
-      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app"><span class="fv-l-long">Download</span><span class="fv-l-short">Save</span></button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button></div>`:""}
+      ${k>=0?`<div class="fv-acts"><button onclick="_paperOpen(${k})">Open</button><button onclick="_paperDownload(${k})" title="Save the whole file — then open it in Preview / any PDF app"><span class="fv-l-long">Download</span><span class="fv-l-short">Save</span></button>${kind==="word"?`<button onclick="_paperEdit(${k})">Edit</button>`:""}<button onclick="_paperShare(${k})">Share</button>${_canRemove(x)?`<button onclick="_paperReplaceAsk(${_fvQuote(base+"/"+x.name)})" title="Put a new copy in its place (the old one goes to _to_delete)">Replace</button><button onclick="_paperRemoveAsk(${_fvQuote(base+"/"+x.name)})" title="Move to _to_delete (not deleted)">Remove</button>`:""}</div>`:""}
     </div>`;
   }
 }
@@ -19533,7 +19533,7 @@ function _filingViewHTML(){
   const copies=(rec.fs&&rec.fs.copies)||[], lastC=copies[copies.length-1];
   /* title, then the two sections — whichever is chosen fills the page (owner, Oct 2026) */
   const title=`<div class="fh fh-slim"><div class="fh-kind">${esc(m[1]||"Filing")} · Filing ${esc((m[2]||"")+"-"+(m[3]||""))}</div><div class="fh-case">${esc(_fv.title||_caseTitle(rec.serial)||"")}</div>
-      <div class="fh-meta"><span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span></div></div>`;
+      <div class="fh-meta"><span>Diary No. <b class="mono">${rec.diaryNo?esc(rec.diaryNo+"/"+rec.diaryYear):"—"}</b> <button class="link-btn" onclick="_flDiaryAsk()">${rec.diaryNo?"edit":"add"}</button></span>${isStaffView()?"":`<span><button class="link-btn" style="color:var(--muted)" onclick="_filingRemoveAsk()">remove this filing</button></span>`}</div></div>`;
   const secSw=`<div class="fsec fsec-big"><button class="fsec-b ${sec==="filing"?"on":""}" onclick="_fsSetSec('filing')"><b>Filing</b><span>${lastC?(lastC.final?"Final filing copy ready":"Filing copy ready"):fsd.have?fsd.have+" of "+fsd.of+" documents":"Documents, numbering, filing copy"}</span></button><button class="fsec-b ${sec==="refiling"?"on":""}" onclick="_fsSetSec('refiling')"><b>Refiling</b><span>${stg.tot?esc(stg.l):"Starts with the registry's defect list"}</span></button></div>`;
   if(sec==="filing") return title+secSw+`<div class="fv-box fsec-page">${_fsHTML(rec)}</div>`;
   const meta=`<div class="fh fh-ref">
@@ -19609,7 +19609,7 @@ function _defectsHTML(rec){
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole, bc=d.flags&&d.flags.better;
@@ -20993,7 +20993,7 @@ function _fsHTML(rec){
   const slot=s=>{
     const xs=_fsList(r,s.k);
     const rows=xs.map((x,i)=>`<div class="fsl-f"><span class="fsl-n">${s.annex?"P-"+(i+1):s.many?(i+1)+".":""}</span><span class="fsl-m"><button class="link-btn" onclick="_flOpenStored(${_fvQuote(x.file)})">${esc(x.title||x.file)}</button>${x.kind?` <span class="hint">· ${esc(x.kind)}</span>`:""}${x.word?` <span class="hint">· Word: ${esc(x.word)}</span>`:s.word?` <span class="hint" style="color:#9a5b00">· no Word draft</span>`:""}</span>
-        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act" onclick="_fsEditAsk('${s.k}',${i})">Edit</button><button class="row-act" onclick="_fsUnlink('${s.k}',${i})" title="Take it out of this slot (the file stays in the folder)">✕</button></span></div>`).join("");
+        <span class="fsl-a">${s.many&&i?`<button class="row-act" onclick="_fsMove('${s.k}',${i},-1)" title="Move up">↑</button>`:""}${s.many&&i<xs.length-1?`<button class="row-act" onclick="_fsMove('${s.k}',${i},1)" title="Move down">↓</button>`:""}<button class="row-act" onclick="_fsEditAsk('${s.k}',${i})">Edit</button><button class="row-act" onclick="_fsReplaceAsk('${s.k}',${i})" title="Put a new copy in its place">Replace</button><button class="row-act" onclick="_fsRemoveAsk('${s.k}',${i})" title="Remove">Remove</button></span></div>`).join("");
     const add=can&&(s.many||!xs.length)?`<button class="btn ${xs.length?"ghost":"seal"} sm" onclick="_fsAddAsk('${s.k}')">${xs.length?"+ Add another":"+ Upload"}</button>`:"";
     return `<div class="fsl ${xs.length?"has":""}"><div class="fsl-h"><span class="fsl-ck">${xs.length?"✓":s.opt?"○":"•"}</span><span class="fsl-t">${esc(s.l)}${s.opt?` <span class="hint">(if any)</span>`:""}</span>${add}</div>${s.h&&!xs.length?`<div class="fsl-s">${esc(s.h)}</div>`:""}${rows}</div>`;
   };
@@ -21400,6 +21400,113 @@ async function _pfPendingTick(){
 }
 setInterval(()=>{ try{ if(window.DB&&_pfPending().length) _pfPendingTick(); }catch(e){} },20000);
 try{ Object.assign(window,{_FILING_KINDS,_pfNewCaseAsk,_pfNewCaseGo,_pfPending,_pfFolderOf,_pfState,_pfPendingHTML,_pfPendingTick}); }catch(e){}
+/* ---------- Remove / Replace — every "add" comes with these (owner, Oct 2026) ----------
+   Remove never deletes: the gatekeeper ("trash") MOVES the paper to Master Cases Folder/_to_delete/<same folders>/,
+   named with the date and who removed it. Replace = the new copy goes in, the old one to _to_delete.
+   Staff: papers added or changed in the last 7 days only (the gatekeeper enforces it); owner: any.
+   Every record that pointed at a removed paper (filing slots, cures, collated pages, filing copies) is cleaned up. */
+function _canRemove(x){ if(!isStaffView()) return true; const t=Date.parse(x.modified||x.mtime||"")||0; return !t||Date.now()-t<8*86400e3; }
+async function _gkTrash(path){
+  try{ return await _gk("/api/trash",{path}); }
+  catch(e){ if(/Unknown request/i.test(e.message)) throw new Error(isStaffView()?"Remove is not switched on yet — ask the Head of Chamber to update the ASDC Gatekeeper.":"Remove needs the updated ASDC Gatekeeper — paste the new worker.js into Cloudflare (gatekeeper/SETUP.md, 9 October update)."); throw e; }
+}
+function _paperRemoveAsk(path){
+  const name=String(path).split("/").pop();
+  openModal("Remove this paper?", `<div style="margin-bottom:8px"><b>${esc(name)}</b></div>
+    <div class="hint">It is not deleted — it is moved to <b>_to_delete</b> in the Master Cases Folder (with today's date and your name), so it can be put back. Anything in the app that used it (a document slot, a cured defect, a filing copy) is updated.</div>
+    ${isStaffView()?`<div class="hint" style="margin-top:6px">Staff can remove papers added or changed in the last 7 days.</div>`:""}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_paperRemoveGo(${_fvQuote(path)})">Remove</button></div>`);
+}
+async function _paperRemoveGo(path){
+  _progressModal("Removing…",String(path).split("/").pop());
+  try{ await _gkTrash(path); const n=_fileGone(path); closeModal(); toast("Removed — moved to _to_delete."+(n?` ${n} record${n===1?"":"s"} updated.`:"")); _fv.live=true; _filesLoad(); }
+  catch(e){ closeModal(); toast(e.message,true); }
+}
+function _paperReplaceAsk(path){
+  const name=String(path).split("/").pop();
+  openModal("Replace with a new copy", `<div style="margin-bottom:8px"><b>${esc(name)}</b></div>
+    <label class="fld">The new copy</label><input type="file" id="rpFile" class="in">
+    <div class="hint" style="margin-top:6px">The new copy takes the same name and place; the old one is moved to <b>_to_delete</b> (not deleted). Everything in the app that used it now uses the new copy.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_paperReplaceGo(${_fvQuote(path)})">Replace</button></div>`);
+}
+async function _paperReplaceGo(path){
+  const f=(document.getElementById("rpFile")||{}).files; if(!(f&&f[0])){ toast("Choose the new copy.",true); return; }
+  const file=f[0]; const name=String(path).split("/").pop(), dir=String(path).slice(0,-(name.length+1));
+  const oldExt=(/\.[^.]+$/.exec(name)||[""])[0], newExt=(/\.[^.]+$/.exec(file.name)||[""])[0];
+  const newName=oldExt.toLowerCase()===newExt.toLowerCase()?name:name.slice(0,name.length-oldExt.length)+newExt;
+  _progressModal("Replacing…","Moving the old copy to _to_delete…");
+  try{
+    await _gkTrash(path);
+    const got=await _uploadPaper(dir+"/"+newName,file,(g,t)=>_progressSet("Uploading the new copy…",g/t));
+    const n=got!==name?_fileRenamedRef(path,got):0;
+    closeModal(); toast("Replaced."+(n?` ${n} record${n===1?"":"s"} updated.`:"")); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); }
+}
+// records that point at a paper in a filing folder
+function _refsIn(path, fn){
+  const name=String(path).split("/").pop(), dir=String(path).slice(0,-(name.length+1)); let n=0;
+  _allFilingRecs().forEach(r=>{ let ch=false;
+    if(r.folder===dir) ch=fn(r,name)||ch;
+    if(r.filingCopyPath===path){ ch=fn(r,name,"fc")||ch; }
+    if(ch){ n++; _filingTouch(r); } });
+  return n;
+}
+function _fileGone(path){
+  return _refsIn(path,(r,name,fc)=>{ let ch=false;
+    if(fc){ delete r.filingCopyPath; delete r.filingCopySize; return true; }
+    const sl=(r.fs&&r.fs.slots)||{}; Object.keys(sl).forEach(k=>{ const before=(sl[k]||[]).length; sl[k]=(sl[k]||[]).filter(x=>x&&x.file!==name); if(sl[k].length!==before) ch=true; (sl[k]||[]).forEach(x=>{ if(x.word===name){ x.word=""; ch=true; } }); });
+    (r.defects||[]).forEach(d=>(d.parts||[]).forEach(p=>{ if(p.cure&&p.cure.file===name){ p.cure=null; if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; } if(d.status!=="na") d.status="open"; ch=true; } }));
+    ["refilings","finals"].forEach(k=>{ if(Array.isArray(r[k])){ const b=r[k].length; r[k]=r[k].filter(x=>x&&x.file!==name); if(r[k].length!==b) ch=true; } });
+    if(r.fs&&Array.isArray(r.fs.copies)){ const b=r.fs.copies.length; r.fs.copies=r.fs.copies.filter(x=>x&&x.file!==name); if(r.fs.copies.length!==b) ch=true; }
+    return ch; });
+}
+function _fileRenamedRef(path, newName){
+  return _refsIn(path,(r,name,fc)=>{ let ch=false; const dir=String(path).slice(0,-(name.length+1));
+    if(fc){ r.filingCopyPath=dir+"/"+newName; return true; }
+    const sl=(r.fs&&r.fs.slots)||{}; Object.values(sl).forEach(l=>(l||[]).forEach(x=>{ if(x.file===name){ x.file=newName; ch=true; } if(x.word===name){ x.word=newName; ch=true; } }));
+    (r.defects||[]).forEach(d=>(d.parts||[]).forEach(p=>{ if(p.cure&&p.cure.file===name){ p.cure.file=newName; ch=true; } }));
+    ["refilings","finals"].forEach(k=>(r[k]||[]).forEach(x=>{ if(x.file===name){ x.file=newName; ch=true; } }));
+    ((r.fs&&r.fs.copies)||[]).forEach(x=>{ if(x.file===name){ x.file=newName; ch=true; } });
+    return ch; });
+}
+/* filing slot: take out of the slot only, or remove the paper too; or replace it */
+function _fsRemoveAsk(k,i){
+  const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; const path=_filingFolderRel()+"/"+x.file;
+  const it=_flItems().find(z=>z.name===x.file); const can=!it||_canRemove(it);
+  openModal("Remove from this slot", `<div style="margin-bottom:8px"><b>${esc(x.title||x.file)}</b></div>
+    <div class="btn-row" style="flex-direction:column;align-items:stretch;gap:8px">
+      ${can?`<button class="btn seal" onclick="closeModal();_paperRemoveGo(${_fvQuote(path)})">Remove the paper (moved to _to_delete)${x.word?" — the Word draft stays":""}</button>`:""}
+      <button class="btn ghost" onclick="_fsUnlinkGo('${k}',${i})">Only take it out of this slot (the file stays in the folder)</button>
+      <button class="btn ghost" onclick="closeModal()">Cancel</button></div>
+    ${can?"":`<div class="hint" style="margin-top:8px">This paper is older than a week — only the Head of Chamber can remove it.</div>`}`);
+}
+function _fsUnlinkGo(k,i){ const r=_fsRec(); const l=_fsList(r,k); l.splice(i,1); r.fs.slots[k]=l; _filingTouch(r); closeModal(); renderFilesPage(); }
+function _fsReplaceAsk(k,i){ const r=_fsRec(); const x=_fsList(r,k)[i]; if(!x) return; _paperReplaceAsk(_filingFolderRel()+"/"+x.file); }
+/* a cured defect: detach only, or remove the paper too */
+function _defUncureAsk(did,pid){
+  const {p}=_defFind(did,pid); if(!p||!p.cure) return; const path=_filingFolderRel()+"/"+p.cure.file;
+  const it=_flItems().find(z=>z.name===p.cure.file); const can=!it||_canRemove(it);
+  openModal("Remove this cure", `<div style="margin-bottom:8px"><b>${esc(p.cure.file)}</b></div>
+    <div class="btn-row" style="flex-direction:column;align-items:stretch;gap:8px">
+      ${can?`<button class="btn seal" onclick="closeModal();_paperRemoveGo(${_fvQuote(path)})">Remove the paper too (moved to _to_delete)</button>`:""}
+      <button class="btn ghost" onclick="closeModal();_defUncure('${did}','${pid}')">Only detach it from this defect (the file stays)</button>
+      <button class="btn ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+/* a whole filing (owner only): its folder to _to_delete, the record to the app's Trash */
+function _filingRemoveAsk(){
+  if(isStaffView()) return; const rec=_flRec();
+  openModal("Remove this whole filing?", `<div style="margin-bottom:8px"><b>${esc(_fv.sub)}</b> — ${esc(_fv.title||"")}</div>
+    <div class="hint">The filing folder and everything in it is moved to <b>_to_delete</b> (not deleted), and the filing's record (documents, defects, approvals) goes to the app's Trash, from where it can be restored.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_filingRemoveGo()">Remove the filing</button></div>`);
+}
+async function _filingRemoveGo(){
+  if(isStaffView()) return; const rec=_flRec(); const coll=_filingColl(rec.chamber); const path=_filingFolderRel();
+  _progressModal("Removing…",_fv.sub);
+  try{ await _gkTrash(path); softDelete(coll, rec.id); closeModal(); toast("Filing removed — folder in _to_delete, record in Trash.");
+    _fv.sub=""; _fv.fl=null; _fv.live=true; _filesLoad(); }
+  catch(e){ closeModal(); toast(e.message,true); }
+}
+try{ Object.assign(window,{_canRemove,_gkTrash,_paperRemoveAsk,_paperRemoveGo,_paperReplaceAsk,_paperReplaceGo,_refsIn,_fileGone,_fileRenamedRef,_fsRemoveAsk,_fsUnlinkGo,_fsReplaceAsk,_defUncureAsk,_filingRemoveAsk,_filingRemoveGo}); }catch(e){}
 /* ---------- owner's final approval of the collated defect pages (Oct 2026) ----------
    Staff (or the owner) approve each defect's pages; the Head of Chamber then approves the complete
    collated defect pages. Only after that can they be downloaded for filing / the final copy compiled. */
@@ -24864,7 +24971,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.09-0430";
+  window.APP_VERSION = "2026.10.09-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
