@@ -2098,6 +2098,7 @@
   .dd-new{animation:ddnew 2.6s ease-out 1} @keyframes ddnew{0%,40%{box-shadow:0 0 0 3px var(--brass);} 100%{box-shadow:0 0 0 0 transparent}}
   .dl-l{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:6px 0;border-top:1px solid var(--line2);font-size:13px} .dl-l:first-child{border-top:0} .dl-l>span:last-child{color:var(--muted);font-size:12px} .dl-l.ok>span:last-child{color:#2e7d32;font-weight:600}
   .rv-ai{margin:6px 0 10px} .rv-ai-s{font-size:13.5px;color:var(--muted)} .rv-ai-s.q{color:var(--ink)} .rv-ai-s.ok{color:#2e7d32} .rv-ai-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .fd-head{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .src{margin-bottom:8px} .src-tabs{display:flex;gap:4px;margin-bottom:6px} .src-t{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink)} .src-t.on{background:var(--seal);border-color:var(--seal);color:#fff}
   .src-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:6px} .src-r{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line2);background:transparent;padding:7px 10px;font:inherit;cursor:pointer;color:var(--ink)} .src-r:first-child{border-top:0} .src-r:hover{background:var(--line2)} .src-r.on{background:#e8f3ea}
@@ -19462,8 +19463,8 @@ function _filesLoad(){
     FB.getFolderIndex(f.serial).then(fx=>{ if(fx){ window.__folderIdx[f.serial]=fx; if(!f.folder&&fx.folder) f.folder=fx.folder; done(fx); } else if(!c) live(); }).catch(()=>{ if(!c) live(); });
   } else live();
 }
-function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _filesLoad(); }
-function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _filesLoad(); }
+function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _fv.virt=null; _filesLoad(); }
+function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.virt=null; _filesLoad(); }
 const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
 const _FV_GROUP={fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
 function _fileKind(ext){ ext=String(ext||"").toLowerCase(); if(/^\.(docx?|rtf|odt)$/.test(ext)) return "word"; if(ext===".pdf") return "pdf"; if(/^\.(jpe?g|png|heic|gif|webp|tiff?)$/.test(ext)) return "img"; if(/^\.(xlsx?|csv)$/.test(ext)) return "xls"; return "file"; }
@@ -19484,7 +19485,34 @@ function _fvRows(){
   return {files,dirs,title};
 }
 function _fvSetQ(v){ _fv.q=String(v||""); _fvRenderList(); }
-function _fvSetType(t){ _fv.type=t; renderFilesPage(); }
+function _fvSetType(t){ _fv.type=t; _fv.virt=null; renderFilesPage(); }
+/* "Filing documents" (owner, Oct 2026): the PDFs of the case's filings — filing copy, final copy, defect lists,
+   defect pages, cures — in one list inside the case's folder view, without crowding it. The files stay where they
+   are (each filing's own sub-folder); this only gathers them. Key documents first, the rest by stage. */
+async function _fvFilingDocs(){ const f=_fv; f.virt="fdocs"; f.fdocs=null; renderFilesPage();
+  try{ const fils=(_fvRows().dirs||[]).filter(x=>x._t==="fil"); const out=[];
+    for(const d of fils){ const rel=f.folder+"/"+d.name; const r=await _gk("/api/list",{folder:rel}).catch(()=>({items:[]}));
+      (r.items||[]).filter(i=>!i.isFolder&&/\.pdf$/i.test(i.name)).forEach(i=>{ const m=_STAGE_RX.exec(i.name); out.push({filing:d.name,path:rel+"/"+i.name,name:i.name,size:i.size,modified:i.modified||i.mtime||"",stage:m?+m[1]:0,sn:m?+m[2]:0}); }); }
+    if(_fv!==f||f.virt!=="fdocs") return; f.fdocs=out; renderFilesPage(); }
+  catch(e){ f.fdocs=[]; f.fdocsErr=e.message; renderFilesPage(); } }
+function _fdKey(x){ const n=x.name; return /Final Copy/i.test(n)?1:/Final Defect Pages/i.test(n)?2:/Filing Copy/i.test(n)?3:/Draft Defect Pages|Defect Pages/i.test(n)?4:/Defect List/i.test(n)?5:0; }
+function _fdListHTML(){
+  const f=_fv, xs=f.fdocs; const head=`<div class="fd-head"><button class="btn ghost sm" onclick="_fvSetType('all')">‹ All papers</button><b>📑 Filing documents</b></div>`;
+  if(!xs) return head+`<div class="fv-empty">Gathering the filing documents…</div>`;
+  if(!xs.length) return head+`<div class="fv-empty">${esc(f.fdocsErr||"No PDFs in this case's filings yet.")}</div>`;
+  const q=(f.q||"").trim().toLowerCase(); const ys=xs.filter(x=>!q||x.name.toLowerCase().includes(q));
+  const row=x=>`<div class="fv-row"><div class="fv-ic" style="background:#b23a3a">PDF</div><div class="fv-main" onclick="_fdOpen(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})" title="Open"><div class="fv-name">${esc(x.name.replace(/\.pdf$/i,""))}</div><div class="fv-meta"><span>${esc(x.filing)}</span>${x.modified?`<span>${esc(fmtDate(String(x.modified).slice(0,10)))}</span>`:""}<span>${esc(_fmtSize(x.size))}</span></div></div>
+    <div class="fv-acts"><button onclick="_fdOpen(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})">Open</button><button onclick="_fdDownload(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})" title="Download">⬇</button></div></div>`;
+  const key=ys.filter(x=>_fdKey(x)).sort((a,b)=>_fdKey(a)-_fdKey(b)||String(b.modified).localeCompare(String(a.modified)));
+  let h=key.length?`<div class="fv-group">Key documents · ${key.length}</div>`+key.map(row).join(""):"";
+  const stg=(_STG||[]).map(z=>[z.n,z.l]); const rest=ys.filter(x=>!_fdKey(x));
+  stg.concat([[0,"Other"]]).forEach(([n,l])=>{ const g=rest.filter(x=>x.stage===n).sort((a,b)=>a.sn-b.sn); if(g.length) h+=`<div class="fv-group">${n?n+" · ":""}${esc(l)} · ${g.length}</div>`+g.map(row).join(""); });
+  return head+(h||`<div class="fv-empty">Nothing matches “${esc(f.q)}”.</div>`); }
+async function _fdBlob(path,name,size){ return await _paperBlob({path,name,size}); }
+async function _fdOpen(path,name,size){ const w=window.open("about:blank","_blank"); _progressModal("Opening…","Fetching "+name+"…");
+  try{ const b=await _fdBlob(path,name,size); closeModal(); _blobOpenIn(w,new Blob([b],{type:"application/pdf"}),name); }catch(e){ try{ w&&w.close(); }catch(x){} closeModal(); toast(e.message,true); } }
+async function _fdDownload(path,name,size){ _progressModal("Fetching…","Fetching "+name+"…");
+  try{ const b=await _fdBlob(path,name,size); closeModal(); _blobReady(b,name,"From the case's filing documents.",_fnSafe(name.replace(/\.pdf$/i,"").replace(/^\d\.\d+\s+/,""))+".pdf"); }catch(e){ closeModal(); toast(e.message,true); } }
 function _fvSetSort(v){ _fv.sort=v; _fvRenderList(); }
 function _fvQuote(s){ return JSON.stringify(String(s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
 function _fvRowHTML(x,base,q,can){
@@ -19507,6 +19535,7 @@ function _fvRowHTML(x,base,q,can){
 }
 function _fvRenderList(){
   const box=document.getElementById("fvList"); if(!box) return;
+  if(_fv.virt==="fdocs"&&!_fv.sub){ box.innerHTML=_fdListHTML(); return; }
   const f=_fv; const {files,dirs}=_fvRows();
   const q=f.q.trim().toLowerCase();
   const match=x=>!q||(x._label+" "+(x.num||"")+" "+x.name+" "+(x.mtime?fmtDate(x.mtime):"")).toLowerCase().indexOf(q)>=0;
@@ -19531,7 +19560,9 @@ function _fvRenderList(){
       const last=(t==="dir"||t==="fil")?"":g.map(x=>x.mtime||"").sort().pop();
       return `<button class="fv-isl" onclick="_fvSetType('${t}')"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${lab}</span>${last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">${g.reduce((a,x)=>a+(+x.count||0),0)} items</span>`}</button>`;
     }).join("");
-    h=`<div class="fv-isls" style="margin-top:4px">${tiles}</div>`+(latest.length?`<div class="fv-group" style="margin-top:18px">Latest papers</div>`+latest.map(row).join(""):"");
+    const nFil=dirs.filter(x=>x._t==="fil").length;
+    const fdTile=nFil?`<button class="fv-isl" onclick="_fvFilingDocs()"><span class="fv-isl-ic">📑</span><span class="fv-isl-n" style="font-size:20px">PDFs</span><span class="fv-isl-l">Filing documents</span><span class="fv-isl-d">filing copy, defect pages, final copy…</span></button>`:"";
+    h=`<div class="fv-isls" style="margin-top:4px">${tiles}${fdTile}</div>`+(latest.length?`<div class="fv-group" style="margin-top:18px">Latest papers</div>`+latest.map(row).join(""):"");
     if(!files.length&&!dirs.length) h=`<div class="fv-empty">The folder is empty.</div>`;
     box.innerHTML=h; return;
   }
@@ -22615,7 +22646,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_finalApplyExtras,_lblKey,_lblCmp,_refExtraChanged,_refExtraPos,_refExtraUpdate,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_fvFilingDocs,_fdKey,_fdListHTML,_fdBlob,_fdOpen,_fdDownload,_finalApplyExtras,_lblKey,_lblCmp,_refExtraChanged,_refExtraPos,_refExtraUpdate,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -26930,7 +26961,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0930";
+  window.APP_VERSION = "2026.10.10-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
