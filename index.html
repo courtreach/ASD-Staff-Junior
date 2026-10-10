@@ -2058,6 +2058,7 @@
   .pe-t{display:flex;align-items:center;gap:6px;border:0;background:none;border-radius:8px;padding:7px 10px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap}
   .pe-t:hover{background:var(--line2)} .pe-t.on{background:#f2e7e4;color:var(--seal);font-weight:600} .pe-hint{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;padding-left:10px}
   .pe-body{flex:1;min-height:0;display:flex} .pe-thumbs{width:120px;flex:none;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:#f4f2ee;border-right:1px solid var(--line)}
+  .pe-th.drag{opacity:.4} .pe-th.dropA{box-shadow:0 -3px 0 var(--seal)} .pe-th.dropB{box-shadow:0 3px 0 var(--seal)} .pe-th[draggable=true]{cursor:grab} .pe-capb:disabled{opacity:.35;cursor:default}
   .pe-th{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)} .pe-th canvas{width:100%;height:auto}
   .pe-main{flex:1;min-width:0;overflow:auto;padding:12px 16px 80px;display:flex;flex-direction:column;align-items:center}
   .pe-cap{font-size:11.5px;color:var(--muted);margin:10px 0 4px} .pe-pg{position:relative;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;touch-action:pan-x pan-y}
@@ -20553,7 +20554,7 @@ function _joinItems(items){
 function _pageLabel(pg){
   const rows=(pg.rows||[]).filter(r=>r[0].y<84||r[0].y>pg.h-46);
   for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
-    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)) return t; }
+    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}(?:-\d{1,2})?|[A-Z])$/.test(t)) return t; }
   return "";
 }
 async function _flLoadCtx(force){
@@ -22124,8 +22125,10 @@ function _refAddCount(){ const A=window.__ra; const pg=((document.getElementById
 function _refAddSuggest(typed){ const A=window.__ra; if(!A) return; const on=(document.getElementById("raNum")||{}).checked; const box=document.getElementById("raNumBox"); if(box) box.style.display=on?"":"none";
   const w=(document.getElementById("raWhere")||{}).value; const st=document.getElementById("raStart");
   if(on&&st&&!typed){ let k=w==="start"?-1:w==="end"?A.n-1:+w; while(k>=0&&!A.labels[k]) k--;    // the nearest numbered page before the place
-    st.value=k>=0?_lblAfter(A.labels[k]):""; }
-  const seq=document.getElementById("raSeq"); if(seq) seq.textContent=on&&st&&st.value?"Pages will read: "+_lblSeq(st.value,_refAddCount()).join(", "):""; }
+    let c=k>=0?_lblAfter(A.labels[k]):""; if(c&&A.labels.includes(c)) c=A.labels[k]+"-1";   // 44B already in the pages → 44A-1, 44A-2…
+    st.value=c; }
+  const seq=document.getElementById("raSeq"); if(seq){ const L=on&&st&&st.value?_lblSeq(st.value,_refAddCount()):[]; const clash=L.filter(x=>A.labels.includes(x));
+    seq.innerHTML=L.length?"Pages will read: "+esc(L.join(", "))+(clash.length?` <span style="color:#b3261e">— ${esc(clash.join(", "))} ${clash.length===1?"is":"are"} already used in these defect pages</span>`:""):""; } }
 async function _refInsert(baseBlob, addBlob, pages, where, labels){
   const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
   const base=await PDFDocument.load(new Uint8Array(await baseBlob.arrayBuffer()),{ignoreEncryption:true}), add=await PDFDocument.load(new Uint8Array(await addBlob.arrayBuffer()),{ignoreEncryption:true});
@@ -22160,8 +22163,14 @@ async function _refAddGo(){
     const last=T.last; const ext={file:keep,desc,pages:count,where:where==="start"||where==="end"?where:{after:A.labels[+where]||"",pdf:+where},labels:labels||[],at:new Date().toISOString(),by:_aiWho()};
     last.extras=(last.extras||[]).concat([ext]); if(T.file===last.file){ last.file=final; last.pages=res.pages; } else if(last.signed){ last.signed.file=final; last.signed.pages=res.pages; }
     if(isStaffView()&&last.ok&&T.file===last.file){ delete last.ok; }
-    _filingTouch(rec); closeModal(); toast(`Added “${desc}” (${count} page${count===1?"":"s"}) ${where==="start"?"at the beginning":where==="end"?"at the end":"after page "+after}${labels?" — numbered "+labels[0]+(labels.length>1?"–"+labels[labels.length-1]:""):""}.`); _fv.live=true; _filesLoad();
+    _filingTouch(rec); _fv.live=true; try{ (_fv.idx.items||[]).forEach(i=>{ if(i.name===final) i.size=res.blob.size; }); }catch(e){}
+    const msg=`Added “${desc}” (${count} page${count===1?"":"s"}) ${where==="start"?"at the beginning":where==="end"?"at the end":"after page "+after}${labels?" — numbered "+labels[0]+(labels.length>1?"–"+labels[labels.length-1]:""):""}.`;
+    window.__raDone={file:final,blob:res.blob,dl:last.dl||final};
+    openModal("Document added", `<div style="margin-bottom:6px">${esc(msg)}</div><div class="hint" style="margin-bottom:12px"><b>${esc(final)}</b> · now ${res.pages} pages.</div>
+      <div class="btn-row" style="gap:8px;flex-wrap:wrap"><button class="btn seal" onclick="_raPreview()">👁 Preview</button><button class="btn ghost" onclick="closeModal();_peOpenFile(${_fvQuote(final)},'refiling')">✏️ Open in editor</button><button class="btn ghost" onclick="_blobReady(window.__raDone.blob,window.__raDone.file,'The defect pages with the added document.',window.__raDone.file)">⬇ Download</button><button class="btn ghost" onclick="closeModal()">Close</button></div>`);
+    _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
+function _raPreview(){ const R=window.__raDone; if(!R) return; closeModal(); _blobOpenIn(window.open("about:blank","_blank"),R.blob,R.file); }
 /* after collating again: put the documents added to the earlier defect pages back in, at the same place */
 async function _refExtrasReapply(rec, prev, entry){
   const xs=(prev&&prev.extras)||[]; if(!xs.length) return 0; let blob=await _paperBlob({path:_filingFolderRel()+"/"+entry.file,name:entry.file}); let n=0;
@@ -22326,7 +22335,7 @@ async function _fsText(blob){
 function _fsLabelAt(pg){ // the page number already printed at the top/bottom centre, with where it is
   const rows=(pg.rows||[]).filter(r=>r[0].y<84||r[0].y>pg.h-46);
   for(const r of rows){ const mid=r.filter(it=>it.x>pg.w*0.3&&it.x<pg.w*0.7); const t=mid.map(i=>i.s).join("").replace(/\s+/g,"");
-    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}|[A-Z])$/.test(t)){
+    if(mid.length&&mid.length===r.filter(it=>it.x>pg.w*0.25&&it.x<pg.w*0.75).length&&/^([A-Z]{0,2}\d{1,3}[A-Z]{0,2}(?:-\d{1,2})?|[A-Z])$/.test(t)){
       const x0=Math.min(...mid.map(i=>i.x)), x1=Math.max(...mid.map(i=>i.x+(i.w||8))), z=Math.max(...mid.map(i=>i.z||11));
       return {t, x0, x1, y:mid[0].y, z}; } }
   return null;
@@ -22533,7 +22542,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -22909,14 +22918,21 @@ async function _peRender(){
     const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
     wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
     const del=_pe.ops.some(o=>o.k===k&&o.t==="del");
-    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span><button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span>${_pe.idx.length>1?`<button class="pe-capb" title="Move this page up" ${k===0?"disabled":""} onclick="_peMove(${k},-1)">↑</button><button class="pe-capb" title="Move this page down" ${k===_pe.idx.length-1?"disabled":""} onclick="_peMove(${k},1)">↓</button>`:""}<button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
     if(del) wrap.classList.add("pe-deleted"); main.appendChild(cap); main.appendChild(wrap);
     await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
     const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
     _pe.pages.push({k,i,s,w:v0.width,h:v0.height,segs,wrap,lay});
     _peWire(_pe.pages[_pe.pages.length-1]);
     const t=document.createElement("canvas"); const tv=pg.getViewport({scale:90/v0.width}); t.width=tv.width; t.height=tv.height; await pg.render({canvasContext:t.getContext("2d"),viewport:tv,intent:"print"}).promise;
-    const tb=document.createElement("button"); tb.className="pe-th"; tb.appendChild(t); const tl=document.createElement("span"); tl.textContent=_pe.ctx.labelOf[i]||("p"+(i+1)); tb.appendChild(tl); tb.onclick=()=>wrap.scrollIntoView({behavior:"smooth",block:"start"}); th.appendChild(tb);
+    const tb=document.createElement("button"); tb.className="pe-th"; tb.appendChild(t); const tl=document.createElement("span"); tl.textContent=_pe.ctx.labelOf[i]||("p"+(i+1)); tb.appendChild(tl); tb.onclick=()=>wrap.scrollIntoView({behavior:"smooth",block:"start"});
+    if(_pe.idx.length>1){ tb.draggable=true; tb.title="Drag to move this page"; tb.dataset.k=k;
+      tb.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/pe-k",String(k)); e.dataTransfer.effectAllowed="move"; tb.classList.add("drag"); });
+      tb.addEventListener("dragend",()=>tb.classList.remove("drag"));
+      tb.addEventListener("dragover",e=>{ if([...e.dataTransfer.types].includes("text/pe-k")){ e.preventDefault(); const r=tb.getBoundingClientRect(); tb.classList.toggle("dropA",e.clientY<r.top+r.height/2); tb.classList.toggle("dropB",e.clientY>=r.top+r.height/2); } });
+      tb.addEventListener("dragleave",()=>tb.classList.remove("dropA","dropB"));
+      tb.addEventListener("drop",e=>{ e.preventDefault(); const from=+e.dataTransfer.getData("text/pe-k"); const r=tb.getBoundingClientRect(); const after=e.clientY>=r.top+r.height/2; tb.classList.remove("dropA","dropB"); _peMoveTo(from,k+(after?1:0)); }); }
+    th.appendChild(tb);
   }
   _peDrawOps(); _peBtns();
 }
@@ -22994,12 +23010,21 @@ function _peTogglePage(k){ if(!_pe) return; _peCommitInput(); const ix=_pe.ops.f
   if(ix>=0){ const op=_pe.ops.splice(ix,1)[0]; _pe.undo.push({del:ix,op}); _pe.redo=[]; _pe.dirty=true; _peRender(); _peBtns(); }
   else { if(_pe.idx.length-_pe.ops.filter(o=>o.t==="del").length<=1){ toast("At least one page must stay.",true); return; } _pePush({k,t:"del"}); _peRender(); } }
 function _pePush(op){ _pe.ops.push(op); _pe.undo.push({add:_pe.ops.length-1}); _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+/* rearrange pages: the order of the pages AND the edits made on them move together */
+function _peReorder(perm){ if(!_pe) return; _peCommitInput(); const prev={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))};
+  _pe.idx=perm.map(k=>prev.idx[k]); _pe.ops.forEach(o=>{ if(o.k!=null) o.k=perm.indexOf(o.k); });
+  _pe.undo.push({reorder:prev}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peRender(); }
+function _peMove(k,d){ if(!_pe) return; const j=k+d; if(j<0||j>=_pe.idx.length) return; const perm=_pe.idx.map((_,i)=>i); perm[k]=j; perm[j]=k; _peReorder(perm);
+  setTimeout(()=>{ try{ document.querySelectorAll("#peMain .pe-pg")[j].scrollIntoView({block:"center"}); }catch(e){} },350); }
+function _peMoveTo(from,to){ if(!_pe||from===to||from+1===to) return; const perm=_pe.idx.map((_,i)=>i); const [x]=perm.splice(from,1); perm.splice(to>from?to-1:to,0,x); _peReorder(perm); }
 function _peUndo(){ if(!_pe) return; _peCommitInput(); const u=_pe.undo.pop(); if(!u) return;
+  if(u.reorder){ const now={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))}; _pe.idx=u.reorder.idx; _pe.ops=u.reorder.ops; _pe.redo.push({reorder:now}); _pe.sel=null; _pe.dirty=true; _peRender(); _peBtns(); return; }
   if(u.add!=null){ const op=_pe.ops.splice(u.add,1)[0]; _pe.redo.push({op}); }
   else if(u.set!=null){ const now=_pe.ops[u.set]; _pe.ops[u.set]=u.prev; _pe.redo.push({set:u.set,prev:now}); }
   else if(u.del!=null){ _pe.ops.splice(u.del,0,u.op); _pe.redo.push({redel:u.del}); }
   _pe.sel=null; _pe.dirty=true; if(u.op&&u.op.t==="del"||(u.add!=null)) _peRender(); else _peDrawOps(); _peBtns(); }
 function _peRedo(){ if(!_pe) return; const r=_pe.redo.pop(); if(!r) return;
+  if(r.reorder){ const now={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))}; _pe.idx=r.reorder.idx; _pe.ops=r.reorder.ops; _pe.undo.push({reorder:now}); _pe.dirty=true; _peRender(); _peBtns(); return; }
   if(r.op){ _pe.ops.push(r.op); _pe.undo.push({add:_pe.ops.length-1}); }
   else if(r.set!=null){ const now=_pe.ops[r.set]; _pe.ops[r.set]=r.prev; _pe.undo.push({set:r.set,prev:now}); }
   else if(r.redel!=null){ const op=_pe.ops.splice(r.redel,1)[0]; _pe.undo.push({del:r.redel,op}); }
@@ -23096,6 +23121,7 @@ async function _peSaveFile(){
     let final=got;
     try{ await _gkTrash(base+"/"+E.file); const rn=await _gkNew("/api/rename",{path:base+"/"+got,name:E.file}); final=(rn&&rn.name)||E.file; }catch(e){}
     const list=E.kind==="final"?(rec.finals||[]):E.kind==="fscopy"?((rec.fs&&rec.fs.copies)||[]):E.kind==="refiling"?(rec.refilings||[]):[]; const ent=list.find(x=>x.file===E.file);
+    if(!ent&&E.kind==="refiling"){ const sgE=(rec.refilings||[]).find(x=>x.signed&&x.signed.file===E.file); if(sgE){ sgE.signed.file=final; sgE.signed.pages=out.getPageCount(); sgE.signed.edited={by:_aiWho(),at:new Date().toISOString()}; } }
     if(E.kind==="slot"&&rec.fs&&rec.fs.slots) Object.values(rec.fs.slots).forEach(l=>(l||[]).forEach(x=>{ if(x&&x.file===E.file){ x.file=final; x.edited={by:_aiWho(),at:new Date().toISOString()}; } }));
     let note="";
     if(ent){ ent.file=final; ent.pages=out.getPageCount(); ent.edited={by:_aiWho(),at:new Date().toISOString()};
@@ -23155,7 +23181,7 @@ async function _peSave(){
 function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
-try{ Object.assign(window,{_peStructAsk,_peStructGo,_pePageList,_peTogglePage,_peOpenFile,_peSaveFile,_peDrawOn,_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
+try{ Object.assign(window,{_peReorder,_peMove,_peMoveTo,_peStructAsk,_peStructGo,_pePageList,_peTogglePage,_peOpenFile,_peSaveFile,_peDrawOn,_peIcon,_peOpenAsk,_peOpenGo,_peStart,_peTool,_peZoom,_peRender,_peSegs,_peWire,_peSegAt,_peAvail,_peMeasure,_peEditSeg,_peAddAt,_peInput,_peCancelInput,_peCommitInput,_pePush,_peUndo,_peRedo,_peDelSel,_peBtns,_peDrawOps,_peKey,_peClose,_peSave,_defGenPart}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -26831,7 +26857,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0645";
+  window.APP_VERSION = "2026.10.10-0745";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
