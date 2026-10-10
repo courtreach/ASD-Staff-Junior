@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T06:09:37.249859Z",
+  "generated_at": "2026-10-10T08:09:51.461660Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -71,13 +71,14 @@
       "lists_found": [
         "Miscellaneous - Main",
         "Regular / Final - Main",
+        "Registrar - Main",
         "Curative & Review (circulation)",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 5,
+      "match_count": 7,
       "matches": [
         {
           "for_date": "2026-10-13",
@@ -180,16 +181,59 @@
           "petitioner": "M/S ARUN BHOOMI CORPORATION",
           "respondent": "JAYESH KANJI MARU",
           "text": "7 SLP(C) No. 24021/2025 M/S ARUN BHOOMI CORPORATION Versus JAYESH KANJI MARU"
+        },
+        {
+          "for_date": "2026-10-13",
+          "list": "Registrar - Main",
+          "kind": "main",
+          "family": "MR",
+          "is_supplementary": false,
+          "court": "2",
+          "item": "4",
+          "coram": "MS. GRACY L. BAWITLUNG, REGISTRAR",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 2928/2025",
+          "petitioner": "THE AUTOMOBILE TECHNICIANS ASSOCIATION",
+          "respondent": "MALLADI LAXMI NARAYANA AND ORS. (only SLP no. 034183 - 034184 / 2026 and 017339 - 017340 / 2026 are listed under this item)",
+          "text": "4 SLP(C) No. 2928/2025 THE AUTOMOBILE TECHNICIANS ASSOCIATION Versus MALLADI LAXMI NARAYANA AND ORS. (only SLP no. 034183 - 034184 / 2026 and 017339 - 017340 / 2026 are listed under this item)"
+        },
+        {
+          "for_date": "2026-10-13",
+          "list": "Registrar - Main",
+          "kind": "main",
+          "family": "MR",
+          "is_supplementary": false,
+          "court": "2",
+          "item": "29",
+          "coram": "MS. GRACY L. BAWITLUNG, REGISTRAR",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 22960/2026",
+          "petitioner": "PANDIT",
+          "respondent": "SEVA SAHAKARI SOCIETY LTD. AND ORS.",
+          "text": "29 SLP(C) No. 22960/2026 PANDIT Versus SEVA SAHAKARI SOCIETY LTD. AND ORS."
         }
       ]
     },
     "2026-10-14": {
       "lists_found": [
+        "Regular / Final - Main",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
-      "has_main": false,
+      "has_main": true,
       "match_count": 1,
       "matches": [
         {
@@ -345,6 +389,6 @@
       ]
     }
   },
-  "match_count": 13,
+  "match_count": 15,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
