@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T12:55:36.865681Z",
+  "generated_at": "2026-10-10T14:33:42.857204Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -210,6 +210,7 @@
     },
     "2026-10-14": {
       "lists_found": [
+        "Miscellaneous - Main",
         "Regular / Final - Main",
         "Miscellaneous - Advance"
       ],
@@ -220,23 +221,24 @@
       "matches": [
         {
           "for_date": "2026-10-14",
-          "list": "Miscellaneous - Advance",
-          "kind": "advance",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
           "family": "MJ",
           "is_supplementary": false,
-          "court": "",
-          "item": "98",
-          "coram": "",
+          "court": "2",
+          "item": "30",
+          "coram": "HON'BLE MR. JUSTICE VIKRAM NATH; HON'BLE MR. JUSTICE R. MAHADEVAN; HON'BLE MR. JUSTICE APARESH KUMAR SINGH",
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
-            "number"
+            "advocate",
+            "aor"
           ],
           "confidence": "high",
-          "case_no": "SLP(C) No. 9388/2022",
-          "petitioner": "COMMITTEE OF MANAGEMENT ANJUMAN INTEZAMIA MASAJID VARANASI",
-          "respondent": "RAKHI SINGH AND ORS.",
-          "text": "98 SLP(C) No. 9388/2022 COMMITTEE OF MANAGEMENT ANJUMAN INTEZAMIA MASAJID VARANASI Versus RAKHI SINGH AND ORS."
+          "case_no": "SLP(C) No. 26198/2026",
+          "petitioner": "SANTOSH KUMAR .R AND ORS.",
+          "respondent": "SANJAY BEHARI",
+          "text": "30 SLP(C) No. 26198/2026 SANTOSH KUMAR .R AND ORS. Versus SANJAY BEHARI"
         }
       ]
     },
