@@ -21323,14 +21323,61 @@ async function _finalGo(){
       for(let j=i;j<=upto;j++) for(const a of (addsAt[j]||[])){ _progressSet(`Adding ${a.p.label}…`,0.2+0.7*j/total); await _addPieceTo(out,a,ctx,cache,font,rgb,used,numOn,warn,PDFDocument,"final"); }
       i=upto+1;
     }
-    _progressSet("Saving…",0.93);
-    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _progressSet("Saving…",0.9);
+    let blob=new Blob([await out.save()],{type:"application/pdf"}); let pagesOut=out.getPageCount();
+    if((rec.refilings||[]).some(r=>(r.extras||[]).length)){ _progressSet("Putting in the documents added after compiling…",0.91); const ex=await _finalApplyExtras(rec,blob,warn); if(ex.changed){ blob=ex.blob; pagesOut=ex.pages; } }
     const name=await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Copy ${_fnDiary(rec)}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
     const dl=_cleanFileName("Final Copy",..._flCleanBase(rec));
-    rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:out.getPageCount()}]); _filingTouch(rec);
-    closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages (filing copy had ${total}). Saved in stage 6.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
+    rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:pagesOut}]); _filingTouch(rec);
+    closeModal(); _blobReady(blob,name,`${pagesOut} pages (filing copy had ${total}). Saved in stage 6.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
+}
+/* Documents added to the defect pages after compiling (a new cover, a new index, an application for condonation of
+   delay in refiling…) belong in the final copy too (Anupriya, 10.10.2026: the final copy kept the old cover and index
+   and left out pages 68–70). Each of their pages goes where it belongs: a cover replaces the cover, index pages replace
+   the whole index, a page with a printed number replaces that page — or, if the paper book has no such page yet, goes
+   in after the page before it — and any other page follows the page before it. Signatures on those pages are kept. */
+function _lblKey(L){ const m=/^(\d+)([A-Z]*)(?:-(\d+))?$/.exec(String(L||"")); if(!m) return null; return [+m[1], m[2]?m[2].charCodeAt(0)-64:0, m[3]?+m[3]:0]; }
+function _lblCmp(a,b){ for(let i=0;i<3;i++){ if(a[i]!==b[i]) return a[i]-b[i]; } return 0; }
+const _isCoverT=t=>/SUPREME\s+COURT/i.test(t)&&/PAPER\s*[-–]?\s*BOOK/i.test(t);
+const _isIndexT=t=>/Particulars\s+of\s+document/i.test(t)&&/Page\s+no\.?\s+of\s+Part|Part\s*[-–]?\s*1/i.test(t);
+const _isRopT=t=>/RECORD\s+OF\s+PROCEEDING/i.test(t)&&!/Index\s+of\s+Record/i.test(t);
+async function _finalApplyExtras(rec, blob, warn){
+  const seen=new Set(), extras=[]; (rec.refilings||[]).forEach(r=>(r.extras||[]).forEach(e=>{ if(e&&e.file&&!seen.has(e.file)){ seen.add(e.file); extras.push(e); } }));
+  if(!extras.length) return {blob, changed:0};
+  const {PDFDocument}=await _libPdfLib(); const base=_filingFolderRel();
+  const td=await _pdfTextDoc(blob); const bl=td.pages.map(_pageLabel), bt=td.pages.map(p=>p.text||""), N=td.numPages;
+  const plan=Array.from({length:N},()=>({drop:false,before:[],after:[]}));   // what happens around each page of the final copy
+  const front=Math.min(N,12);
+  const coverAt=bt.slice(0,3).findIndex(_isCoverT);
+  const idxCont=t=>!/OFFICE\s+REPORT|PRO\s*FORMA|SYNOPSIS|LIST\s+OF\s+DATES|RECORD\s+OF\s+PROCEEDING/i.test(t)&&/ANNEXURE|Vakalatnama|Memo\s+of\s+Parties|Filing\s+Memo|Application|Appendix|Impugned|Affidavit/i.test(t);
+  const idxRun=[]; for(let i=0;i<front;i++){ if(!bl[i]&&(_isIndexT(bt[i])||(idxRun.length&&idxCont(bt[i])))) idxRun.push(i); else if(idxRun.length) break; }
+  const ropAt=bt.slice(0,front).findIndex(_isRopT);
+  const numbered=bl.map((l,i)=>({i,k:_lblKey(l)})).filter(x=>x.k);
+  const docs=[]; const notes=[];
+  for(const e of extras){ const it=_flItems().find(x=>x.name===e.file); if(!it){ warn.push(`“${e.desc}” (${e.file}) is no longer in the filing folder — left out of the final copy.`); continue; }
+    const eb=await _paperBlob({path:base+"/"+e.file,name:e.file,size:it.size}); const etd=await _pdfTextDoc(eb); const di=docs.length;
+    docs.push(await PDFDocument.load(new Uint8Array(await eb.arrayBuffer()),{ignoreEncryption:true}));
+    let lastAt=null, coverDone=false, idxDone=false, ropDone=false; const idxPages=[];
+    etd.pages.forEach((pg,j)=>{ const t=pg.text||"", L=_pageLabel(pg), k=_lblKey(L), ref={d:di,j};
+      if(!L&&_isCoverT(t)&&coverAt>=0){ if(!coverDone){ plan[coverAt].drop=true; plan[coverAt].before.push(ref); coverDone=true; notes.push("cover page"); } else plan[coverAt].before.push(ref); lastAt={i:coverAt,pos:"before"}; return; }
+      if(!L&&_isRopT(t)&&ropAt>=0){ if(!ropDone){ plan[ropAt].drop=true; ropDone=true; notes.push("record of proceeding"); } plan[ropAt].before.push(ref); lastAt={i:ropAt,pos:"before"}; return; }
+      if(!L&&_isIndexT(t)&&idxRun.length){ idxPages.push(ref); if(!idxDone){ idxRun.forEach(i=>plan[i].drop=true); idxDone=true; } plan[idxRun[0]].before.push(ref); lastAt={i:idxRun[0],pos:"before"}; return; }
+      if(k){ const same=numbered.find(x=>_lblCmp(x.k,k)===0);
+        if(same){ plan[same.i].drop=true; plan[same.i].before.push(ref); lastAt={i:same.i,pos:"before"}; notes.push("page "+L); return; }
+        const prev=numbered.filter(x=>_lblCmp(x.k,k)<0).pop();
+        if(prev){ plan[prev.i].after.push(ref); lastAt={i:prev.i,pos:"after"}; notes.push("page "+L+" (new)"); return; } }
+      if(lastAt){ plan[lastAt.i][lastAt.pos].push(ref); return; }
+      plan[N-1].after.push(ref); });
+    if(idxPages.length) notes.push(`index (${idxPages.length} page${idxPages.length===1?"":"s"})`); }
+  if(!docs.length) return {blob, changed:0};
+  const src=await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()),{ignoreEncryption:true}); const out=await PDFDocument.create();
+  const mine=await out.copyPages(src,src.getPageIndices()); const theirs=[]; for(const d of docs) theirs.push(await out.copyPages(d,d.getPageIndices()));
+  let changed=0; plan.forEach((pl,i)=>{ pl.before.forEach(r=>{ out.addPage(theirs[r.d][r.j]); changed++; }); if(!pl.drop) out.addPage(mine[i]); pl.after.forEach(r=>{ out.addPage(theirs[r.d][r.j]); changed++; }); });
+  const nums=notes.filter(x=>/^page \d/.test(x)), other=notes.filter(x=>!/^page \d/.test(x));
+  warn.push("Documents added after compiling put in: "+[...new Set(other)].concat(nums.length?["pages "+nums.map(x=>x.replace(/^page | \(new\)$/g,"")).join(", ")]:[]).join(", "));
+  return {blob:new Blob([await out.save()],{type:"application/pdf"}), changed, pages:out.getPageCount()};
 }
 // old entry points → new steps
 function _buildRefilingAsk(){ _collateAsk(); }
@@ -22568,7 +22615,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_refExtraChanged,_refExtraPos,_refExtraUpdate,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_finalApplyExtras,_lblKey,_lblCmp,_refExtraChanged,_refExtraPos,_refExtraUpdate,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -26883,7 +26930,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0830";
+  window.APP_VERSION = "2026.10.10-0930";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
