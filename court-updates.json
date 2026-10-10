@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T08:48:07.629412Z",
+  "generated_at": "2026-10-10T12:55:36.865681Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -14,10 +14,11 @@
     "2026-10-12": {
       "lists_found": [
         "Miscellaneous - Main",
+        "Miscellaneous - Supplementary",
         "Registrar - Main",
         "Miscellaneous - Advance"
       ],
-      "has_supplementary": false,
+      "has_supplementary": true,
       "has_advance": true,
       "has_main": true,
       "match_count": 2,
@@ -30,7 +31,7 @@
           "is_supplementary": false,
           "court": "2",
           "item": "7",
-          "coram": "HON'BLE MR. JUSTICE VIKRAM NATH; HON'BLE MR. JUSTICE R. MAHADEVAN; HON'BLE MR. JUSTICE APARESH KUMAR SINGH",
+          "coram": "HON'BLE MR. JUSTICE VIKRAM NATH; HON'BLE MR. JUSTICE APARESH KUMAR SINGH",
           "court_total": "",
           "court_fresh": "",
           "matched_on": [
@@ -57,7 +58,8 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
-            "aor"
+            "aor",
+            "number"
           ],
           "confidence": "high",
           "case_no": "Diary No. 25117-2025",
