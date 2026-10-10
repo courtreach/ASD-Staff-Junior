@@ -171,6 +171,10 @@ _NUM_SLASH = re.compile(r"(?<!\d)(\d{1,7})(?:\s*[-–]\s*(\d{1,7}))?\s*/\s*((?:1
 _NUM_DASH = re.compile(r"(?<!\d)(\d{1,7})\s*[-–]\s*((?:19|20)\d{2})(?!\d)")
 _TYPES = [   # checked against the text just before the number, nearest match wins
     ("diary", r"diary"),
+    # an interlocutory application's number ("ON IA 23780/2026", "I.A. No. 23780/2026") is its OWN
+    # series — it must never match an SLP with the same digits (Rajni Gandha v Avinash Kumar, Court 6
+    # item 12.2 on 13.10.2026, matched SLP(C) 23769-80/2026 through "ON IA 23780/2026").
+    ("ia", r"\bi\s*\.?\s*a\b"),
     ("slp", r"s\s*\.?\s*l\s*\.?\s*p|special\s+leave"),
     ("crla", r"cr(?:l|i|iminal)?\s*\.?\s*a(?:ppeal)?\b(?!\s*\.?\s*p)"),
     ("ca", r"\bc\s*\.?\s*a\b(?!\s*\.?\s*p)|civil\s+appeal"),
