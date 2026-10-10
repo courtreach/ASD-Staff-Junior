@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T08:09:51.461660Z",
+  "generated_at": "2026-10-10T08:48:07.629412Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -78,7 +78,7 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 7,
+      "match_count": 6,
       "matches": [
         {
           "for_date": "2026-10-13",
@@ -99,26 +99,6 @@
           "petitioner": "M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED",
           "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
           "text": "16 SLP(C) No. 24919/2026 M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED Versus THE STATE OF MAHARASHTRA AND ORS."
-        },
-        {
-          "for_date": "2026-10-13",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "6",
-          "item": "12.2",
-          "coram": "HON'BLE MR. JUSTICE DIPANKAR DATTA; HON'BLE MR. JUSTICE SHEEL NAGU",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "number"
-          ],
-          "confidence": "high",
-          "case_no": "Diary No. 73405-2025",
-          "petitioner": "RAJNI GANDHA",
-          "respondent": "AVINASH KUMAR AND ORS.",
-          "text": "12.2 Diary No. 73405-2025 RAJNI GANDHA Versus AVINASH KUMAR AND ORS."
         },
         {
           "for_date": "2026-10-13",
@@ -389,6 +369,6 @@
       ]
     }
   },
-  "match_count": 15,
+  "match_count": 14,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
