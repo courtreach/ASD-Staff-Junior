@@ -20040,19 +20040,20 @@ function _rfTailHTML(rec){
   const refs=rec.refilings||[], last=refs[refs.length-1], fin=(rec.finals||[]).slice(-1)[0]; if(!last) return "";
   const base=_flCleanBase(rec), sg=last.signed, pg=last.pages?` · ${last.pages} page${last.pages===1?"":"s"}`:"";
   const okLine=last.ok?`<span class="fn-okb">✓ approved by ${esc(last.ok.by||"the Head of Chamber")}${last.ok.at?" on "+esc(fmtDate(_localISO(new Date(last.ok.at)))):""}</span>`:"";
-  const xt=(last.extras||[]).length?`<div class="hint" style="margin-top:4px">Added after compiling: ${last.extras.map(e=>`${esc(e.desc)}${e.labels&&e.labels.length?" ("+esc(e.labels[0])+(e.labels.length>1?"–"+esc(e.labels[e.labels.length-1]):"")+")":""}`).join(" · ")}</div>`:"";
+  const xt=(last.extras||[]).length?`<div class="hint" style="margin-top:4px">Added after compiling: ${last.extras.map((e,i)=>`${esc(e.desc)}${e.labels&&e.labels.length?" ("+esc(e.labels[0])+(e.labels.length>1?"–"+esc(e.labels[e.labels.length-1]):"")+")":""} <button class="link-btn" title="Put the current version of ${esc(e.file)} (e.g. after signing it) into the defect pages" onclick="_refExtraUpdate(${i})">update from its file</button>`).join(" · ")}</div>`:"";
   const addB=btn("_refAddAsk()","＋ Add a document","ghost");
+  const chg=(last.extras||[]).map((e,i)=>_refExtraChanged(e)?`<div class="co-warn" style="margin:6px 0">“${esc(e.desc)}” (<b>${esc(e.file)}</b>) was changed after it was added — signed, perhaps. The defect pages still have the earlier version. <button class="btn seal sm" onclick="_refExtraUpdate(${i})">Put the new version into the defect pages</button></div>`:"").join("");
   if(!last.ok&&!fin){
     const back=last.back?`<div class="fn-back">Sent back by ${esc(last.back.by||"the Head of Chamber")}: <i>${esc(last.back.note||"")}</i></div>`:"";
     if(isStaffView()) return `<div class="fn"><div class="fn-t">Waiting for the Head of Chamber's approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}${xt}
       <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${addB}</div></div>`;
-    return `<div class="fn"><div class="fn-t">Your approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}${xt}
+    return `<div class="fn"><div class="fn-t">Your approval</div><div class="fn-s"><b>${esc(last.file)}</b>${pg}</div>${back}${xt}${chg}
       ${last.outdated?`<div class="co-warn" style="margin:6px 0">${esc(last.outdated.why||"A cure changed")} after these pages were collated — <button class="link-btn" onclick="_collateAsk()">collate again</button> before approving.</div>`:""}
       <div class="fn-b">${btn("_rvOpen()","Review — before &amp; after")}${btn("_refApprove()","✓ Approve","ghost")}${btn("_refBackAsk()","Send back","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${addB}</div>${_aiSummaryHTML(rec)}</div>`;
   }
-  if(!fin&&!sg) return `<div class="fn"><div class="fn-t">Sign the defect pages</div><div class="fn-s"><b>${esc(last.file)}</b>${pg} ${okLine}</div>${xt}
+  if(!fin&&!sg) return `<div class="fn"><div class="fn-t">Sign the defect pages</div><div class="fn-s"><b>${esc(last.file)}</b>${pg} ${okLine}</div>${xt}${chg}
       <div class="fn-b">${addB}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
-  if(!fin) return `<div class="fn"><div class="fn-t">Final defect pages</div><div class="fn-s"><b>${esc(sg.file)}</b>${sg.nosign?" · no signature needed":" · signed"} ${okLine}</div>${xt}
+  if(!fin) return `<div class="fn"><div class="fn-t">Final defect pages</div><div class="fn-s"><b>${esc(sg.file)}</b>${sg.nosign?" · no signature needed":" · signed"} ${okLine}</div>${xt}${chg}
       <div class="fn-b">${addB}${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
   return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s"><b>${esc(fin.file)}</b>${fin.pages?" · "+fin.pages+" pages":""}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
@@ -22160,17 +22161,42 @@ async function _refAddGo(){
     const x=_flItems().find(i=>i.name===T.file); const baseBlob=await _paperBlob({path:_filingFolderRel()+"/"+T.file,name:T.file,size:x?x.size:0});
     const res=await _refInsert(baseBlob,ownBlob,null,where,labels);
     const final=await _refReviseFile(T.file,res.blob);
-    const last=T.last; const ext={file:keep,desc,pages:count,where:where==="start"||where==="end"?where:{after:A.labels[+where]||"",pdf:+where},labels:labels||[],at:new Date().toISOString(),by:_aiWho()};
+    const last=T.last; const atIndex=where==="start"?0:where==="end"?A.n:Math.min(A.n,+where+1);
+    const ext={file:keep,desc,pages:count,where:where==="start"||where==="end"?where:{after:A.labels[+where]||"",pdf:+where},atIndex,size:ownBlob.size,labels:labels||[],at:new Date().toISOString(),by:_aiWho()};
     last.extras=(last.extras||[]).concat([ext]); if(T.file===last.file){ last.file=final; last.pages=res.pages; } else if(last.signed){ last.signed.file=final; last.signed.pages=res.pages; }
     if(isStaffView()&&last.ok&&T.file===last.file){ delete last.ok; }
     _filingTouch(rec); _fv.live=true; try{ (_fv.idx.items||[]).forEach(i=>{ if(i.name===final) i.size=res.blob.size; }); }catch(e){}
     const msg=`Added “${desc}” (${count} page${count===1?"":"s"}) ${where==="start"?"at the beginning":where==="end"?"at the end":"after page "+after}${labels?" — numbered "+labels[0]+(labels.length>1?"–"+labels[labels.length-1]:""):""}.`;
     window.__raDone={file:final,blob:res.blob,dl:last.dl||final};
-    openModal("Document added", `<div style="margin-bottom:6px">${esc(msg)}</div><div class="hint" style="margin-bottom:12px"><b>${esc(final)}</b> · now ${res.pages} pages.</div>
+    openModal("Document added", `<div style="margin-bottom:6px">${esc(msg)}</div><div class="hint" style="margin-bottom:6px"><b>${esc(final)}</b> · now ${res.pages} pages.</div>
+      <div class="hint" style="margin-bottom:12px">To sign it, sign <b>${esc(final)}</b>. If you sign the separate copy (<b>${esc(keep)}</b>) instead, the app offers to put the signed pages into the defect pages.</div>
       <div class="btn-row" style="gap:8px;flex-wrap:wrap"><button class="btn seal" onclick="_raPreview()">👁 Preview</button><button class="btn ghost" onclick="closeModal();_peOpenFile(${_fvQuote(final)},'refiling')">✏️ Open in editor</button><button class="btn ghost" onclick="_blobReady(window.__raDone.blob,window.__raDone.file,'The defect pages with the added document.',window.__raDone.file)">⬇ Download</button><button class="btn ghost" onclick="closeModal()">Close</button></div>`);
     _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
 function _raPreview(){ const R=window.__raDone; if(!R) return; closeModal(); _blobOpenIn(window.open("about:blank","_blank"),R.blob,R.file); }
+/* The separate copy of an added document changed after it went in (e.g. signed on the iPad in OneDrive): its pages in
+   the defect pages are the old ones. Spot that, and swap them for the new version — same place, same page numbers. */
+function _refExtraChanged(e){ const it=_flItems().find(i=>i.name===e.file); if(!it) return false;
+  if(e.size&&it.size&&+it.size!==+e.size) return true;
+  const m=Date.parse(it.modified||""), a=Date.parse(e.updatedAt||e.at||""); return !!(m&&a&&m-a>90*1000); }
+function _refExtraPos(e,n){ if(e.atIndex!=null) return e.atIndex; if(e.where==="start") return 0; if(e.where==="end") return Math.max(0,n-e.pages); if(e.where&&e.where.pdf!=null) return e.where.pdf+1; return Math.max(0,n-e.pages); }
+async function _refExtraUpdate(i){
+  const rec=_flRec(); const T=_refTarget(rec); const e=((T&&T.last.extras)||[])[i]; if(!e) return;
+  _progressModal("Updating…","Fetching the new version of "+e.desc+"…");
+  try{ const {PDFDocument,StandardFonts,rgb}=await _libPdfLib(); const base=_filingFolderRel();
+    const tIt=_flItems().find(x=>x.name===T.file), eIt=_flItems().find(x=>x.name===e.file);
+    const tb=await _paperBlob({path:base+"/"+T.file,name:T.file,size:tIt?tIt.size:0}), eb=await _paperBlob({path:base+"/"+e.file,name:e.file,size:eIt?eIt.size:0});
+    const tDoc=await PDFDocument.load(new Uint8Array(await tb.arrayBuffer()),{ignoreEncryption:true}), eDoc=await PDFDocument.load(new Uint8Array(await eb.arrayBuffer()),{ignoreEncryption:true});
+    const n=tDoc.getPageCount(), pos=_refExtraPos(e,n), cnt=Math.min(e.pages,n-pos); if(pos<0||cnt<=0) throw new Error("Could not find where the document sits in the defect pages.");
+    const out=await PDFDocument.create(); const fB=await out.embedFont(StandardFonts.TimesRomanBold);
+    const mine=await out.copyPages(tDoc,tDoc.getPageIndices()), theirs=await out.copyPages(eDoc,eDoc.getPageIndices());
+    mine.slice(0,pos).forEach(p=>out.addPage(p)); theirs.forEach((p,k)=>{ out.addPage(p); if(e.labels&&e.labels[k]) _fsStampNo(p,e.labels[k],fB,rgb); }); mine.slice(pos+cnt).forEach(p=>out.addPage(p));
+    const blob=new Blob([await out.save()],{type:"application/pdf"}); _progressSet("Saving the defect pages…",0.7);
+    const final=await _refReviseFile(T.file,blob); const last=T.last;
+    if(T.file===last.file){ last.file=final; last.pages=out.getPageCount(); } else if(last.signed){ last.signed.file=final; last.signed.pages=out.getPageCount(); }
+    e.updatedAt=new Date().toISOString(); e.size=eIt?eIt.size:eb.size; e.atIndex=pos; e.pages=theirs.length; _filingTouch(rec);
+    closeModal(); toast(`The defect pages now carry the new version of “${e.desc}” (pages ${pos+1}–${pos+theirs.length}).`); _fv.live=true; _filesLoad();
+  }catch(err){ closeModal(); toast(err.message,true); } }
 /* after collating again: put the documents added to the earlier defect pages back in, at the same place */
 async function _refExtrasReapply(rec, prev, entry){
   const xs=(prev&&prev.extras)||[]; if(!xs.length) return 0; let blob=await _paperBlob({path:_filingFolderRel()+"/"+entry.file,name:entry.file}); let n=0;
@@ -22542,7 +22568,7 @@ function _fsFillPgs(docs, outPages, annex, font, rgb){
   return {fills,warn};
 }
 
-try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
+try{ Object.assign(window,{_fsAddMany,_apAddFiles,_apShow,_regName,_regLetter,_regCase,_fsDocxText,_fsTextOf,_fsReadDetails,_fsReadAsk,_fsDetailsOk,_fsFrontBlob,_fsFrontMake,_fsDetailsHTML,_fsFrontHTML,_fsFrontAsk,_fsDSet,_fsD,_fsSpecial,_fsOrderAdd,_fsOrderDel,_fsDelay,_fsIaList,_fsBlocksCover,_fsBlocksOffice,_fsBlocksProforma,_fsBlocksIndex,_fsDate,_fsToday,_fsMergeDetails,_FS_IA,_FS_FRONT,_fpClean,_fpRender,_FS_STEPS,_fsSlotHTML,_fsStepDone,_fsGo,_fsAnxExpectedHTML,_fsCopyHTML,_wzRail,_wzNav,_rfGo,_rfWizardHTML,_rfTailHTML,_refExtraChanged,_refExtraPos,_refExtraUpdate,_raPreview,_refTarget,_lblSeq,_lblAfter,_refAddAsk,_refAddPicked,_refAddCount,_refAddSuggest,_refInsert,_refReviseFile,_refAddGo,_refExtrasReapply,_fsLodAnnexures,_fsLodAnxLoad,_fsAnxFromName,_fsAnxNo,_fsAnxCmp,_fsAnxExpected,_fsAnxAsk,_fsAnxPicked,_fsAnxDraw,_fsAnxMore,_fsAnxThumbs,_fsAnxGo,_fsRec,_fsList,_fsSec,_fsSetSec,_fsDone,_fsHTML,_fsAddAsk,_fsEditAsk,_fsAddGo,_fsMove,_fsUnlink,_fsLetters,_fsText,_fsLabelAt,_fsRange,_fsCollateAsk,_fsCollateGo,_fsReview,_fsSaveCopy,_fsFillIndex,_fsRowStr,_fsFillPgs}); }catch(e){}
 /* ---- the Head of Chamber's AI check of the Filing Copy (Oct 2026) ----
    rec.fs.ai = {status, mode:"filingcheck", file, instruction, proposal:{summary, warnings, items:[{id,label,reason,file,
    fromIdx,replaces,changes}], previewId}}. He ticks the suggestions he accepts; the app then makes the final Filing Copy
@@ -26857,7 +26883,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-0745";
+  window.APP_VERSION = "2026.10.10-0830";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
