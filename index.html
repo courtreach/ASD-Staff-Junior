@@ -2099,6 +2099,9 @@
   .dl-l{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:6px 0;border-top:1px solid var(--line2);font-size:13px} .dl-l:first-child{border-top:0} .dl-l>span:last-child{color:var(--muted);font-size:12px} .dl-l.ok>span:last-child{color:#2e7d32;font-weight:600}
   .rv-ai{margin:6px 0 10px} .rv-ai-s{font-size:13.5px;color:var(--muted)} .rv-ai-s.q{color:var(--ink)} .rv-ai-s.ok{color:#2e7d32} .rv-ai-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
   .fd-head{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
+  .lk-l{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--line2);font-size:13.5px} .lk-list{max-height:220px;overflow:auto;margin-top:6px}
+  .lk-c{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:8px 10px;margin-top:6px;font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer} .lk-c:hover{border-color:var(--seal)} .lk-c .hint{display:block;font-size:11.5px;margin-top:2px}
+  .tw-link{flex:none;border:1px solid var(--seal);background:var(--seal-soft);color:var(--seal);border-radius:8px;padding:3px 9px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;margin-right:4px}
   .wz-nav{display:flex;justify-content:space-between;gap:8px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line)}
   .src{margin-bottom:8px} .src-tabs{display:flex;gap:4px;margin-bottom:6px} .src-t{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer;color:var(--ink)} .src-t.on{background:var(--seal);border-color:var(--seal);color:#fff}
   .src-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;margin-top:6px} .src-r{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line2);background:transparent;padding:7px 10px;font:inherit;cursor:pointer;color:var(--ink)} .src-r:first-child{border-top:0} .src-r:hover{background:var(--line2)} .src-r.on{background:#e8f3ea}
@@ -9372,6 +9375,58 @@ function _listingMatch(info){
   }
   return null;
 }
+
+/* ---------- LINK a cause-list listing to a case (owner, Oct 2026) ----------
+   A listing ties itself to a case only by an exact case/diary number the case already carries. When the listing is
+   under another number of the same matter (Syed Yusuf Ali: listed as Diary 25117/2025, the case known by SLP
+   1704/2026 / Diary 60211/2025), it stays unlinked. Linking adds the listing's number to the case — so this and every
+   later listing under that number link by themselves, everywhere in the app, and the cause-list watch list carries it. */
+window.__lk=window.__lk||[];
+function _lkReg(L){ window.__lk.push(L); return window.__lk.length-1; }
+function _lkLabel(info){ return info.diaryNo?("Diary No. "+info.diaryNo):(info.caseNo||info.number||""); }
+const _LK_STOP={and:1,ors:1,anr:1,the:1,of:1,state:1,union:1,india:1,maharashtra:1,versus:1,vs:1,ltd:1,limited:1,pvt:1,private:1,co:1,society:1,others:1,smt:1,shri:1,mr:1,mrs:1,dr:1};
+function _lkTokens(t){ return String(t||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!_LK_STOP[w]); }
+function _lkCases(){ // every case the person can link to: {serial,title,chamber,regId,matterId}
+  const out=new Map();
+  if(!isStaffView()) (DB.register||[]).forEach(r=>{ if(r.status==="removed") return; out.set(+r.serial,{serial:+r.serial,title:r.title||"",chamber:r.chamber||"",regId:r.id,matterId:r.matterId||"",suggest:r.petitionSuggest||[]}); });
+  (DB.matters||[]).forEach(m=>{ if(isVoided(m)||!m.serial||(m.kind!=="case"&&m.kind!=="caveat")) return; const c=out.get(+m.serial)||{serial:+m.serial,title:m.parties||m.client||"",chamber:m.chamber||"",regId:"",suggest:[]}; c.matterId=c.matterId||m.id; if(!c.title) c.title=m.parties||m.client||""; out.set(+m.serial,c); });
+  return [...out.values()]; }
+function _lkCandidates(L){
+  const keys=_numKeys(L.label,_labelKind(L.label)); const pt=_lkTokens(String(L.party||"").split(/\bvs\b|\bversus\b/i)[0]);
+  return _lkCases().map(c=>{ const why=[]; let score=0;
+      if((c.suggest||[]).some(sg=>_keysMatch(keys,_numKeys(sg,_labelKind(sg))))){ why.push("your register suggests this number for it"); score+=10; }
+      const ct=new Set(_lkTokens(c.title)); const hit=pt.filter(w=>ct.has(w)); if(pt.length&&hit.length>=Math.min(2,pt.length)){ why.push("same name: "+hit.join(" ")); score+=hit.length; }
+      return {c,why,score}; }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,5); }
+function _listingLinkAsk(i){ const L=window.__lk[i]; if(!L) return;
+  const cur=L.linked; const cands=_lkCandidates(L);
+  const row=(c,why)=>`<button class="lk-c" onclick="_listingLinkGo(${i},${c.serial})"><b>${String(c.serial).padStart(3,"0")}</b> · ${esc(c.title)}${c.chamber==="SD"?' <span class="tag" style="background:#3b5a7a;color:#fff">SD</span>':""}${why?`<span class="hint">${esc(why)}</span>`:""}</button>`;
+  openModal("Link this listing to a case", `<div class="lk-l"><b>${esc(L.label)}</b> — ${esc(L.party||"")}<div class="hint">${esc([L.date?fmtDate(L.date):"",L.court,L.item?"Item "+L.item:""].filter(Boolean).join(" · "))}</div></div>
+    ${cur?`<div class="co-warn" style="margin:8px 0">Linked now to <b>${String(cur.serial||"").padStart(3,"0")} · ${esc(cur.title||"")}</b>. <button class="link-btn" onclick="_listingUnlink(${i})">Unlink</button></div>`:""}
+    ${cands.length?`<div class="fv-group" style="margin-top:10px">Likely cases</div>${cands.map(x=>row(x.c,x.why.join(" · "))).join("")}`:`<div class="hint" style="margin:8px 0">No case looks like it by number or name — search below.</div>`}
+    <div class="fv-group" style="margin-top:10px">Or choose any case</div><input class="fv-search" id="lkQ" placeholder="Search — name or file number" oninput="_lkSearch(${i},this.value)" style="width:100%"><div id="lkList" class="lk-list"></div>
+    <div class="hint" style="margin-top:8px">Linking adds <b>${esc(L.label)}</b> to the case's numbers: this listing and every later one under it then show against the case — on the home screen, the cause list and the calendar.</div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="closeModal()">Cancel</button>${cur?"":`<button class="btn ghost" onclick="closeModal();_lkNewMatter(${i})">It is a new matter</button>`}</div>`);
+  _lkSearch(i,""); }
+function _lkSearch(i,q){ const box=document.getElementById("lkList"); if(!box) return; q=String(q||"").toLowerCase().trim();
+  const xs=_lkCases().filter(c=>!q||(String(c.serial).padStart(3,"0")+" "+c.title).toLowerCase().includes(q)).sort((a,b)=>b.serial-a.serial).slice(0,40);
+  box.innerHTML=xs.map(c=>`<button class="lk-c" onclick="_listingLinkGo(${i},${c.serial})"><b>${String(c.serial).padStart(3,"0")}</b> · ${esc(c.title)}</button>`).join("")||`<div class="hint">No case matches.</div>`; }
+function _listingLinkGo(i,serial){ const L=window.__lk[i]; if(!L||!L.label) return; const c=_lkCases().find(x=>+x.serial===+serial); if(!c) return;
+  const keys=_numKeys(L.label,_labelKind(L.label));
+  if(c.regId&&!isStaffView()){ const r=(DB.register||[]).find(x=>x.id===c.regId); if(r){ r.petitionNos=r.petitionNos||[]; if(!r.petitionNos.some(pn=>_keysMatch(keys,_numKeys(pn,_labelKind(pn))))) r.petitionNos.push(L.label);
+      r.petitionSuggest=(r.petitionSuggest||[]).filter(sg=>!_keysMatch(keys,_numKeys(sg,_labelKind(sg)))); r.petConfirmed=true; r.petEdited=true; } }
+  if(c.matterId){ const m=matterById(c.matterId); if(m){ m.petitionNos=m.petitionNos||[]; if(!_keysMatch(keys,_matterKeys(m))) m.petitionNos.push(L.label); m.updatedAt=new Date().toISOString(); } }
+  save(); closeModal();
+  toast(`${L.label} is now linked to ${String(c.serial).padStart(3,"0")} · ${c.title}.`);
+  try{ _renderHomeCourt(); }catch(e){} try{ _loadCourtUpdates(); }catch(e){} }
+function _listingUnlink(i){ const L=window.__lk[i]; if(!L) return; const keys=_numKeys(L.label,_labelKind(L.label)); let n=0, own=false;
+  (DB.register||[]).forEach(r=>{ const before=(r.petitionNos||[]).length; r.petitionNos=(r.petitionNos||[]).filter(pn=>!_keysMatch(keys,_numKeys(pn,_labelKind(pn)))); if(r.petitionNos.length!==before){ n++; r.petEdited=true; } });
+  (DB.matters||[]).forEach(m=>{ const before=(m.petitionNos||[]).length; m.petitionNos=(m.petitionNos||[]).filter(pn=>!_keysMatch(keys,_numKeys(pn,_labelKind(pn)))); if(m.petitionNos.length!==before) n++;
+    if(_keysMatch(keys,new Set([..._numKeys(m.caseNo,"case"),..._numKeys(m.diaryNo,"diary")]))) own=true; });
+  save(); closeModal();
+  toast(own?`${L.label} is the case's own case/diary number — change it in the case's details to unlink.`:n?`${L.label} unlinked.`:"Nothing to unlink.", own);
+  try{ _renderHomeCourt(); }catch(e){} try{ _loadCourtUpdates(); }catch(e){} }
+function _lkNewMatter(i){ const L=window.__lk[i]; if(!L) return; const note=`Listed ${L.date?fmtDate(L.date):""}${L.court?" · "+L.court:""}${L.item?" · Item "+L.item:""} (from cause list).`;
+  openModal("New matter (from cause list)", matterFormHTML({client:L.party||"",parties:L.party||"",caseNo:L.info&&L.info.caseNo||"",diaryNo:L.info&&L.info.diaryNo||"",court:"Supreme Court of India",notes:note})); }
 // One-tap: add the listing date to the matched matter (pre-filled), or create a new matter.
 function _listingAct(idx){
   const L=(window.__clListings||[])[idx]; if(!L) return;
@@ -9439,11 +9494,12 @@ function _loadCourtUpdates(){
                 ? `<button style="${actStyle}" onclick="_regOpen('${matched.regId}')" title="${esc(matched.parties||"")}">${esc(matched.code)}</button>`
                 : matched
                 ? `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Add this hearing date to ${esc(matched.code)}">+ ${esc(_mNo(matched))}</button>`
-                : `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Create a matter from this listing">+ Matter</button>`;
+                : `<button style="${actStyle}" onclick="_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="This listing is under a number none of your cases carries — link it to its case">Link</button><div style="margin-top:4px"><button class="link-btn" style="font-size:11px" onclick="_listingAct(${idx})">+ new matter</button></div>`;
+              const relink=matched?`<div style="margin-top:4px"><button class="link-btn" style="font-size:11px" title="Linked to the wrong case? Change or unlink" onclick="_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item,linked:{serial:matched.serial,title:matched.parties||matched.client||""}})})">change</button></div>`:"";
               html+=`<tr class="cu-row">
                 <td class="cu-item">${esc(m.item)}${m.supp?`<span class="cu-ms s">S</span>`:`<span class="cu-ms m">M</span>`}</td>
                 <td class="cu-title">${esc(info.party||shortTitle(m.title))}${(info.caseNo||info.diaryNo)?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(info.caseNo||info.diaryNo)}</div>`:""}</td>
-                <td style="width:84px;text-align:right;padding-left:6px;vertical-align:top">${act}${(()=>{ const fs=matched?(matched._reg?(!isStaffView()&&+matched.serial):(_canFiles(matched)&&+matched.serial)):0; return fs?`<div style="margin-top:6px;display:flex;justify-content:flex-end">${_filesTile(fs)}</div>`:""; })()}</td>
+                <td style="width:84px;text-align:right;padding-left:6px;vertical-align:top">${act}${relink}${(()=>{ const fs=matched?(matched._reg?(!isStaffView()&&+matched.serial):(_canFiles(matched)&&+matched.serial)):0; return fs?`<div style="margin-top:6px;display:flex;justify-content:flex-end">${_filesTile(fs)}</div>`:""; })()}</td>
               </tr>`;
             });
           });
@@ -9556,7 +9612,8 @@ function _renderHomeCourt(){
         const fb=_forumBadge(m);
         // Referring advocate: if this listing matches one of your matters and that
         // matter has a referring advocate on file (set from the Cause-list dialog).
-        let adv="", fser=0; try{ const mt=_listingMatch(info); if(mt){ adv=mt.refAdv||mt.refName||""; fser=(mt._reg?(!isStaffView()&&+mt.serial):(_canFiles(mt)&&+mt.serial))||0; } }catch(e){}
+        let adv="", fser=0, linked=false; try{ const mt=_listingMatch(info); if(mt){ linked=true; adv=mt.refAdv||mt.refName||""; fser=(mt._reg?(!isStaffView()&&+mt.serial):(_canFiles(mt)&&+mt.serial))||0; } }catch(e){}
+        const lkBtn=linked?"":`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:window.__hcDay||"",court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="Not linked to any of your cases — link it to its case">Link</button>`;
         return `<div class="row">
           <div class="cbadges">
             <div class="ct"><b${fb.big.length>2?' style="font-size:14px"':''}>${esc(fb.big)}</b>${esc(fb.cap)}</div>
@@ -9565,7 +9622,7 @@ function _renderHomeCourt(){
           <div class="m"><div class="t">${esc(title||"—")}</div>
             ${(info.party&&cn)?`<div class="s mono">${esc(cn)}</div>`:""}
             ${adv?`<div class="s cu-adv">${/^(adv|mr|ms|mrs|dr)[s.]?\s/i.test(adv)?"":"Adv. "}${esc(adv)}</div>`:""}
-          </div>${_filesTile(fser)}</div>`;
+          </div>${lkBtn}${_filesTile(fser)}</div>`;
       }).join("") + (moreN? `<div style="font-size:12px;color:var(--muted);padding:9px 2px 2px">+ ${moreN} more — open the full cause list</div>`:"")
     : `<div style="font-size:13px;color:var(--muted);padding:11px 2px">None of your matters listed on this day.</div>`;
   el.innerHTML=`<div class="cu-embed">
@@ -15365,7 +15422,8 @@ function _eventsOn(iso){
         const fb=(typeof _forumBadge==="function")?_forumBadge(mt):{big:mt.court||"",cap:"Court"};
         const where=fb.big==="Ch."?"In Chamber":(String(fb.big).indexOf("R-")===0?"Registrar Court "+fb.big.slice(2):(fb.cap==="Court"?"Court "+fb.big:fb.big));
         let mid="", ser=0; try{ const mm=_listingMatch(info); if(mm){ mid=mm.id||""; ser=+mm.serial||0; } }catch(_){}
-        ev.push({type:"listing", serial:ser,
+        const lk=mid||ser?null:_lkReg({label:_lkLabel(info),party:info.party,info,date:iso,court:where,item:mt.item||""});
+        ev.push({type:"listing", serial:ser, lk,
           title:(info.party||info.caseNo||String(mt.title||"").replace(/^\s*\d+[.\)]?\s*/,"").slice(0,60)),
           sub:where+(mt.item?" · Item "+mt.item:"")+(day.hasMain===false?" · advance list":""),
           caseNo:info.caseNo||info.diaryNo||"", court:where, item:mt.item||"", advance:(day.hasMain===false), matterId:mid});
@@ -24493,7 +24551,7 @@ function todayWidgetHTML(){
     // Case folder, one tap from the home screen (hearings & Supreme Court listings)
     const _fm=(isHear||isList)&&e.matterId?matterById(e.matterId):null;
     const _fser=(_fm&&_canFiles(_fm))?+_fm.serial:((isList&&e.serial&&!isStaffView())?+e.serial:0);
-    const folderBtn=_filesTile(_fser);
+    const folderBtn=_filesTile(_fser)+(isList&&e.lk!=null&&!e.matterId&&!e.serial?`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${e.lk})" title="Not linked to any of your cases — link it">Link</button>`:"");
     return `<div class="tw-row" onclick="${go}">
       ${tag}
       <div class="tw-mid"><div class="tw-t">${esc(e.title||"—")}</div>${e.sub?`<div class="tw-s">${esc(e.sub)}</div>`:""}</div>
@@ -26961,7 +27019,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-1000";
+  window.APP_VERSION = "2026.10.10-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
