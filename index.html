@@ -3007,7 +3007,7 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
         _syncing=true;
         DB[name]=records; records.forEach(r=>delete r._updated);
         saveLocalOnly();
-        if(DB.deviceRole!=="staff" && name==="matters"){ try{ _assignPendingSerials(); }catch(e){} }
+        // (file numbers for staff-added cases are given just after this update is handled — see below)
         if(DB.deviceRole==="staff"){
           if(window._staffRefresh) try{ _staffRefresh(); }catch(e){}
         }else{
@@ -3015,6 +3015,9 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
           if(window._shellRefresh) try{ _shellRefresh(); }catch(e){}
         }
         _syncing=false;
+        // Owner: give staff-added cases their file number now — outside the incoming-update handler, so the change is
+        // uploaded (inside it, save() does not push, and the next update used to replace the number: case 420, 11.10.2026)
+        if(DB.deviceRole!=="staff" && name==="matters") setTimeout(()=>{ try{ _assignPendingSerials(); }catch(e){} },0);
       },
       (settings)=>{
         if(_syncing) return;
@@ -16571,10 +16574,13 @@ function _mxEntries(){
       folderTitle:r&&(r.title||r.t)||"", chamber, role, mine:chamber==="AD"||role!=="assist", status, kind:(p&&p.kind)||(/caveat/i.test((r&&(r.title||r.t))||"")?"caveat":"case"),
       nums, L, next:p&&p.nextDate&&p.nextDate>=today?p.nextDate:"", codes:act.map(m=>m.code).filter(c=>c&&!/^C-/.test(c))});
   };
-  if(!staff) (DB.register||[]).forEach(r=>{ const ms=bySer.get(+r.serial)||[]; bySer.delete(+r.serial); mk(r.serial,r,ms); });
+  // a case the register points to belongs on that file's row even if its own copy has lost the number — never twice
+  const onReg=new Set();
+  if(!staff) (DB.register||[]).forEach(r=>{ const ms=(bySer.get(+r.serial)||[]).slice(); bySer.delete(+r.serial);
+    const lm=r.matterId&&!ms.some(x=>x.id===r.matterId)?matterById(r.matterId):null; if(lm&&!isVoided(lm)&&!lm.serial) ms.push(lm); if(r.matterId) onReg.add(r.matterId); mk(r.serial,r,ms); });
   else (window.__adCases||[]).forEach(c=>{ if(!c||!c.s) return; const ms=bySer.get(+c.s)||[]; bySer.delete(+c.s); mk(c.s,{serial:c.s,t:c.t,title:c.t,chamber:/^SD Chamber\//.test(c.f||"")?"SD":"AD",folder:c.f,n:c.n||[],u:c.u||""},ms); });
   bySer.forEach((ms,s)=>mk(s,null,ms));
-  live.filter(m=>!m.serial&&!isVoided(m)).forEach(m=>{ if(m.kind==="ia"){ const par=matterById(m.parentId); mk(null,null,[m]); out[out.length-1].iaParent=par; } else mk(null,null,[m]); });
+  live.filter(m=>!m.serial&&!isVoided(m)&&!onReg.has(m.id)).forEach(m=>{ if(m.kind==="ia"){ const par=matterById(m.parentId); mk(null,null,[m]); out[out.length-1].iaParent=par; } else mk(null,null,[m]); });
   return out;
 }
 function renderMatters(){
@@ -19174,21 +19180,28 @@ function _regEntryFromMatter(m){
 function _stampSerial(m){
   if(!m || (m.kind!=="case" && m.kind!=="caveat" && !(m.kind==="query"&&m.wantFile))) return;
   if(isStaffView()){ m.serialPending=true; return; }
-  m.serial=nextSerial(); m.chamber=m.chamber||"AD"; delete m.serialPending;
+  m.serial=nextSerial(); m.chamber=m.chamber||"AD"; m.serialPending=false;
   if(!Array.isArray(DB.register)) DB.register=[];
   DB.register.push(_regEntryFromMatter(m));
 }
 function _assignPendingSerials(){
   if(isStaffView()) return false;
-  let n=0, ask=0;
+  let n=0, ask=0; const touched=[];
+  // heal: a case the register already gives a file to, whose own copy lost the number, gets it back (never a second number)
+  (DB.matters||[]).forEach(m=>{ if(m.serial||isVoided(m)) return; const r=(DB.register||[]).find(x=>x.matterId===m.id&&x.status!=="removed"&&x.status!=="merged"); if(!r) return;
+    m.serial=+r.serial; m.chamber=r.chamber||m.chamber||"AD"; if(r.folder) m.folder=r.folder; m.serialPending=false; m.folderAsk=false; touched.push(m); n++; });
   (DB.matters||[]).forEach(m=>{
-    if(m.serialPending && !m.serial && _cfIsCase(m)){
+    if(m.serialPending && !m.serial && _cfIsCase(m) && touched.indexOf(m)<0){
       // a folder may already exist for it (same number / name): the owner chooses instead of a new number
       let maybe=false, sib=null; try{ sib=_cfSibling(m); if(!sib) maybe=_cfMaybe(_cfCandidates(m)); }catch(e){}
+      touched.push(m);
       if(sib){ _cfShare(m,sib); n++; }
-      else if(maybe){ delete m.serialPending; m.folderAsk=true; ask++; } else { _stampSerial(m); n++; } }
+      else if(maybe){ m.serialPending=false; m.folderAsk=true; ask++; } else { _stampSerial(m); n++; } }
   });
-  if(n||ask){ save(); toast((n?(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."):"")+(ask?` ${ask===1?"A case":ask+" cases"} added by staff may already have a case folder — choose it from Cases.`:"")); }
+  if(n||ask){ save();
+    // and write these cases and their register entries to the cloud directly, not only through the batched upload
+    try{ if(window.FB&&FB.pushRecord){ touched.forEach(m=>{ FB.pushRecord("matters",m).catch(()=>{}); const r=(DB.register||[]).find(x=>x.matterId===m.id); if(r) FB.pushRecord("register",r).catch(()=>{}); }); } }catch(e){}
+    toast((n?(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."):"")+(ask?` ${ask===1?"A case":ask+" cases"} added by staff may already have a case folder — choose it from Cases.`:"")); }
   return n+ask>0;
 }
 // A register entry can lose its matter link if a cloud snapshot races a local edit; the matter
@@ -19245,24 +19258,24 @@ function _cfSibling(m){
   const mk=_matterKeys(m); if(!mk.size) return null;
   return (DB.matters||[]).find(x=>x!==m&&x.id!==m.id&&_cfIsCase(x)&&x.serial&&!!x.historical!==!!m.historical&&_keysMatch(mk,_matterKeys(x)))||null;
 }
-function _cfShare(m,sib){ m.serial=+sib.serial; m.chamber=sib.chamber||"AD"; m.folder=sib.folder||""; delete m.serialPending; delete m.folderAsk; }
+function _cfShare(m,sib){ m.serial=+sib.serial; m.chamber=sib.chamber||"AD"; m.folder=sib.folder||""; m.serialPending=false; m.folderAsk=false; }
 function _cfAfterCreate(m){
   if(!_cfIsCase(m)||m.serial) return false;
   const sib=_cfSibling(m); if(sib){ _cfShare(m,sib); return false; }
   if(isStaffView()){ m.serialPending=true; return false; }
-  if(_cfMaybe(_cfCandidates(m))){ m.folderAsk=true; delete m.serialPending; return true; }
+  if(_cfMaybe(_cfCandidates(m))){ m.folderAsk=true; m.serialPending=false; return true; }
   _stampSerial(m); return false;
 }
 function _cfLink(m,r){
   m.serial=+r.serial; m.chamber=r.chamber||"AD";
   // a shared case is one we act in (AoR / counsel) — in either chamber its folder travels with it (owner, 11 Oct 2026)
   m.folder=r.folder||""; if(!m.role) m.role=m.filingOnly?"filing":"aor";
-  delete m.serialPending; delete m.folderAsk;
+  m.serialPending=false; m.folderAsk=false;
   const om=r.matterId?matterById(r.matterId):null;
   if(!om||isVoided(om)) r.matterId=m.id;
 }
 function _cfNew(m,title,chamber){
-  m.chamber=chamber==="SD"?"SD":"AD"; delete m.folderAsk;
+  m.chamber=chamber==="SD"?"SD":"AD"; m.folderAsk=false;
   _stampSerial(m); if(!m.serial) return;
   const r=(DB.register||[]).find(x=>x.matterId===m.id&&+x.serial===+m.serial);
   const name=_ncTitle(title||m.parties||m.client);
@@ -24634,7 +24647,7 @@ function _regSave(id){
   if(typeof _refreshMatterDetail==="function") _refreshMatterDetail();
 }
 function _regLinkMatter(r,m){
-  m.serial=r.serial; m.chamber=r.chamber; m.folder=r.folder||m.folder||""; delete m.serialPending;
+  m.serial=r.serial; m.chamber=r.chamber; m.folder=r.folder||m.folder||""; m.serialPending=false;
   const nums=(r.petitionNos||[]);
   if(!m.caseNo && !m.diaryNo && nums.length){ if(/diary/i.test(nums[0])) m.diaryNo=nums[0].replace(/^.*?(\d[\d\s\-–]*\/\s*\d{4}).*$/,"$1").replace(/\s/g,""); else m.caseNo=nums[0]; }
   m.petitionNos=nums.filter(n=>n!==m.caseNo&&n!==m.diaryNo);
@@ -27724,7 +27737,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1545";
+  window.APP_VERSION = "2026.10.11-1600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
