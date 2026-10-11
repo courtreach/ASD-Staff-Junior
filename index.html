@@ -19034,8 +19034,9 @@ function _assignPendingSerials(){
   (DB.matters||[]).forEach(m=>{
     if(m.serialPending && !m.serial && (m.kind==="case"||m.kind==="caveat") && !isVoided(m)){
       // a folder may already exist for it (same number / name): the owner chooses instead of a new number
-      let maybe=false; try{ maybe=_cfMaybe(_cfCandidates(m)); }catch(e){}
-      if(maybe){ delete m.serialPending; m.folderAsk=true; ask++; } else { _stampSerial(m); n++; } }
+      let maybe=false, sib=null; try{ sib=_cfSibling(m); if(!sib) maybe=_cfMaybe(_cfCandidates(m)); }catch(e){}
+      if(sib){ _cfShare(m,sib); n++; }
+      else if(maybe){ delete m.serialPending; m.folderAsk=true; ask++; } else { _stampSerial(m); n++; } }
   });
   if(n||ask){ save(); toast((n?(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."):"")+(ask?` ${ask===1?"A case":ask+" cases"} added by staff may already have a case folder — choose it from Cases.`:"")); }
   return n+ask>0;
@@ -19088,8 +19089,16 @@ function _cfStrong(c){ return !!c&&!c.other&&((c.score>=10&&c.names>=1&&/number/
 function _cfMaybe(cands){ return cands.some(c=>/number/.test(c.why)||c.names>=2); }
 // Every way a case is made calls this. Owner: a new file number at once, unless a folder may already exist — then
 // the case waits for the owner's choice. Staff: pending; the owner's app decides when it next opens.
+// A disposed case is entered again in the Past cases register (PC-…) — the same case, the same folder (owner, 11 Oct
+// 2026: "both of these numbers should point to one common folder"). Found by the same case / diary number.
+function _cfSibling(m){
+  const mk=_matterKeys(m); if(!mk.size) return null;
+  return (DB.matters||[]).find(x=>x!==m&&x.id!==m.id&&_cfIsCase(x)&&x.serial&&!!x.historical!==!!m.historical&&_keysMatch(mk,_matterKeys(x)))||null;
+}
+function _cfShare(m,sib){ m.serial=+sib.serial; m.chamber=sib.chamber||"AD"; m.folder=sib.folder||""; delete m.serialPending; delete m.folderAsk; }
 function _cfAfterCreate(m){
   if(!_cfIsCase(m)||m.serial) return false;
+  const sib=_cfSibling(m); if(sib){ _cfShare(m,sib); return false; }
   if(isStaffView()){ m.serialPending=true; return false; }
   if(_cfMaybe(_cfCandidates(m))){ m.folderAsk=true; delete m.serialPending; return true; }
   _stampSerial(m); return false;
@@ -19127,13 +19136,18 @@ function _cfRefs(id){ let n=0; Object.keys(DB).forEach(k=>{ const a=DB[k]; if(k=
 // a placeholder made from the register ("C-225 Jintur MIDC 13 - Ankitabai Jagtap"): nothing of its own, safe to fold in
 function _cfIsStub(m){ return !!m&&!!m.fromRegister&&!_cfRefs(m.id); }
 function _cfAll(m){
-  const out=_cfCandidates(m).map(c=>{ if(c.other&&_cfIsStub(c.other)){ c.stub=c.other; c.other=null; } return c; });
+  const pair=o=>!!o&&!!o.historical!==!!m.historical;   // live entry + past-case entry of one case
+  const out=_cfCandidates(m).map(c=>{ if(c.other&&_cfIsStub(c.other)){ c.stub=c.other; c.other=null; } if(pair(c.other)){ c.partner=c.other; c.other=null; } return c; });
+  const sib=_cfSibling(m);
+  if(sib){ const r=(DB.register||[]).find(x=>+x.serial===+sib.serial);
+    if(r){ let c=out.find(x=>x.r&&x.r.id===r.id); if(!c){ c={r,score:0,names:0,why:""}; out.push(c); }
+      c.other=null; c.partner=sib; c.sure=true; c.score+=50; c.why=`same case as ${sib.code} (same number)`+(c.why?" · "+c.why:""); } }
   const H=((window.__cfHints||{}).hints||{})[m.id]||[];
   H.forEach(h=>{
     if(h.undecided){ out.push({u:h.folder, name:h.folder.replace(/^Undecided\//,""), files:h.files, score:h.score+(h.sure?20:0), sure:!!h.sure, why:"its folder in Undecided — "+h.why}); return; }
     const r=(DB.register||[]).find(x=>+x.serial===+h.serial); if(!r||r.status==="removed"||r.status==="merged") return;
     let c=out.find(x=>x.r&&x.r.id===r.id);
-    if(!c){ const om=r.matterId&&r.matterId!==m.id?matterById(r.matterId):null; c={r,score:0,names:0,why:"",other:(om&&!isVoided(om))?om:null}; if(c.other&&_cfIsStub(c.other)){ c.stub=c.other; c.other=null; } out.push(c); }
+    if(!c){ const om=r.matterId&&r.matterId!==m.id?matterById(r.matterId):null; c={r,score:0,names:0,why:"",other:(om&&!isVoided(om))?om:null}; if(c.other&&_cfIsStub(c.other)){ c.stub=c.other; c.other=null; } if(pair(c.other)){ c.partner=c.other; c.other=null; } out.push(c); }
     c.score+=h.score+(h.sure?20:0); c.sure=c.sure||!!h.sure; c.why=(c.why?c.why+" · ":"")+"in its papers: "+h.why;
   });
   return out.sort((a,b)=>(b.sure-a.sure)||(b.score-a.score)).slice(0,4);
@@ -19173,7 +19187,7 @@ async function _cfReview(ids){
     if(pick==="new") nNew++; else if(pick==="later") nAsk++; else if(pick[0]==="u") nMove++; else nLink++;
     const chip=(v,html,cls)=>`<button type="button" class="cf-chip${cls?" "+cls:""}${pick===v?" on":""}" data-v="${v}" onclick="_cfPick(this)">${html}</button>`;
     const chips=c.map(x=>x.u?chip(vOf(x),`📂 <b>Undecided</b> · ${esc(x.name.slice(0,60))} <i>(${x.files} file${x.files===1?"":"s"})</i><span class="cf-why">${esc(x.why)} — moves into the chamber with a new file number</span>`)
-        :chip(vOf(x),`📁 <b>${String(x.r.serial).padStart(3,"0")}</b> · ${esc(String(x.r.title||"").slice(0,60))}${x.r.chamber==="SD"?" <i>(SD)</i>":""}<span class="cf-why">${esc(x.why)}${x.other?` · already has ${esc(x.other.code||"another case")} — same case? they are merged`:""}${x.stub?` · its placeholder ${esc(x.stub.code)} is folded in`:""}</span>`)).join("")
+        :chip(vOf(x),`📁 <b>${String(x.r.serial).padStart(3,"0")}</b> · ${esc(String(x.r.title||"").slice(0,60))}${x.r.chamber==="SD"?" <i>(SD)</i>":""}<span class="cf-why">${esc(x.why)}${x.partner?` · ${esc(x.partner.code)} ${x.partner.historical?"(its past-case entry)":"(its live entry)"} uses this folder too`:""}${x.other?` · ${esc(x.other.code||"another case")} uses this folder too`:""}${x.stub?` · its placeholder ${esc(x.stub.code)} is folded in`:""}</span>`)).join("")
       +prev.map(p=>chip("same:"+p.id,`Same folder as ${esc(p.code)}`,"cf-alt")).join("")
       +chip("new","＋ New case folder","cf-alt")+chip("other","Other file No.","cf-alt")+chip("later","Later","cf-alt");
     const nums=[m.caseNo&&!/_{2,}/.test(m.caseNo)?m.caseNo:"",m.diaryNo?"Diary "+m.diaryNo:"",m.caveatNo?"Caveat "+m.caveatNo:""].filter(Boolean).join(" · ");
@@ -19214,7 +19228,7 @@ function _cfApply(){
   const lost=plan.find(p=>p.act==="same"&&!(p.to&&(p.to.serial||plan.some(q=>q.m===p.to&&q.act!=="same"))));
   if(lost){ toast(`${lost.m.code}: choose a folder for ${lost.to?lost.to.code:"the other case"} too.`,true); return; }
   if(!plan.length){ closeModal(); return; }
-  const merges=plan.filter(p=>p.act==="link"&&p.r.matterId&&p.r.matterId!==p.m.id&&matterById(p.r.matterId)&&!isVoided(matterById(p.r.matterId))&&!_cfIsStub(matterById(p.r.matterId)));
+  const merges=[];
   const nNew=plan.filter(p=>p.act==="new"||p.act==="adopt").length, nMove=plan.filter(p=>p.act==="adopt").length, first=nextSerial();
   const msg=[plan.length-nNew?`Link ${plan.length-nNew} case${plan.length-nNew===1?"":"s"} to ${plan.length-nNew===1?"its folder":"their folders"}.`:"",
     nNew?`Give ${nNew} case${nNew===1?"":"s"} new file number${nNew===1?"":"s"} (${nNew===1?first:first+"–"+(first+nNew-1)})${nMove?` — ${nMove} of them by moving ${nMove===1?"its folder":"their folders"} out of Undecided`:""}.`:"",
@@ -19224,9 +19238,8 @@ function _cfApply(){
   plan.forEach(p=>{
     if(p.act==="link"){
       const om=p.r.matterId&&p.r.matterId!==p.m.id?matterById(p.r.matterId):null;
-      if(om&&!isVoided(om)&&!om.fromRegister){ _cfMerge(om,p.m); nMerged++; p.m=om; return; }   // double entry: the folder's case stays, this one folds in
-      _cfLink(p.m,p.r);
-      if(om&&!isVoided(om)&&om.fromRegister){ _cfMerge(p.m,om); p.r.matterId=p.m.id; }      // the register's placeholder folds into the real case
+      _cfLink(p.m,p.r);   // another real entry of the folder (e.g. the past-case entry) keeps its own record and shares the folder
+      if(om&&!isVoided(om)&&_cfIsStub(om)){ _cfMerge(p.m,om); p.r.matterId=p.m.id; nMerged++; }   // the register's placeholder folds into the real case
     }
     else if(p.act==="new") _cfNew(p.m,p.title,p.ch);
     else if(p.act==="adopt"){ _cfNew(p.m,p.title,p.ch); const r=(DB.register||[]).find(x=>x.matterId===p.m.id&&+x.serial===+p.m.serial); if(r) r.adopt=p.src; }
@@ -19234,7 +19247,7 @@ function _cfApply(){
   plan.filter(p=>p.act==="same").forEach(p=>{ const t=p.to; const r=t&&t.serial&&(DB.register||[]).find(x=>+x.serial===+t.serial); if(r){ _cfLink(p.m,r); if(!p.m.folder&&t.folder) p.m.folder=t.folder; } });
   plan.forEach(p=>{ if(p.m.serial) try{ logActivity("matter",`${p.m.code} — case folder ${p.act==="new"?"made as":p.act==="adopt"?"moved from "+p.src+" as":"linked to"} file ${String(p.m.serial).padStart(3,"0")}`,{refId:p.m.id}); }catch(e){} });
   save(); closeModal();
-  toast([plan.length-nNew-nMerged>0?`${plan.length-nNew-nMerged} linked`:"",nMerged?`${nMerged} double entr${nMerged===1?"y":"ies"} merged`:"",nNew?`${nNew} new file number${nNew===1?"":"s"} — your Mac ${nMove?"moves / makes the folders":"makes the folder"+(nNew===1?"":"s")} within two minutes`:""].filter(Boolean).join(" · ")+".");
+  toast([plan.length-nNew>0?`${plan.length-nNew} linked`:"",nMerged?`${nMerged} placeholder${nMerged===1?"":"s"} folded in`:"",nNew?`${nNew} new file number${nNew===1?"":"s"} — your Mac ${nMove?"moves / makes the folders":"makes the folder"+(nNew===1?"":"s")} within two minutes`:""].filter(Boolean).join(" · ")+".");
   try{ renderAll(); }catch(e){}
 }
 // staff: an older case with no file number — ask the owner's app to give it one
@@ -19245,7 +19258,7 @@ function _cfDetailRow(m){
   if(isStaffView()) return m.serialPending?"":m.folderAsk?`<div class="row">${k}Case folder</span><b style="color:var(--muted)">waiting — the Head of Chamber chooses its folder</b></div>`:`<div class="row">${k}Case folder</span><b>none yet <button class="row-act" onclick="_cfAskOwner('${m.id}')">Ask for its folder</button></b></div>`;
   return `<div class="row">${k}Case folder</span><b style="color:var(--seal)">none yet <button class="row-act" onclick="closeModal();_cfReview(['${m.id}'])">📁 Give it its case folder</button></b></div>`;
 }
-try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow,_cfHintsLoad,_cfRefs,_cfIsStub,_cfAll,_cfMerge}); }catch(e){}
+try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow,_cfHintsLoad,_cfRefs,_cfIsStub,_cfAll,_cfMerge,_cfSibling,_cfShare}); }catch(e){}
 const _FOLDER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2.2h8.8A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M3 11h18"/></svg>';
 function _filesTile(serial){ return serial?`<button class="cu-fbtn" onclick="event.stopPropagation(); openFiles(${+serial})" title="Open this case's papers">${_FOLDER_SVG}<span>Files</span></button>`:""; }
 function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
@@ -27534,7 +27547,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1300";
+  window.APP_VERSION = "2026.10.11-1315";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
