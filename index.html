@@ -2245,6 +2245,8 @@
   .sc-cam-msg{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:7px 14px;border-radius:16px;font-size:13px;text-align:center;width:max-content;max-width:90%;transition:opacity .6s}
   .sc-cam-msg.fade{opacity:0;pointer-events:none}
   .sc-tr{display:flex;gap:8px}
+  .sc-blank-acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .sc-blank-acts .btn.ghost{color:#fff;border-color:rgba(255,255,255,.4);background:transparent}
   .sc-link2{background:none;border:0;color:#9fe3cf;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
   .sc-cam-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-bottom:max(14px,env(safe-area-inset-bottom));background:#000}
   .sc-cam-side{width:84px;display:flex;justify-content:center}
@@ -20658,48 +20660,88 @@ const _SC_CAM_KEY="asdc_scan_cam", _SC_RES={width:{ideal:3840},height:{ideal:216
 function _scCamPref(){ try{ return localStorage.getItem(_SC_CAM_KEY)||""; }catch(e){ return ""; } }
 async function _scCams(){ try{ return (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); }catch(e){ return []; } }
 function _scIsFront(track){ try{ const s=track.getSettings(); if(s.facingMode) return s.facingMode==="user"; }catch(e){} return /front|user|facetime|selfie/i.test(track&&track.label||""); }
-async function _scGetStream(devId){
+async function _scGetStream(devId, res){
   const gum=v=>navigator.mediaDevices.getUserMedia({audio:false,video:v}), deny=e=>e&&(e.name==="NotAllowedError"||e.name==="SecurityError");
-  if(devId){ try{ return await gum(Object.assign({deviceId:{exact:devId}},_SC_RES)); }catch(e){ if(deny(e)) throw e; } }
-  try{ return await gum(Object.assign({facingMode:{exact:"environment"}},_SC_RES)); }catch(e){ if(deny(e)) throw e; }
-  try{ return await gum(Object.assign({facingMode:{ideal:"environment"}},_SC_RES)); }catch(e){ if(deny(e)) throw e; }
+  res=res||{};
+  if(devId){ try{ return await gum(Object.assign({deviceId:{exact:devId}},res)); }catch(e){ if(deny(e)) throw e; } }
+  try{ return await gum(Object.assign({facingMode:{exact:"environment"}},res)); }catch(e){ if(deny(e)) throw e; }
+  try{ return await gum(Object.assign({facingMode:{ideal:"environment"}},res)); }catch(e){ if(deny(e)) throw e; }
   return await gum(true);
 }
+const _scWait=ms=>new Promise(r=>setTimeout(r,ms));
+// Real pictures arriving? Some phone cameras accept a request and then send only black frames (or none).
+async function _scFramesOK(v, ms){
+  const t=document.createElement("canvas"); t.width=t.height=24; const g=t.getContext("2d",{willReadFrequently:true}); const end=Date.now()+ms;
+  while(Date.now()<end){
+    if(v.videoWidth&&v.readyState>=2){ try{ g.drawImage(v,0,0,24,24); const d=g.getImageData(0,0,24,24).data; let mx=0; for(let i=0;i<d.length;i+=4){ const l=d[i]+d[i+1]+d[i+2]; if(l>mx) mx=l; } if(mx>24) return true; }catch(e){ return true; } }
+    await _scWait(150);
+  }
+  return false;
+}
+function _scStopStream(s){ if(s){ try{ s.getTracks().forEach(t=>t.stop()); }catch(e){} } }
 async function _scCamOpen(repl, devId){
-  if(!_sc) return;
+  if(!_sc) return false;
+  const had=!!(_sc.cam&&_sc.cam.stream);
   _scCamStop(); _sc.replAsk=-1; _sc.view=-1; _scViewUrl(null);
   _sc.cam={repl:repl>=0?repl:-1, stream:null, track:null, torch:false, quad:null, found:false, busy:false};
   _scCamRender();
-  const c=_sc.cam;
+  const c=_sc.cam, v=document.getElementById("scVid"), live=()=>_sc&&_sc.cam===c;
+  if(had) await _scWait(400);   // Android needs a moment to let go of the last camera before opening another
   try{
     const chosen=devId||_scCamPref();
-    let stream=await _scGetStream(chosen);
-    if(!chosen&&_scIsFront(stream.getVideoTracks()[0])){   // asked for the back camera, got the front one
-      const back=(await _scCams()).find(d=>/back|rear|environment|facing back/i.test(d.label)&&!/front/i.test(d.label));
-      if(back){ try{ const s2=await _scGetStream(back.deviceId); stream.getTracks().forEach(t=>t.stop()); stream=s2; }catch(e){} }
+    let target=chosen, stream=null;
+    // full quality first; then lighter requests (some cameras go black at 4K)
+    const levels=[_SC_RES,{width:{ideal:1920},height:{ideal:1080}},{}];
+    for(let pass=0;pass<2&&!stream;pass++){
+      for(const res of levels){
+        if(!live()) return false;
+        let s; try{ s=await _scGetStream(target,res); }catch(e){ if(e&&(e.name==="NotAllowedError"||e.name==="SecurityError")) throw e; continue; }
+        if(!live()){ _scStopStream(s); return false; }
+        // asked for the back camera and got the front one: release it, then open a camera named back/rear
+        if(!target&&pass===0&&_scIsFront(s.getVideoTracks()[0])){
+          const back=(await _scCams()).find(d=>/back|rear|environment/i.test(d.label)&&!/front/i.test(d.label));
+          if(back){ _scStopStream(s); await _scWait(400); target=back.deviceId; s=null; break; }
+        }
+        if(v){ v.srcObject=s; try{ await v.play(); }catch(e){} }
+        if(await _scFramesOK(v,2600)){ stream=s; break; }
+        if(v) v.srcObject=null; _scStopStream(s); await _scWait(400);
+      }
+      if(stream||target===chosen) break;   // a second pass only for the back camera found by name
     }
-    if(!_sc||_sc.cam!==c){ stream.getTracks().forEach(t=>t.stop()); return; }
+    if(!live()){ _scStopStream(stream); return false; }
+    if(!stream){ _scCamBlank(c); return false; }
     c.stream=stream; c.track=stream.getVideoTracks()[0];
-    try{ c.devId=(c.track.getSettings()||{}).deviceId||""; }catch(e){ c.devId=""; }
-    _scCams().then(cs=>{ if(cs.length>1&&_sc&&_sc.cam===c){ const b=document.getElementById("scFlip"); if(b) b.style.display=""; } });
-    const v=document.getElementById("scVid"); if(v){ v.srcObject=stream; try{ await v.play(); }catch(e){} }
+    try{ c.devId=(c.track.getSettings()||{}).deviceId||target||""; }catch(e){ c.devId=target||""; }
+    _scCams().then(cs=>{ if(cs.length>1&&live()){ const b=document.getElementById("scFlip"); if(b) b.style.display=""; } });
     try{ const caps=c.track.getCapabilities&&c.track.getCapabilities(); if(caps&&caps.torch){ const b=document.getElementById("scTorch"); if(b) b.style.visibility="visible"; } }catch(e){}
-    c.track.addEventListener("ended",()=>{ if(_sc&&_sc.cam===c&&!c.stopped){ const m=document.getElementById("scCamMsg"); if(m){ m.classList.remove("fade"); m.innerHTML=`The camera stopped. <button class="sc-link2" onclick="_scCamOpen(${c.repl})">Start again</button>`; } } });
+    c.track.addEventListener("ended",()=>{ if(live()&&!c.stopped){ const m=document.getElementById("scCamMsg"); if(m){ m.classList.remove("fade"); m.innerHTML=`The camera stopped. <button class="sc-link2" onclick="_scCamOpen(${c.repl})">Start again</button>`; } } });
     _scCamLoop();
+    return true;
   }catch(e){
-    if(!_sc||_sc.cam!==c) return;
+    if(!live()) return false;
     _scCamStop(); _sc.noCam=true; if(repl>=0) _sc.replAsk=repl; _scRender();
     toast(e&&e.name==="NotAllowedError"?"The camera is not allowed for this site — use the camera button below (it opens the phone's camera), or allow the camera in the browser settings.":"The live camera is not available here — the camera button below opens the phone's camera instead.",true);
+    return false;
   }
+}
+// This camera sends nothing: offer the next camera, or the phone's own camera app (always works)
+function _scCamBlank(c){
+  try{ if(_scCamPref()) localStorage.removeItem(_SC_CAM_KEY); }catch(e){}
+  _scCams().then(cs=>{ const b=document.getElementById("scFlip"); if(b&&cs.length>1) b.style.display=""; });
+  const m=document.getElementById("scCamMsg"); if(!m) return;
+  const on=c.repl>=0?`_scCamStop();_scReplPicked(this,${c.repl})`:"_scCamStop();_scPicked(this)";
+  m.classList.remove("fade"); m.dataset.s="1";
+  m.innerHTML=`This camera shows nothing on this phone.<div class="sc-blank-acts"><button class="btn ghost sm" onclick="_scCamSwitch()">⇄ Try the next camera</button><label class="btn seal sm">📷 Use the phone's camera<input type="file" accept="image/*" capture="environment" onchange="${on}" hidden></label></div>`;
 }
 async function _scCamSwitch(){
   const c=_sc&&_sc.cam; if(!c||c.switching) return; c.switching=true;
   const cs=await _scCams(); if(cs.length<2){ c.switching=false; toast("This phone has only one camera.",true); return; }
-  const i=cs.findIndex(d=>d.deviceId&&d.deviceId===c.devId), nx=cs[(i+1)%cs.length];
-  try{ localStorage.setItem(_SC_CAM_KEY,nx.deviceId); }catch(e){}
-  await _scCamOpen(c.repl, nx.deviceId);
-  const k=((i+1)%cs.length)+1, L=nx.label||"";
-  toast((/front|user|facetime|selfie/i.test(L)?"Front camera":/back|rear|environment/i.test(L)?"Back camera":"Camera")+(cs.length>2?` (${k} of ${cs.length})`:""));
+  const i=cs.findIndex(d=>d.deviceId&&d.deviceId===c.devId), k=(i+1)%cs.length, nx=cs[k], L=nx.label||"";
+  const name=(/front|user|facetime|selfie/i.test(L)?"Front camera":/back|rear|environment/i.test(L)?"Back camera":"Camera")+(cs.length>2?` (${k+1} of ${cs.length})`:"");
+  toast("Opening the "+name.toLowerCase()+"…");
+  const ok=await _scCamOpen(c.repl, nx.deviceId);
+  if(_sc&&_sc.cam){ _sc.cam.devId=_sc.cam.devId||nx.deviceId; }
+  if(ok){ try{ localStorage.setItem(_SC_CAM_KEY,nx.deviceId); }catch(e){} toast(name); }
 }
 function _scCamStop(){
   const c=_sc&&_sc.cam; if(!c) return;
@@ -24129,7 +24171,7 @@ function _aiEditCopy(did){ const {d}=_defFind(did); const items=((d&&d.ai&&d.ai.
   if(items.length===1){ _peOpenFile(items[0].file,'aiprop'); return; }
   openModal("Which AI copy?", `<div class="btn-row" style="flex-direction:column;align-items:stretch;gap:6px">${items.map(it=>`<button class="btn ghost" onclick="closeModal();_peOpenFile(${_fvQuote(it.file)},'aiprop')">${esc(it.label||it.file)}</button>`).join("")}</div>`); }
 try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
-try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_scCamOK,_scNewPage,_scCamPref,_scCams,_scIsFront,_scGetStream,_scCamSwitch,_scTick,_scViewUrl,_scView,_scViewHTML,_scCamOpen,_scCamStop,_scCamRender,_scCamCount,_scCamDone,_scTorch,_scIsFull,_scCamLoop,_scShot,_scPump,_scReplAsk,_scReplPicked,_scReplaceWith,_scMoveTo,_scModeFlip,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
+try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_scCamOK,_scNewPage,_scCamPref,_scCams,_scIsFront,_scGetStream,_scCamSwitch,_scWait,_scFramesOK,_scStopStream,_scCamBlank,_scTick,_scViewUrl,_scView,_scViewHTML,_scCamOpen,_scCamStop,_scCamRender,_scCamCount,_scCamDone,_scTorch,_scIsFull,_scCamLoop,_scShot,_scPump,_scReplAsk,_scReplPicked,_scReplaceWith,_scMoveTo,_scModeFlip,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -27407,7 +27449,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1130";
+  window.APP_VERSION = "2026.10.11-1215";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
