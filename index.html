@@ -2272,6 +2272,18 @@
   .fv-row.sel{border-color:var(--seal);box-shadow:0 0 0 2px var(--seal-soft)}
   /* Cases register: a table on wide screens, one card per case on phones */
   .mx-narrow{display:none}
+  .cr-bar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.cr-bar .in{width:auto;flex:0 0 auto}.cr-bar #mxQ{flex:1 1 220px}
+  .cr-list{border-top:1px solid var(--line)}
+  .cr-row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+  .cr-row:hover{background:var(--paper2)}
+  .cr-no{flex:0 0 42px;font-weight:700;color:var(--seal);font-size:14px}
+  .cr-main{flex:1;min-width:0}.cr-t{font-weight:600;line-height:1.3;overflow-wrap:anywhere}.cr-s{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-mk{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:9px;background:var(--line2);color:var(--muted);vertical-align:1px}
+  .cr-mk.sd{background:#3b5a7a;color:#fff}.cr-mk.off{background:transparent;border:1px solid var(--line)}
+  .cr-r{flex:0 0 auto;text-align:right}.cr-when{font-size:12px;color:var(--muted);white-space:nowrap}.cr-when.on{color:var(--green);font-weight:600}
+  .cr-f{flex:0 0 34px;height:34px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--seal);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .cr-f svg{width:18px;height:18px}.cr-f-x{flex:0 0 34px}
+  @media (max-width:560px){ .cr-row{gap:9px;padding:9px 2px} .cr-no{flex-basis:34px} .cr-r{display:none} .cr-bar #mxQ{flex-basis:100%} .cr-bar select.in{flex:1 1 0;min-width:0} .cr-t{font-size:14.5px} }
   .mx-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 13px;margin-bottom:9px}
   .mx-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px}
   .mx-code{color:var(--seal);font-weight:800;text-decoration:none;font-size:14px}
@@ -16539,47 +16551,35 @@ function renderMatters(){
     return (B.serial||0)-(A.serial||0)||String((B.p||{}).opened||"").localeCompare(String((A.p||{}).opened||""));
   });
   const SHOW=_mxShow||200, shown=rows.slice(0,SHOW);
-  const kindTag=k=>k==="caveat"?`<span class="tag" style="background:#6b1f1f;color:#fff;border:none">Caveat</span>`:(k==="query"?`<span class="tag" style="background:var(--line2)">Query</span>`:(k==="ia"?`<span class="tag" style="background:var(--line2)">I.A.</span>`:""));
-  const chTag=e=>`<span class="tag" style="background:${e.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${e.chamber}</span>${e.chamber==="SD"?` <span class="hint">${esc(e.role==="assist"?"assisting":e.role==="counsel"?"counsel":e.role==="filing"?"AoR, filing only":"AoR")}</span>`:(e.role==="filing"?` <span class="hint">filing only</span>`:(e.role==="counsel"?` <span class="hint">counsel</span>`:""))}`;
-  const stTag=e=>e.status==="disposed"?`<span class="tag closed">Disposed${e.p&&e.p.result?" · "+esc(e.p.result):""}</span>`:e.status==="cancelled"?`<span class="tag">Cancelled</span>`:e.status==="closed"?`<span class="tag closed">Closed</span>`:e.status==="active"?`<span class="tag active">${esc((e.p&&e.p.status)||"Active")}</span>`:"";
-  const listTag=e=>e.L?`<span class="tag active" title="${esc(fmtDate(e.L.date))}">Listed ${esc(fmtDate(e.L.date).slice(0,6))}${e.L.court&&e.L.court!=="—"?" · Ct "+esc(e.L.court):""}${e.L.item?" · Item "+esc(e.L.item):""}</span>`:(e.next?`<span class="hint">Next: ${esc(fmtDate(e.next))}</span>`:"");
+  // Minimal view (owner, 11 Oct 2026: "I want something minimal but keeping relevant and essential information"):
+  // File No. · case name with its number · listing or last change · Files. Marks only when they matter (SD, disposed, caveat…).
+  const mark=e=>[e.chamber==="SD"?`<span class="cr-mk sd">SD</span>`:"", e.kind==="caveat"?`<span class="cr-mk">Caveat</span>`:e.kind==="query"?`<span class="cr-mk">Query</span>`:e.kind==="ia"?`<span class="cr-mk">I.A.</span>`:"",
+    e.status==="disposed"?`<span class="cr-mk off">Disposed</span>`:e.status==="cancelled"?`<span class="cr-mk off">Cancelled</span>`:""].join("");
+  const when=e=>e.L?`<span class="cr-when on">Listed ${esc(fmtDate(e.L.date).slice(0,6))}${e.L.court&&e.L.court!=="—"?" · Ct "+esc(e.L.court):""}${e.L.item?" · "+esc(e.L.item):""}</span>`
+    :e.next?`<span class="cr-when">Next ${esc(fmtDate(e.next).slice(0,6))}</span>`:e.act?`<span class="cr-when">${esc(fmtDate(e.act.slice(0,10)))}</span>`:"";
   const openJs=e=>e.p&&!e.p.fromRegister?`openMatterDetail('${e.p.id}')`:(e.r&&e.r.id&&!staff?`_regOpen('${e.r.id}')`:(e.p?`openMatterDetail('${e.p.id}')`:(e.serial?`openFiles(${e.serial})`:"")));
   const canF=e=>!!e.serial&&(staff?(e.p?_canFiles(e.p):!!(e.r&&e.r.folder)):true);
-  const sub=e=>{ const m=e.p&&!e.p.fromRegister?e.p:null; return [e.folderTitle&&e.folderTitle!==e.title?"📁 "+esc(e.folderTitle):"", m&&m.client&&m.client!==e.title?esc(m.client):"", m&&m.refName?"Ref. "+esc(m.refName):"", e.codes.length?esc(e.codes.join(" · ")):"", e.iaParent?`in ${esc(_mNoLabel(e.iaParent))}`:""].filter(Boolean).join(" · "); };
-  const noTxt=e=>e.serial?esc(String(e.serial).padStart(3,"0")):(e.kind==="ia"?"I.A.":e.kind==="query"?"Query":e.p&&e.p.noFile?`<span class="hint" style="white-space:nowrap" title="Kept without a file number (your decision)">—</span>`:`<span style="color:var(--seal);white-space:nowrap">none</span>`);
-  const acts=(e,card)=>{ const b=card?(on,l,st)=>`<button onclick="${on}"${st?` style="${st}"`:""}>${l}</button>`:(on,l,st)=>`<button class="row-act" onclick="${on}"${st?` style="${st}"`:""}>${l}</button>`;
-    return [canF(e)?b(`openFiles(${e.serial})`,card?"📁 Files":"Files","font-weight:700"):"", e.p&&!e.p.fromRegister?b(`editMatter('${e.p.id}')`,"Edit"):"", !e.p&&e.r&&e.r.id&&!staff?b(`_regOpen('${e.r.id}')`,"Details"):""].join(""); };
-  const trs=shown.map(e=>`<tr style="${e.status==="cancelled"?"opacity:.55":""}">
-      <td class="mono"><a href="#" onclick="${openJs(e)};return false" style="color:var(--seal);font-weight:700;text-decoration:none">${noTxt(e)}</a></td>
-      <td><b>${esc(e.title)}</b> ${kindTag(e.kind)}${sub(e)?`<div class="hint">${sub(e)}</div>`:""}</td>
-      <td style="white-space:nowrap">${chTag(e)}</td>
-      <td>${e.nums.length?`<span class="mono">${esc(e.nums[0])}</span>${e.nums.length>1?`<div class="hint mono">${esc(e.nums.slice(1,3).join(" · "))}${e.nums.length>3?" …":""}</div>`:""}`:`<span class="hint">—</span>`}</td>
-      <td>${listTag(e)||`<span class="hint">—</span>`}</td>
-      <td>${stTag(e)}${e.act?`<div class="hint" title="Last change to a paper in its folder">changed ${esc(fmtDate(e.act.slice(0,10)))}</div>`:""}</td>
-      <td style="white-space:nowrap">${acts(e,false)}</td></tr>`).join("");
-  const cards=shown.map(e=>`<div class="mx-card" style="${e.status==="cancelled"?"opacity:.55":""}">
-      <div class="mx-top"><a href="#" onclick="${openJs(e)};return false" class="mono mx-code">${e.serial?"File "+noTxt(e):noTxt(e)}</a>${chTag(e)}${kindTag(e.kind)}<span style="margin-left:auto">${stTag(e)}</span></div>
-      <div class="mx-name" onclick="${openJs(e)}">${esc(e.title)}</div>
-      ${sub(e)?`<div class="mx-sub">${sub(e)}</div>`:""}
-      ${e.nums.length?`<div class="mx-num mono">${esc(e.nums.slice(0,2).join(" · "))}</div>`:""}
-      ${listTag(e)||e.act?`<div class="mx-when">${listTag(e)}${e.act?`<span class="hint">changed ${esc(fmtDate(e.act.slice(0,10)))}</span>`:""}</div>`:""}
-      <div class="fv-acts mx-acts">${acts(e,true)}</div></div>`).join("");
-  const fbtn=(id,lbl)=>(id==="all"||cnt[id])?`<button class="btn ${_mxFilter===id?"seal":"ghost"} sm" onclick="_mxSetFilter('${id}')">${lbl} <span style="opacity:.75">${cnt[id]}</span></button>`:"";
-  const nAD=E.filter(e=>e.serial&&e.chamber==="AD").length, nSD=E.filter(e=>e.serial&&e.chamber==="SD").length;
+  const noTxt=e=>e.serial?esc(String(e.serial).padStart(3,"0")):"—";
+  const list=shown.map(e=>`<div class="cr-row" onclick="${openJs(e)}">
+      <div class="cr-no mono">${noTxt(e)}</div>
+      <div class="cr-main"><div class="cr-t">${esc(e.title)}${mark(e)}</div>${e.nums.length?`<div class="cr-s mono">${esc(e.nums[0])}</div>`:""}</div>
+      <div class="cr-r">${when(e)}</div>
+      ${canF(e)?`<button class="cr-f" title="Files" onclick="event.stopPropagation();openFiles(${e.serial})">${_FOLDER_SVG}</button>`:`<span class="cr-f-x"></span>`}
+    </div>`).join("");
+  const SHOWS=[["all","All cases"],["mine","My cases"],["active","Active"],["disposed","Disposed"],["listed","Listed"],["week","This week"],["AD","AD Chamber"],["SD","SD Chamber"],["caveat","Caveats"],["query","Queries"],["ia","I.A.s"],["nofile","Without a file no."]]
+    .filter(([k])=>k==="all"||cnt[k]).filter(([k])=>!(staff&&(k==="AD"||k==="SD")));
   document.getElementById("panel-matters").innerHTML = `
     <div class="card">
       <div class="card-head">
-        <div><h2>Cases</h2><div class="hint">${staff?`${cnt.all} cases`:`${nAD+nSD} files · AD ${nAD} · SD ${nSD} · next File No. <b>${nextSerial()}</b>`}${cnt.listed?` · <b style="color:var(--green)">${cnt.listed} listed</b>`:""}</div></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="openPastCases()">Past cases</button><button class="btn ghost sm" onclick="openUnassigned()">Unassigned</button><button class="btn ghost sm" onclick="_ncAsk()">📁 New case folder</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
+        <div><h2>Cases</h2><div class="hint">${rows.length===E.length?`${E.length} cases`:`${rows.length} of ${E.length}`}${cnt.listed?` · <b style="color:var(--green)">${cnt.listed} listed</b>`:""}</div></div>
+        <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="_fvMenu(this,[{l:'Past cases',on:'openPastCases()'},{l:'Unassigned papers',on:'openUnassigned()'},{l:'New case folder (client papers)',on:'_ncAsk()'}])">More ▾</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
-        ${fbtn("all","All")}${fbtn("mine","Mine")}${staff?"":fbtn("AD","AD")+fbtn("SD","SD")}${fbtn("active","Active")}${fbtn("disposed","Disposed")}${fbtn("listed","Listed")}${fbtn("week","This week")}${fbtn("caveat","Caveats")}${fbtn("query","Queries")}${fbtn("ia","I.A.s")}${fbtn("nofile","No file no.")}
-        <select class="in" style="width:auto;margin-left:auto" title="Sort" onchange="_mxSetSort(this.value)"><option value="recent" ${_mxSort==="recent"?"selected":""}>Sort: recently changed</option><option value="fileno" ${_mxSort==="fileno"?"selected":""}>Sort: File No.</option><option value="alpha" ${_mxSort==="alpha"?"selected":""}>Sort: A–Z</option></select>
-        <input class="in" id="mxQ" style="flex:1;min-width:170px;max-width:340px" placeholder="Search File No., name, code, SLP / Diary No." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
+      <div class="cr-bar">
+        <input class="in" id="mxQ" placeholder="Search — file no., name, SLP / diary no." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
+        <select class="in" title="Show" onchange="_mxSetFilter(this.value)">${SHOWS.map(([k,l])=>`<option value="${k}" ${_mxFilter===k?"selected":""}>${esc(l)}${k==="all"?"":" ("+cnt[k]+")"}</option>`).join("")}</select>
+        <select class="in" title="Sort" onchange="_mxSetSort(this.value)"><option value="recent" ${_mxSort==="recent"?"selected":""}>Recent first</option><option value="fileno" ${_mxSort==="fileno"?"selected":""}>File No.</option><option value="alpha" ${_mxSort==="alpha"?"selected":""}>A–Z</option></select>
       </div>
-      ${staff?"":`<div style="margin:0 0 10px"><input class="fv-search" style="width:100%" placeholder="Find a paper in any case — e.g. paper book, written submissions, Jintur" value="${esc(_gpQuery)}" oninput="_gpSearch(this.value)"><div id="gpResults"></div></div>`}
-      ${E.length?`<div class="mx-box"><div class="mx-wide tbl-wrap"><table><thead><tr><th>File No.</th><th>Case</th><th>Chamber</th><th>Case / Diary No.</th><th>Listing</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="7" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>
-        <div class="mx-narrow">${cards||`<div class="empty" style="padding:14px">Nothing matches.</div>`}</div></div>
+      ${E.length?`<div class="cr-list">${list||`<div class="empty" style="padding:14px">Nothing matches.</div>`}</div>
         ${rows.length>SHOW?`<div style="text-align:center;margin-top:10px"><button class="btn ghost sm" onclick="_mxShow=${SHOW+200};renderMatters()">Show more (${rows.length-SHOW} more)</button></div>`:""}`
         :`<div class="empty">No cases yet. Add one to start.</div>`}
     </div>`;
@@ -19360,6 +19360,7 @@ function _cfDetailRow(m){
 }
 try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow,_cfHintsLoad,_cfRefs,_cfIsStub,_cfAll,_cfMerge,_cfSibling,_cfShare,_cfQueryPapers}); }catch(e){}
 const _FOLDER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2.2h8.8A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M3 11h18"/></svg>';
+try{ window._FOLDER_SVG=_FOLDER_SVG; }catch(e){}
 function _filesTile(serial){ return serial?`<button class="cu-fbtn" onclick="event.stopPropagation(); openFiles(${+serial})" title="Open this case's papers">${_FOLDER_SVG}<span>Files</span></button>`:""; }
 function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
 function _regForMatter(m){ return m ? ((DB.register||[]).find(r=>r.matterId===m.id)||null) : null; }
@@ -27667,7 +27668,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1500";
+  window.APP_VERSION = "2026.10.11-1515";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
