@@ -4755,7 +4755,7 @@ function openClientDetail(encKey){
   const matterRows=c.matters.slice().sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true})).map(m=>{
     const next=m.nextDate?fmtDate(m.nextDate):"\u2014";
     return `<tr>
-      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code||"")}</a></td>
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_fno(m))}</a></td>
       <td><b>${esc(m.parties||m.client||"")}</b>${(m.caseNo||m.diaryNo)?`<div class="hint">${esc(m.caseNo||("Diary "+m.diaryNo))}</div>`:""}</td>
       <td>${next}</td>
       <td><span class="tag ${m.status==="Concluded"?"":"active"}">${esc(m.status||"Active")}</span></td>
@@ -4856,7 +4856,7 @@ function openRefAdvDetail(encKey){
   panel.classList.add("active");
   if(!a){ panel.innerHTML=`<div class="subnav"><button class="subnav-back" onclick="_navBack()">&lsaquo;</button></div><div class="empty">Advocate not found.</div>`; return; }
   const rows=a.matters.slice().sort((x,y)=>String(x.code||"").localeCompare(String(y.code||""),undefined,{numeric:true})).map(m=>`<tr>
-      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code||"")}</a></td>
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_fno(m))}</a></td>
       <td><b>${esc(m.parties||m.client||"")}</b>${m.kind==="caveat"?` <span class="tag" style="background:#6b1f1f;color:#fff">Caveat</span>`:""}${(m.caseNo||m.diaryNo)?`<div class="hint">${esc(m.caseNo||("Diary "+m.diaryNo))}</div>`:""}</td>
       <td>${esc(m.client||"")||"&mdash;"}</td>
       <td><span class="tag ${m.status==="Concluded"?"":"active"}">${esc(m.status||"Active")}</span>${m.historical&&m.concludedYear?`<div class="hint">${esc(m.concludedYear)}</div>`:""}</td>
@@ -4993,7 +4993,7 @@ function _raRecordStatement(d){
   if(last && last.date===todayISO() && (last.matterIds||[]).slice().sort().join(",")===ids) return;
   DB.refStatements.push({ id:uid(), refAdvId:advId, refAdvKey:d.a.key||"", name:d.a.name||"", date:todayISO(),
     matterIds:d.selected.map(m=>m.id),
-    cases:d.selected.map(m=>({id:m.id, code:m.code||"", parties:m.parties||m.client||"", num:_caseNoOrDiary(m), court:m.court||""})),
+    cases:d.selected.map(m=>({id:m.id, code:_fno(m), parties:m.parties||m.client||"", num:_caseNoOrDiary(m), court:m.court||""})),
     prevLabels:(d.prevLists||[]).map(p=>p.label||"Previous list"),
     count:d.selected.length });
   save();
@@ -5191,7 +5191,7 @@ function _raEnclosuresPrompt(d){
 function _raUpdateStatement(sid, d){
   const r=(DB.refStatements||[]).find(x=>x.id===sid); if(!r){ _raRecordStatement(d); return; }
   r.matterIds=d.selected.map(m=>m.id);
-  r.cases=d.selected.map(m=>({id:m.id, code:m.code||"", parties:m.parties||m.client||"", num:_caseNoOrDiary(m), court:m.court||""}));
+  r.cases=d.selected.map(m=>({id:m.id, code:_fno(m), parties:m.parties||m.client||"", num:_caseNoOrDiary(m), court:m.court||""}));
   r.prevLabels=(d.prevLists||[]).map(p=>p.label||"Previous list");
   r.count=d.selected.length; r.editedOn=todayISO();
   save();
@@ -5245,7 +5245,7 @@ async function _raRenderStatementPDF(d){
   if(d.prevLists.length && d.selected.length) body.push(band("On chamber record"));
   d.selected.forEach(m=>{ sr++; body.push(`<tr>
     <td style="text-align:center">${sr}</td>
-    <td class="mono" style="white-space:nowrap">${esc(m.code||"—")}</td>
+    <td class="mono" style="white-space:nowrap">${esc(_fno(m)||"—")}</td>
     <td><b>${esc(m.parties||m.client||"")}</b>${m.kind==="caveat"?" "+cavTag:""}</td>
     <td>${esc(_caseNoOrDiary(m))}</td>
     <td>${esc(m.court||"—")}</td>
@@ -5357,7 +5357,7 @@ function _raShareCases(encKey, editSid){
     const checked = editSet ? editSet.has(m.id) : !sent;
     return `<tr>
     <td style="text-align:center"><input type="checkbox" class="ra-st-ck" data-mid="${m.id}" ${checked?"checked":""}></td>
-    <td class="mono" style="white-space:nowrap">${esc(m.code||"")}</td>
+    <td class="mono" style="white-space:nowrap">${esc(_fno(m))}</td>
     <td><b>${esc(m.parties||m.client||"")}</b>${m.kind==="caveat"?` <span class="tag" style="background:#6b1f1f;color:#fff">Caveat</span>`:""}${sent?` <span class="tag" style="background:#8a8175;color:#fff" title="Included in an earlier statement \u2014 ${esc(fmtDate(sent.date))}${sent.times>1?" ("+sent.times+"\u00d7)":""}">Sent ${esc(fmtDate(sent.date))}</span>`:""}<div class="hint">${esc(_caseNoOrDiary(m))}${m.court?" \u00b7 "+esc(m.court):""}</div></td>
   </tr>`; }).join("");
   openModal(editRec?("Edit statement \u2014 "+esc(fmtDate(editRec.date))):("Statement of cases \u2014 "+esc(a.name)), `
@@ -5398,7 +5398,7 @@ function _raRaiseInvoice(encKey){
     const active=m.status!=="Concluded"&&m.status!=="Closed";
     return `<tr>
       <td style="text-align:center"><input type="checkbox" class="ra-inv-ck" data-mid="${m.id}" ${active?"checked":""} onchange="_raInvTotal()"></td>
-      <td class="mono">${esc(m.code||"")}</td>
+      <td class="mono">${esc(_fno(m))}</td>
       <td><b>${esc(m.parties||m.client||"")}</b>${(m.caseNo||m.diaryNo)?`<div class="hint">${esc(m.caseNo||("Diary "+m.diaryNo))}</div>`:""}</td>
       <td><input class="in ra-inv-fee" data-mid="${m.id}" inputmode="numeric" placeholder="0" style="width:110px;text-align:right" oninput="_raInvTotal()"></td>
     </tr>`;
@@ -5589,7 +5589,7 @@ function renderSuccessStats(){
       : `<span class="tag">&mdash;</span>`;
     return `<tr>
       <td style="text-align:center;color:var(--muted);font-variant-numeric:tabular-nums">${sr}</td>
-      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code||"")}</a></td>
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_fno(m))}</a></td>
       <td><b>${esc(m.parties||m.client||"")}</b>${(m.caseNo||m.diaryNo)?`<div class="hint">${esc(m.caseNo||("Diary "+m.diaryNo))}</div>`:""}</td>
       <td>${esc(m.appearFor||"")||"&mdash;"}</td>
       <td>${esc(m.result||"")||"&mdash;"}</td>
@@ -5620,7 +5620,7 @@ function renderSuccessStats(){
   const cg=groupByYear(s.pending);
   const concludedRow=(m,sr)=>`<tr>
       <td style="text-align:center;color:var(--muted);font-variant-numeric:tabular-nums">${sr}</td>
-      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code||"")}</a></td>
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(_fno(m))}</a></td>
       <td><b>${esc(m.parties||m.client||"")}</b>${(m.caseNo||m.diaryNo)?`<div class="hint">${esc(m.caseNo||("Diary "+m.diaryNo))}</div>`:""}</td>
       <td>${esc(m.appearFor||"")||"&mdash;"}</td>
       <td colspan="2"><span class="tag">Concluded</span></td>
@@ -5835,9 +5835,10 @@ function _byNoAsc(a,b){ return String((a&&a.no)||"").localeCompare(String((b&&b.
 // Matter options for billing (receipt/invoice): active matters first, then concluded &
 // past cases in their own group — so fees can be raised against a closed matter too.
 function _billMatterOptions(){
-  const numOf=m=>m.caseNo?(" · "+esc(m.caseNo)):(m.caveatNo?(" · Caveat "+esc(m.caveatNo)):(m.diaryNo?(" · Diary "+esc(m.diaryNo)):""));
-  const optFor=m=>`<option value="${m.id}">${esc(m.code)} · ${esc(m.client||m.parties||"")}${numOf(m)}</option>`;
-  const bycode=(a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true});
+  const real=v=>v&&!/_{2,}/.test(String(v));
+  const numOf=m=>real(m.caseNo)?(" · "+esc(m.caseNo)):(m.caveatNo?(" · Caveat "+esc(m.caveatNo)):(m.diaryNo?(" · Diary "+esc(m.diaryNo)):""));
+  const optFor=m=>`<option value="${m.id}">${esc(_caseLabel(m))}${numOf(m)}</option>`;
+  const bycode=_byFileNo;   // by File No., newest first (the old app codes put the register's C- entries first)
   const all=(DB.matters||[]).filter(m=>!isVoided(m));
   const caveats=all.filter(m=>m.kind==="caveat").sort(bycode);
   const cases=all.filter(m=>m.kind!=="caveat");
@@ -7938,8 +7939,8 @@ function openVakalatnama(existingId){
   const ov=document.createElement("div"); ov.id="vkGate";
   ov.style.cssText="position:fixed;inset:0;z-index:8600;background:rgba(30,24,18,.45);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto";
   const matterOpts=`<option value="">— Not yet filed / no case selected —</option>`+
-    (DB.matters||[]).filter(m=>!isVoided(m)).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}))
-      .map(m=>`<option value="${m.id}" ${ed&&ed.matterId===m.id?"selected":""}>${esc(m.code)} · ${esc(m.parties||m.client||"")}</option>`).join("");
+    (DB.matters||[]).filter(m=>!isVoided(m)).slice().sort(_byFileNo)
+      .map(m=>`<option value="${m.id}" ${ed&&ed.matterId===m.id?"selected":""}>${esc(_caseLabel(m))}</option>`).join("");
   const v = ed || {};
   const forum = v.forum || (preM&&preM.court) || "Supreme Court of India";
   const type = v.matterType || (preM&&preM.matterType) || "SLP (Civil)";
@@ -8366,7 +8367,7 @@ function _renderVakalatnamaRegister(){
   };
   const rows=list.map(v=>{
     const m=v.matterId?matterById(v.matterId):null;
-    const linkChip = m ? `<span class="tag active">${esc(m.code)}</span>` : `<span class="hint">Not filed / unlinked</span>`;
+    const linkChip = m ? `<span class="tag active">${esc(_fno(m))}</span>` : `<span class="hint">Not filed / unlinked</span>`;
     return `<tr>
       <td style="white-space:nowrap">${fmtDate(v.date)}${v.editedOn?` <span class="hint">(edited)</span>`:""}</td>
       <td><b>${esc(v.partyA||"")}</b>${v.partyB?` <span class="hint">v. ${esc(v.partyB)}</span>`:""}
@@ -8679,8 +8680,8 @@ function _delVakalatnama(id){
 function _vkLinkToMatter(id){
   const v=(DB.vakalatnamas||[]).find(x=>x.id===id); if(!v) return;
   const opts=`<option value="">— No case (unlink) —</option>`+
-    (DB.matters||[]).filter(m=>!isVoided(m)).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}))
-      .map(m=>`<option value="${m.id}" ${v.matterId===m.id?"selected":""}>${esc(m.code)} · ${esc(m.parties||m.client||"")}</option>`).join("");
+    (DB.matters||[]).filter(m=>!isVoided(m)).slice().sort(_byFileNo)
+      .map(m=>`<option value="${m.id}" ${v.matterId===m.id?"selected":""}>${esc(_caseLabel(m))}</option>`).join("");
   openModal("Link vakalatnama to a case", `<div class="hint">Once the case is filed and numbered, link this vakalatnama to it. The vakalatnama's own text is not changed — this only records where it belongs.</div>
     <select class="in" id="vkLinkSel" style="margin-top:10px">${opts}</select>
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_doVkLink('${id}')">Save</button></div>`);
@@ -9031,7 +9032,7 @@ function printVoucher(expenseId, opts){
   const detailRows=[
     e.head?`<div class="row"><span class="k">Head</span><b>${esc(e.head)}</b></div>`:"",
     e.payee?`<div class="row"><span class="k">Paid To</span><b>${esc(e.payee)}</b></div>`:"",
-    m.code?`<div class="row"><span class="k">Case</span><b>${esc(m.code)}${m.parties?" — "+esc(m.parties):""}</b></div>`:`<div class="row"><span class="k">Type</span><b>General expense</b></div>`,
+    m.code?`<div class="row"><span class="k">Case</span><b>${esc(_fno(m))}${m.parties?" — "+esc(m.parties):""}</b></div>`:`<div class="row"><span class="k">Type</span><b>General expense</b></div>`,
     billRef?`<div class="row"><span class="k">Bill / Proof Ref.</span><b>${esc(billRef)}</b></div>`:""
   ].filter(Boolean).join("");
   area.innerHTML=`
@@ -13445,8 +13446,8 @@ function matterFormHTML(m, mode){
       <label class="fld">Case this I.A. is filed in ${kind==="ia"?'<span class="req">*</span>':''}</label>
       <select class="in" id="mfIAParent" onchange="_mfIAParentChange()">
         <option value="">— Select the case —</option>
-        ${(DB.matters||[]).filter(x=>!isVoided(x)&&x.kind!=="ia"&&x.id!==m.id).sort((a,b)=>String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}))
-          .map(x=>`<option value="${x.id}" ${m.parentId===x.id?"selected":""}>${esc(x.code)} — ${esc(x.parties||x.client||"")}${(x.caseNo||x.diaryNo)?" ("+esc(x.caseNo||("Diary "+x.diaryNo))+")":""}</option>`).join("")}
+        ${(DB.matters||[]).filter(x=>!isVoided(x)&&x.kind!=="ia"&&x.id!==m.id).slice().sort(_byFileNo)
+          .map(x=>`<option value="${x.id}" ${m.parentId===x.id?"selected":""}>${esc(_caseLabel(x))}${(x.caseNo||x.diaryNo)?" ("+esc(x.caseNo||("Diary "+x.diaryNo))+")":""}</option>`).join("")}
       </select>
       <div class="note" style="margin-top:6px">An I.A. does not get its own Diary Number — the Registry tracks it under the Diary/Case Number of the case above. Selecting it fills in the parties and forum below (still editable).</div>
     </div>
@@ -13976,7 +13977,7 @@ function _limCalc(mid){
   ov.style.cssText="position:fixed;inset:0;z-index:8600;background:rgba(30,24,18,.5);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow:auto";
   ov.innerHTML='<div style="background:var(--paper2,#fffdf8);border-top:3px solid var(--brass,#9a7b3f);border-radius:16px;max-width:520px;width:100%;padding:22px 24px;box-shadow:0 24px 60px rgba(12,4,4,.4)">'+
     '<div style="font-family:\'Iowan Old Style\',Palatino,Georgia,serif;font-size:17px;font-weight:700;color:var(--ink)">Limitation calculator</div>'+
-    '<div style="font-size:12.5px;color:var(--muted);margin:2px 0 14px">'+(m?esc(m.code||"")+" · ":"")+'Enter the impugned order date and the remedy.</div>'+
+    '<div style="font-size:12.5px;color:var(--muted);margin:2px 0 14px">'+(m?esc(_fno(m))+" · ":"")+'Enter the impugned order date and the remedy.</div>'+
     '<label style="display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px">Order / judgment date</label>'+
     '<input id="limDate" type="date" value="'+todayISO()+'" onchange="_limCompute()" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:12px">'+
     '<label style="display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px">Remedy / period</label>'+
@@ -14112,7 +14113,7 @@ function _afterHearing(mid){
   const outcomes=["Adjourned","Part-heard","Orders reserved","Arguments heard","Disposed","Dismissed","Allowed","Notice issued","Other"];
   ov.innerHTML='<div style="background:var(--paper2,#fffdf8);border-top:3px solid var(--brass,#9a7b3f);border-radius:16px;max-width:520px;width:100%;padding:22px 24px;box-shadow:0 24px 60px rgba(12,4,4,.4)">'+
     '<div style="font-family:\'Iowan Old Style\',Palatino,Georgia,serif;font-size:17px;font-weight:700;color:var(--ink)">After hearing</div>'+
-    '<div style="font-size:12.5px;color:var(--muted);margin:2px 0 14px">'+esc(m.code||"")+(m.parties?" · "+esc(m.parties):"")+'</div>'+
+    '<div style="font-size:12.5px;color:var(--muted);margin:2px 0 14px">'+esc(_fno(m))+(m.parties?" · "+esc(m.parties):"")+'</div>'+
     '<label style="display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px">Hearing date</label>'+
     '<input id="ahDate" type="date" value="'+today+'" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;background:#fff;margin-bottom:12px">'+
     '<label style="display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px">What happened</label>'+
@@ -14495,7 +14496,7 @@ function renderMatterDetail(){
           const p=m.parentId?matterById(m.parentId):null;
           return `<div class="row"><span class="k" style="min-width:96px">I.A.</span><b><span class="tag" style="background:#6b1f1f;color:#fff">Interlocutory Application</span></b></div>`
             +(m.iaNo?`<div class="row"><span class="k" style="min-width:96px">I.A. No.</span><b>${esc(m.iaNo)}</b></div>`:"")
-            +(p?`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b><a href="#" onclick="openMatterDetail('${p.id}');return false" style="color:var(--seal);text-decoration:none">${esc(p.code)} — ${esc(p.parties||p.client||"")}</a></b></div><div class="row"><span class="k" style="min-width:96px">Parent's No.</span><b>${esc(_caseNoOrDiary(p))}</b></div>`
+            +(p?`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b><a href="#" onclick="openMatterDetail('${p.id}');return false" style="color:var(--seal);text-decoration:none">${esc(_caseLabel(p))}</a></b></div><div class="row"><span class="k" style="min-width:96px">Parent's No.</span><b>${esc(_caseNoOrDiary(p))}</b></div>`
               :`<div class="row"><span class="k" style="min-width:96px">Filed in</span><b style="color:var(--disposed)">No parent case linked — edit to select one</b></div>`);
         })()}
         ${(m.kind!=="ia"&&m.caseNo)?`<div class="row"><span class="k" style="min-width:96px">Case No.</span><b>${esc(m.caseNo)}</b></div>`:""}
@@ -14600,8 +14601,8 @@ function openTodos(){
 function addTodo(){
   const mopts = ['<option value="">— Not case-specific —</option>']
     .concat((DB.matters||[]).filter(m=>!isVoided(m)&&m.status!=="Concluded"&&m.status!=="Closed")
-      .sort((a,b)=>(a.code||"").localeCompare(b.code||""))
-      .map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.parties||m.client||"")}</option>`)).join("");
+      .slice().sort(_byFileNo)
+      .map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`)).join("");
   openModal("New task", `
     <label class="fld">What needs doing? <span class="req">*</span></label>
     <div class="mic-wrap"><input class="in" id="tdText" placeholder="e.g. Draft reply in Patil matter" maxlength="140">${micButton("tdText")}</div>
@@ -14923,7 +14924,7 @@ function _gsSearch(q){
   (DB.matters||[]).forEach(m=>{
     const hay=[m.code,m.parties,m.client,m.caseNo,m.court,m.forum,m.status].join(" ");
     if(_gsMatchesText(hay,q)) out.push({
-      type:"matter", icon:"📋", title:(m.code||"")+(m.parties?" — "+m.parties:(m.client?" — "+m.client:"")),
+      type:"matter", icon:"📋", title:_fno(m)+(m.parties?" — "+m.parties:(m.client?" — "+m.client:"")),
       sub:(m.caseNo?("Case "+m.caseNo+" · "):"")+(m.status||"Active"),
       go:()=>{ closeModal(); openMatterDetail(m.id); }
     });
@@ -15136,7 +15137,7 @@ function renderTodos(staffBack){
       ${_bulkOn&&!resolved?`<input type="checkbox" class="bulk-chk" ${_bulkSel[t.id]?"checked":""} onclick="_bulkToggle('${t.id}',event)">`:""}
       <div class="td-main">
         <div class="td-line"><span class="td-kind task">Task</span> <span class="td-badge ${pm.cls}">${esc(pm.label)}</span> <span class="td-text">${esc(t.text)}</span></div>
-        <div class="td-sub" style="margin-top:3px">${dueBadge}${t.granted?` <span class="hint">· Court time: ${esc(t.granted)}</span>`:""}${mt?` <span class="hint">· ${esc(mt.code)}</span>`:""}</div>
+        <div class="td-sub" style="margin-top:3px">${dueBadge}${t.granted?` <span class="hint">· Court time: ${esc(t.granted)}</span>`:""}${mt?` <span class="hint">· ${esc(_fno(mt))}</span>`:""}</div>
         ${t.problem?`<div class="td-sub"><b>Problem:</b> ${esc(t.problem)}</div>`:""}
         ${t.resolution?`<div class="td-sub"><b>Resolution:</b> ${esc(t.resolution)}</div>`:""}
         <div class="td-meta">${t.createdBy?"Added by "+esc(t.createdBy):""}${resolved&&t.resolvedBy?" · Resolved by "+esc(t.resolvedBy):""}</div>
@@ -15216,7 +15217,7 @@ function _taskTemplates(){
 }
 function openTaskTemplates(){
   const tpls=_taskTemplates();
-  const mopts=(DB.matters||[]).filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.client||m.parties||"")}</option>`).join("");
+  const mopts=(DB.matters||[]).filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   const list=tpls.map((t,i)=>`<div class="tpl-row">
       <div class="tpl-row-l"><b>${esc(t.name)}</b><div class="hint">${t.tasks.length} tasks</div></div>
       <div><button class="btn seal sm" onclick="_spawnTemplate(${i})">Use</button>
@@ -15271,7 +15272,7 @@ function openAppointments(){
   }
 }
 function addAppointment(presetDate){
-  const opts=DB.matters.filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.client||"")}</option>`).join("");
+  const opts=DB.matters.filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   openModal("Add appointment / meeting", `
     <label class="fld">Type</label>
     <select class="in" id="apKind" onchange="_apKindChange()">
@@ -15317,7 +15318,7 @@ function editAppointment(id){
   const shared=DB.appointments.find(a=>a.id===id);
   const personal=(DB.myAppointments||[]).find(a=>a.id===id);
   const a=shared||personal; if(!a) return;
-  const opts=DB.matters.filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}" ${a.matterId===m.id?"selected":""}>${esc(m.code)} — ${esc(m.client||"")}</option>`).join("");
+  const opts=DB.matters.filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}" ${a.matterId===m.id?"selected":""}>${esc(_caseLabel(m))}</option>`).join("");
   openModal("Edit appointment", `
     <label class="fld">Title / purpose</label>
     <input class="in" id="apTitle" value="${esc(a.title||"")}">
@@ -15463,7 +15464,7 @@ function _eventsOn(iso){
       let t="", de=null;
       if(Array.isArray(m.dates)){ de=m.dates.find(d=>d.date===iso); if(de) t=de.specialTime||de.time||""; }
       ev.push({type:"hearing", title:(m.parties||m.client||"Hearing"),
-        sub:(t?t+" · ":"")+(m.code||"")+(m.hearingNote?" · "+m.hearingNote:""),
+        sub:(t?t+" · ":"")+_fno(m)+(m.hearingNote?" · "+m.hearingNote:""),
         matterId:m.id, dateId:de?de.id:"", time:t,
         code:m.code||"", caseNo:m.caseNo||"", court:m.court||"",
         reason:(de&&de.reason)||m.hearingNote||"", courtNo:(de&&de.courtNo)||"",
@@ -15908,7 +15909,7 @@ function calAddOnDate(iso){
 }
 function calAddHearing(iso){
   const active=DB.matters.filter(m=>!isVoided(m) && m.status!=="Concluded");
-  const opts=active.map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.parties||m.client||"")}</option>`).join("");
+  const opts=active.slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   const reasons=REASONS_GENERIC.map(r=>`<option>${esc(r)}</option>`).join("");
   openModal("Add hearing date · "+fmtDate(iso), `
     <label class="fld">Case</label>
@@ -15960,7 +15961,7 @@ function renderAppointments(staffBack){
     const canEdit = a.kind!=="personal" || true; // personal are the person's own; shared editable by all
     return `<div class="lrow">
       <div class="l"><div class="t">${esc(a.title||"Appointment")} <span class="tag ${a.kind==="personal"?"":"active"}">${_apptKindLabel(a.kind)}</span></div>
-        <div class="s">${fmtDate(a.date)}${a.time?" · "+esc(a.time):""}${a.location?" · "+esc(a.location):""}${m?" · "+esc(m.code):""}${a.createdBy?" · by "+esc(a.createdBy):""}</div></div>
+        <div class="s">${fmtDate(a.date)}${a.time?" · "+esc(a.time):""}${a.location?" · "+esc(a.location):""}${m?" · "+esc(_fno(m)):""}${a.createdBy?" · by "+esc(a.createdBy):""}</div></div>
       <div style="white-space:nowrap"><button class="row-act" onclick="editAppointment('${a.id}')">Edit</button><button class="row-act" onclick="delAppointment('${a.id}')">Delete</button></div>
     </div>`;
   };
@@ -15976,7 +15977,7 @@ function markConcluded(id){
   const roleOpts=`<option value="">— We appeared for… —</option>`+PARTY_ROLES.map(r=>`<option ${m.appearFor===r?"selected":""}>${esc(r)}</option>`).join("");
   const resOpts=`<option value="">— Result —</option>`+RESULT_OPTIONS.map(r=>`<option ${m.result===r?"selected":""}>${esc(r)}</option>`).join("");
   openModal("Mark this case concluded?", `
-    <div class="hint">It will move out of the active cause list into the <b>Past cases register</b>, keeping its number (${esc(m.code)}), documents, dates and expenses.</div>
+    <div class="hint">It will move out of the active cause list into the <b>Past cases register</b>, keeping its number (${esc(m.serial?"File No. "+_fno(m):m.code)}), documents, dates and expenses.</div>
     <div class="grid g2" style="margin-top:10px">
       <div><label class="fld">We appeared for</label><select class="in" id="mcAppearFor">${roleOpts}</select></div>
       <div><label class="fld">Result</label><select class="in" id="mcResult">${resOpts}</select></div>
@@ -16141,7 +16142,7 @@ function saveUnassignedFolder(){
   save(); closeModal(); renderUnassigned(isStaffView()); toast("Saved.");
 }
 function _reassignPicker(kind, id){
-  const opts=DB.matters.filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.client||m.parties||"")}</option>`).join("");
+  const opts=DB.matters.filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   openModal("Assign to a case", `
     <div class="hint">Move this record into a case. It will then appear in that case's file.</div>
     <label class="fld">Case</label>
@@ -16916,7 +16917,7 @@ function editReceipt(id){
   if(isVoided(r)){ toast("This receipt is void and can't be edited.", true); return; }
   const matters=DB.matters.filter(m=>true);
   const isRet=!!r.retainer;
-  const mOpts=`<option value="">— No matter (retainer / other) —</option>`+matters.map(m=>`<option value="${m.id}"${m.id===r.matterId?" selected":""}>${esc(m.code)} · ${esc(m.client||m.parties||"")}</option>`).join("");
+  const mOpts=`<option value="">— No matter (retainer / other) —</option>`+matters.slice().sort(_byFileNo).map(m=>`<option value="${m.id}"${m.id===r.matterId?" selected":""}>${esc(_caseLabel(m))}</option>`).join("");
   const modes=["NEFT/RTGS","UPI","Cheque","Cash","Bank transfer","NEFT"];
   const modeOpts=modes.filter((m,i,a)=>a.indexOf(m)===i).map(m=>`<option${m===r.mode?" selected":""}>${esc(m)}</option>`).join("");
   const curTds=+r.tds||0; const curRate = (r.amount>0 && curTds>0) ? +( (curTds/r.amount*100).toFixed(2) ) : 0;
@@ -17159,8 +17160,8 @@ function addExpense(){
       <select class="in" id="exMatter">
         <option value="">— Not case-specific —</option>
         ${(DB.matters||[]).filter(m=>!isVoided(m)&&m.status!=="Concluded"&&m.status!=="Closed")
-          .sort((a,b)=>(a.code||"").localeCompare(b.code||""))
-          .map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.parties||m.client||"")}</option>`).join("")}
+          .slice().sort(_byFileNo)
+          .map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("")}
       </select>
     </div>
     <div class="grid g2" style="margin-top:11px">
@@ -18036,28 +18037,28 @@ function _downloadCSV(rows, filename){
 }
 function exportReceiptsCSV(){
   const list=[...(DB.receipts||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const rows=[["Sr.","Receipt No.","Date","Matter","Case No.","Towards","Mode","Gross fee","TDS","Net","Status"]];
+  const rows=[["Sr.","Receipt No.","Date","File No.","Case No.","Towards","Mode","Gross fee","TDS","Net","Status"]];
   list.forEach((r,i)=>{ const m=matterById(r.matterId)||{}; const net=r.net!=null?r.net:(r.amount-(+r.tds||0));
-    rows.push([i+1,r.no||"",r.date||"",m.code||"",m.caseNo||"",r.towards||"",r.mode||"",r.amount||0,(+r.tds||0),net,isVoided(r)?"Void":"Valid"]); });
+    rows.push([i+1,r.no||"",r.date||"",_fno(m),m.caseNo||"",r.towards||"",r.mode||"",r.amount||0,(+r.tds||0),net,isVoided(r)?"Void":"Valid"]); });
   const tot=list.filter(r=>!isVoided(r)).reduce((s,r)=>s+(+r.amount||0),0);
   rows.push([]); rows.push(["","","","","","","Total (valid)",tot]);
   _downloadCSV(rows, `Receipts-${fyLabel(DB.settings.fyStart).replace(/[^\dA-Za-z-]/g,"")}-${todayISO()}.csv`);
 }
 function exportInvoicesCSV(){
   const list=[...(DB.invoices||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const rows=[["Sr.","Invoice No.","Date","Matter","Case No.","Bill to","Fee","Expenses","Total","Status"]];
+  const rows=[["Sr.","Invoice No.","Date","File No.","Case No.","Bill to","Fee","Expenses","Total","Status"]];
   list.forEach((v,i)=>{ const m=matterById(v.matterId)||{};
     const fee=(v.lines||[]).reduce((s,l)=>s+(+l.amount||0),0); const exp=(v.expenses||[]).reduce((s,l)=>s+(+l.amount||0),0);
-    rows.push([i+1,v.no||"",v.date||"",m.code||"",m.caseNo||"",v.to||m.client||"",fee,exp,fee+exp,isVoided(v)?"Void":(v.status||"active")]); });
+    rows.push([i+1,v.no||"",v.date||"",_fno(m),m.caseNo||"",v.to||m.client||"",fee,exp,fee+exp,isVoided(v)?"Void":(v.status||"active")]); });
   const tot=list.filter(v=>!isVoided(v)).reduce((s,v)=>s+((v.lines||[]).reduce((a,l)=>a+(+l.amount||0),0)+(v.expenses||[]).reduce((a,l)=>a+(+l.amount||0),0)),0);
   rows.push([]); rows.push(["","","","","","","","Total (valid)",tot]);
   _downloadCSV(rows, `Invoices-${fyLabel(DB.settings.fyStart).replace(/[^\dA-Za-z-]/g,"")}-${todayISO()}.csv`);
 }
 function exportExpensesCSV(){
   const list=[...(DB.expenses||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const rows=[["Sr.","Voucher No.","Date","Head","Payee","Mode","Matter","Amount","Status"]];
+  const rows=[["Sr.","Voucher No.","Date","Head","Payee","Mode","File No.","Amount","Status"]];
   list.forEach((e,i)=>{ const m=matterById(e.matterId)||{};
-    rows.push([i+1,e.voucherNo||"",e.date||"",e.head||"",e.payee||"",e.mode||"",m.code||"",e.amount||0,isRejected(e)?"Rejected":"Booked"]); });
+    rows.push([i+1,e.voucherNo||"",e.date||"",e.head||"",e.payee||"",e.mode||"",_fno(m),e.amount||0,isRejected(e)?"Rejected":"Booked"]); });
   const tot=list.filter(e=>!isRejected(e)).reduce((s,e)=>s+(+e.amount||0),0);
   rows.push([]); rows.push(["","","","","","","Total (booked)",tot]);
   _downloadCSV(rows, `Expenses-${fyLabel(DB.settings.fyStart).replace(/[^\dA-Za-z-]/g,"")}-${todayISO()}.csv`);
@@ -18093,8 +18094,8 @@ function _micToggle(targetId){
 }
 function exportArchiveCSV(){
   const rows=[["Type","Number","Date","Matter/Head","Party/Payee","Amount","RecordedBy"]];
-  (DB.receipts||[]).forEach(r=>{const m=matterById(r.matterId)||{};rows.push(["Receipt",r.no||"",r.date||"",m.code||"",m.client||"",r.amount||"",r.enteredBy||""]);});
-  (DB.invoices||[]).forEach(v=>{const m=matterById(v.matterId)||{};const t=(v.lines||[]).reduce((s,l)=>s+(+l.amount||0),0)+(v.expenses||[]).reduce((s,l)=>s+(+l.amount||0),0);rows.push(["Invoice",v.no||"",v.date||"",m.code||"",m.client||"",t,""]);});
+  (DB.receipts||[]).forEach(r=>{const m=matterById(r.matterId)||{};rows.push(["Receipt",r.no||"",r.date||"",_fno(m),m.client||"",r.amount||"",r.enteredBy||""]);});
+  (DB.invoices||[]).forEach(v=>{const m=matterById(v.matterId)||{};const t=(v.lines||[]).reduce((s,l)=>s+(+l.amount||0),0)+(v.expenses||[]).reduce((s,l)=>s+(+l.amount||0),0);rows.push(["Invoice",v.no||"",v.date||"",_fno(m),m.client||"",t,""]);});
   (DB.expenses||[]).forEach(e=>{rows.push(["Expense",e.voucherNo||"",e.date||"",e.head||"",e.payee||"",e.amount||"",e.enteredBy||""]);});
   (DB.docsIn||[]).forEach(d=>{const m=matterById(d.matterId)||{};rows.push(["Inward doc","",d.date||"",d.title||d.desc||"",m.client||"","",""]);});
   (DB.docsFiled||[]).forEach(d=>{const m=matterById(d.matterId)||{};rows.push(["Filed doc",d.iaNo||"",d.date||"",d.title||d.desc||"",m.client||"","",""]);});
@@ -18161,8 +18162,8 @@ function matterPickerOptions(selected){
   let html='<option value="">— Misc / Unassigned —</option>';
   html+='<option value="__newcase__">+ New case (auto-numbered)</option>';
   html+='<option value="__newquery__">+ New query (auto-numbered)</option>';
-  if(cases.length){ html+='<optgroup label="Cases">'+cases.map(m=>`<option value="${m.id}" ${selected===m.id?"selected":""}>${esc(m.code)} · ${esc(m.parties||m.client)}${m.caseNo?" · "+esc(m.caseNo):""}</option>`).join("")+'</optgroup>'; }
-  if(queries.length){ html+='<optgroup label="Queries">'+queries.map(m=>`<option value="${m.id}" ${selected===m.id?"selected":""}>${esc(m.code)} · ${esc(m.parties||m.client)}</option>`).join("")+'</optgroup>'; }
+  if(cases.length){ html+='<optgroup label="Cases">'+cases.slice().sort(_byFileNo).map(m=>`<option value="${m.id}" ${selected===m.id?"selected":""}>${esc(_caseLabel(m))}${m.caseNo?" · "+esc(m.caseNo):""}</option>`).join("")+'</optgroup>'; }
+  if(queries.length){ html+='<optgroup label="Queries">'+queries.slice().sort(_byFileNo).map(m=>`<option value="${m.id}" ${selected===m.id?"selected":""}>${esc(_caseLabel(m))}</option>`).join("")+'</optgroup>'; }
   return html;
 }
 let _docSearch="";
@@ -19043,7 +19044,11 @@ function _docRef(doc,m){
   doc.ourRef=_fileNo(m); try{ save(); }catch(e){}
   return doc.ourRef;
 }
-try{ Object.assign(window,{_roleOf,_roleLabel,_fileNo,_docRef}); }catch(e){}
+// A case as people see it everywhere: its File No. (old app code only when it has none), and "File No. · case name"
+function _fno(m){ return m&&m.serial?String(m.serial).padStart(3,"0"):((m&&m.code)||""); }
+function _caseLabel(m){ if(!m) return ""; const n=m.parties||m.client||""; return _fno(m)+(n?" · "+n:"")+(m.historical?" (past)":""); }
+function _byFileNo(a,b){ return (!a.serial-!b.serial)||((+b.serial||0)-(+a.serial||0))||String(a.parties||a.client||"").localeCompare(String(b.parties||b.client||"")); }
+try{ Object.assign(window,{_roleOf,_roleLabel,_fileNo,_docRef,_fno,_caseLabel,_byFileNo}); }catch(e){}
 function _parsePetNos(v){ return [...new Set(String(v||"").split(/\n|;|,(?=\s*(?:SLP|Diary|Civil|Crim|W\.?P|T\.?P|C\.?A|Caveat|Contempt|Review))/i).map(x=>x.trim()).filter(Boolean))]; }
 // "SLP (C) No. 215-216/2023" -> ["215/2023","216/2023"]; "Diary No. 37510/2026" -> ["37510/2026"]
 function _petitionForms(label){
@@ -19454,7 +19459,7 @@ function _regOpen(id){
   const L=m?_matterListings(m):_registerListings(r);
   const today=todayISO();
   const lrows=L.length?`<div class="lrows" style="margin-top:6px">${L.slice(-6).map(x=>`<div class="lrow"><div class="l"><div class="t">${fmtDate(x.date)}${x.date>=today?` <span class="tag active">upcoming</span>`:""}</div><div class="s">${x.court&&x.court!=="—"?"Court "+esc(x.court):"—"}${x.item?" · Item "+esc(x.item):""}${x.coram?" · "+esc(_plainBench?_plainBench(x.coram):x.coram):""}</div></div></div>`).join("")}</div>`:`<div class="hint">Not found in the fetched Supreme Court cause lists.</div>`;
-  const adOpts=(DB.matters||[]).filter(x=>!isVoided(x)&&(x.kind==="case"||x.kind==="caveat")&&(!x.serial||x.id===r.matterId)).sort((a,b)=>String(b.opened||"").localeCompare(String(a.opened||""))).map(x=>`<option value="${x.id}" ${x.id===r.matterId?"selected":""}>${esc(x.code||"")} — ${esc(x.parties||x.client||"")}</option>`).join("");
+  const adOpts=(DB.matters||[]).filter(x=>!isVoided(x)&&(x.kind==="case"||x.kind==="caveat")&&(!x.serial||x.id===r.matterId)).sort((a,b)=>String(b.opened||"").localeCompare(String(a.opened||""))).map(x=>`<option value="${x.id}" ${x.id===r.matterId?"selected":""}>${esc(_caseLabel(x))}</option>`).join("");
   openModal(`File No. ${String(r.serial).padStart(3,"0")}`, `
     <div style="font-size:15px;font-weight:700">${esc(r.title||"")}</div>
     <div class="hint" style="margin:2px 0 10px"><span class="tag" style="background:${r.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(r.chamber)} Chamber</span> · came in ${esc(fmtDate(r.date))}${r.batch?" · "+esc(r.batch):""}</div>
@@ -25228,7 +25233,7 @@ function ownerAddDate(){
   const active=(DB.matters||[]).filter(m=>!isVoided(m)&&m.status!=="Concluded"&&m.status!=="Closed")
     .sort((a,b)=>(a.code||"").localeCompare(b.code||""));
   if(!active.length){ toast("Add a matter first.", true); return; }
-  const opts=active.map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.parties||m.client||"")}</option>`).join("");
+  const opts=active.slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   openModal("Add hearing date", `
     <label class="fld">Which case?</label>
     <select class="in" id="odMatter"><option value="">— Select case —</option>${opts}</select>
@@ -26733,7 +26738,7 @@ function renderStaffDocs(){
 }
 function matterCodeFor(id){ const m=DB.matters.find(x=>x.id===id); return m?m.code:""; }
 function staffAddDocGeneral(){
-  const opts=DB.matters.filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.client||"")}</option>`).join("");
+  const opts=DB.matters.filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   openModal("Add a document", `
     <label class="fld">Attach to matter</label>
     <select class="in" id="gdMatter"><option value="">— None —</option>${opts}</select>
@@ -26791,7 +26796,7 @@ function renderStaffExpenses(){
     ${exps.length?`<div class="scard compact" style="margin-top:12px"><div class="sc-head"><h3>Recent expenses</h3></div><div class="lrows sr-list">${exps.map(e=>{const rej=isRejected(e);return `<div class="lrow"${rej?' style="opacity:.55"':''}><div class="l"><div class="t">${esc(e.head||"Expense")}${e.payee?" · "+esc(e.payee):""}${rej?` <span class="tag">Rejected${e.rejectReason?" ("+esc(e.rejectReason)+")":""}</span>`:""}</div><div class="s">${fmtDate(e.date)}${matterCodeFor(e.matterId)?" · "+esc(matterCodeFor(e.matterId)):""}${e.createdBy?" · "+esc(e.createdBy):""}</div></div><div class="amt">${fmtINR(e.amount)} ${e.billLink?`<a class="row-act" href="${esc(e.billLink)}" target="_blank" rel="noopener">Bill</a>`:""}${needsVoucher(e.amount)?`<button class="row-act" onclick="printVoucher('${e.id}')">Voucher</button>`:""}${(!isRejected(e)&&_canEditEntry(e))?`<button class="row-act" onclick="editCaseExpense('${e.id}')">Edit</button>`:""}${_canDeleteOwn(e)?`<button class="row-act" onclick="delCaseExpense('${e.id}');staffGo('s_exp')">Delete</button>`:""}</div></div>`;}).join("")}</div></div>`:`<div class="empty" style="margin-top:12px;padding:18px">No expenses yet.</div>`}`;
 }
 function staffAddExpenseGeneral(){
-  const opts=DB.matters.filter(m=>!isVoided(m)).map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.client||"")}</option>`).join("");
+  const opts=DB.matters.filter(m=>!isVoided(m)).slice().sort(_byFileNo).map(m=>`<option value="${m.id}">${esc(_caseLabel(m))}</option>`).join("");
   const heads=(window.EXPENSE_HEADS||["Court fees","Conveyance / travel","Printing & stationery","Tea / coffee / snacks","Professional charges","Miscellaneous"]);
   const unf=(window.__staff&&window.__staff.profile&&window.__staff.profile.unassignedFolderUrl)||(DB.settings&&DB.settings.unassignedFolderUrl)||"";
   openModal("Add expense", `
@@ -27668,7 +27673,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1515";
+  window.APP_VERSION = "2026.10.11-1530";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
