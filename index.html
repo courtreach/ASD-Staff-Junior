@@ -9479,6 +9479,57 @@ function _listingUnlink(i){ const L=window.__lk[i]; if(!L) return; const keys=_n
   try{ _renderHomeCourt(); }catch(e){} try{ _loadCourtUpdates(); }catch(e){} }
 function _lkNewMatter(i){ const L=window.__lk[i]; if(!L) return; const note=`Listed ${L.date?fmtDate(L.date):""}${L.court?" · "+L.court:""}${L.item?" · Item "+L.item:""} (from cause list).`;
   openModal("New matter (from cause list)", matterFormHTML({client:L.party||"",parties:L.party||"",caseNo:L.info&&L.info.caseNo||"",diaryNo:L.info&&L.info.diaryNo||"",court:"Supreme Court of India",notes:note})); }
+/* ADD A LISTED CASE (owner, 11 Oct 2026: "There is one listing on Wednesday … no case folder or case serial number …
+   I want an option to add that case to our app"). A cause-list listing that matched no case (it came up under your name as
+   advocate / AoR) can be added straight from the listing: the cause title and number come from the cause list, the case
+   gets the next File No. and your Mac makes its folder. If the case may already be in the register (same number / name),
+   that is offered first — linking, not a second entry. */
+function _lkTitleCase(s){ return String(s||"").toLowerCase().replace(/\b([a-z])/g,c=>c.toUpperCase()).replace(/\b(And|Ors|Anr|Of|The|V|Vs|Versus)\b\.?/g,w=>({And:"and",Ors:"Ors.",Anr:"Anr.",Of:"of",The:"the",V:"v",Vs:"v",Versus:"v"})[w.replace(".","")]||w).replace(/^the\b/,"The").replace(/\s+/g," ").trim(); }
+function _lkAddCase(i){
+  const L=window.__lk[i]; if(!L) return;
+  const info=L.info||{}, title=_lkTitleCase(String(L.party||"").replace(/\s+versus\s+/i," v "));
+  const probe={id:"_lk",kind:"case",parties:title,client:"",caseNo:info.caseNo||"",diaryNo:info.diaryNo||"",petitionNos:[L.label]};
+  let near=[]; try{ near=_lkCandidates(L).map(x=>x.c); }catch(e){}
+  try{ (staff=>{ if(staff) return; _cfCandidates(probe).filter(c=>/number/.test(c.why)||c.names>=2).forEach(c=>{ if(!near.some(n=>+n.serial===+c.r.serial)) near.push({serial:+c.r.serial,title:c.r.title,chamber:c.r.chamber}); }); })(isStaffView()); }catch(e){}
+  const staff=isStaffView();
+  openModal("Add this case to our app", `
+    <div class="lk-l"><b>${esc(L.label)}</b> — ${esc(L.party||"")}<div class="hint">${esc([L.date?"Listed "+fmtDate(L.date):"",L.court,L.item?"Item "+L.item:""].filter(Boolean).join(" · "))}</div></div>
+    ${near.length?`<div class="co-warn" style="margin:10px 0">It may already be in your register: ${near.slice(0,3).map(c=>`<b>${String(c.serial).padStart(3,"0")} · ${esc(c.title)}</b>`).join(", ")}. <button class="link-btn" onclick="closeModal();_listingLinkAsk(${i})">Link it there instead</button></div>`:""}
+    <label class="fld" style="margin-top:10px">Cause title</label><input class="in" id="laTitle" value="${esc(title)}">
+    <div class="grid g2" style="margin-top:8px">
+      <div><label class="fld">Case No.</label><input class="in mono" id="laCase" value="${esc(info.caseNo||"")}" placeholder="SLP (C) No. …"></div>
+      <div><label class="fld">Diary No.</label><input class="in mono" id="laDiary" value="${esc(info.diaryNo||"")}" placeholder="12345/2026"></div>
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div><label class="fld">We appear for</label><select class="in" id="laFor"><option value="">— not sure yet —</option>${PARTY_ROLES.map(r=>`<option>${esc(r)}</option>`).join("")}</select></div>
+      <div><label class="fld">Client <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="in" id="laClient" placeholder="Name of the client"></div>
+    </div>
+    <div class="grid g2" style="margin-top:8px">
+      <div><label class="fld">Chamber</label><select class="in" id="laCh"><option value="AD">AD Chamber (mine)</option><option value="SD">SD Chamber (Senior's brief)</option></select></div>
+      <div><label class="fld">Our role</label><select class="in" id="laRole">${_ROLES.filter(r=>r[0]!=="assist").map(r=>`<option value="${r[0]}">${esc(r[1])}</option>`).join("")}</select></div>
+    </div>
+    <div class="hint" style="margin-top:10px">${staff?"It gets its file number and folder from the Head of Chamber's Mac within a few minutes.":`It gets File No. <b>${nextSerial()}</b>; your Mac makes its folder within two minutes.`} Client details, the referring advocate and the rest can be added later from the case.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn ghost" onclick="closeModal();_lkNewMatter(${i})">Full form…</button><button class="btn seal" onclick="_lkAddCaseGo(${i})">Add case</button></div>`);
+}
+function _lkAddCaseGo(i){
+  const L=window.__lk[i]; if(!L) return;
+  const g=id=>((document.getElementById(id)||{}).value||"").trim();
+  const parties=g("laTitle"); if(parties.length<3){ toast("Type the cause title.",true); return; }
+  const role=g("laRole")||"aor", ch=g("laCh")||"AD";
+  const m={id:uid(), code:nextMatterCode(), kind:"case", opened:todayISO(), client:g("laClient")||parties, parties, caseNo:g("laCase"), diaryNo:g("laDiary").replace(/^diary\s*no\.?\s*/i,""),
+    court:"Supreme Court of India", status:"Active", appearFor:g("laFor"), chamber:ch, role, filingOnly:role==="filing",
+    notes:`Added from the cause list — listed ${L.date?fmtDate(L.date):""}${L.court?" · "+L.court:""}${L.item?" · Item "+L.item:""}.`, petitionNos:[]};
+  // the listing's own number is kept, so this and later listings show against the case
+  const keys=_numKeys(L.label,_labelKind(L.label));
+  if(!_keysMatch(keys,_matterKeys(m))) m.petitionNos.push(L.label);
+  const ask=_cfAfterCreate(m);
+  DB.matters.push(m);
+  try{ logActivity("matter",`New case ${m.code} — ${parties} (added from the cause list)`,{refId:m.id}); }catch(e){}
+  save(); closeModal(); try{ renderAll(); }catch(e){}
+  if(ask){ setTimeout(()=>_cfReview([m.id]),400); return; }
+  toast(m.serial?`Added as File No. ${String(m.serial).padStart(3,"0")} — your Mac makes its folder within two minutes.`:"Added — it gets its file number and folder within a few minutes.");
+}
+try{ Object.assign(window,{_lkAddCase,_lkAddCaseGo,_lkTitleCase}); }catch(e){}
 // One-tap: add the listing date to the matched matter (pre-filled), or create a new matter.
 function _listingAct(idx){
   const L=(window.__clListings||[])[idx]; if(!L) return;
@@ -9546,7 +9597,7 @@ function _loadCourtUpdates(){
                 ? `<button style="${actStyle}" onclick="_regOpen('${matched.regId}')" title="${esc(matched.parties||"")}">${esc(matched.code)}</button>`
                 : matched
                 ? `<button style="${actStyle}" onclick="_listingAct(${idx})" title="Add this hearing date to ${esc(matched.code)}">+ ${esc(_mNo(matched))}</button>`
-                : `<button style="${actStyle}" onclick="_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="This listing is under a number none of your cases carries — link it to its case">Link</button><div style="margin-top:4px"><button class="link-btn" style="font-size:11px" onclick="_listingAct(${idx})">+ new matter</button></div>`;
+                : `<button style="${actStyle}" onclick="_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="This listing is under a number none of your cases carries — link it to its case">Link</button><div style="margin-top:4px"><button class="link-btn" style="font-size:11px" onclick="_lkAddCase(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})">＋ Add case</button></div>`;
               const relink=matched?`<div style="margin-top:4px"><button class="link-btn" style="font-size:11px" title="Linked to the wrong case? Change or unlink" onclick="_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:day.date,court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item,linked:{serial:matched.serial,title:matched.parties||matched.client||""}})})">change</button></div>`:"";
               html+=`<tr class="cu-row">
                 <td class="cu-item">${esc(m.item)}${m.supp?`<span class="cu-ms s">S</span>`:`<span class="cu-ms m">M</span>`}</td>
@@ -9665,7 +9716,7 @@ function _renderHomeCourt(){
         // Referring advocate: if this listing matches one of your matters and that
         // matter has a referring advocate on file (set from the Cause-list dialog).
         let adv="", fser=0, linked=false; try{ const mt=_listingMatch(info); if(mt){ linked=true; adv=mt.refAdv||mt.refName||""; fser=(mt._reg?(!isStaffView()&&+mt.serial):(_canFiles(mt)&&+mt.serial))||0; } }catch(e){}
-        const lkBtn=linked?"":`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:window.__hcDay||"",court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="Not linked to any of your cases — link it to its case">Link</button>`;
+        const lkBtn=linked?"":`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${_lkReg({label:_lkLabel(info),party:info.party,info,date:window.__hcDay||"",court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="Not linked to any of your cases — link it to its case">Link</button><button class="tw-link" onclick="event.stopPropagation();_lkAddCase(${_lkReg({label:_lkLabel(info),party:info.party,info,date:window.__hcDay||"",court:(m.court&&m.court!=="—")?"Court "+m.court:"",item:m.item})})" title="A new case for us — add it with a file number and folder">＋ Add case</button>`;
         return `<div class="row">
           <div class="cbadges">
             <div class="ct"><b${fb.big.length>2?' style="font-size:14px"':''}>${esc(fb.big)}</b>${esc(fb.cap)}</div>
@@ -25204,7 +25255,7 @@ function todayWidgetHTML(){
     // Case folder, one tap from the home screen (hearings & Supreme Court listings)
     const _fm=(isHear||isList)&&e.matterId?matterById(e.matterId):null;
     const _fser=(_fm&&_canFiles(_fm))?+_fm.serial:((isList&&e.serial&&!isStaffView())?+e.serial:0);
-    const folderBtn=_filesTile(_fser)+(isList&&e.lk!=null&&!e.matterId&&!e.serial?`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${e.lk})" title="Not linked to any of your cases — link it">Link</button>`:"");
+    const folderBtn=_filesTile(_fser)+(isList&&e.lk!=null&&!e.matterId&&!e.serial?`<button class="tw-link" onclick="event.stopPropagation();_listingLinkAsk(${e.lk})" title="Not linked to any of your cases — link it">Link</button><button class="tw-link" onclick="event.stopPropagation();_lkAddCase(${e.lk})" title="A new case for us — add it with a file number and folder">＋ Add case</button>`:"");
     return `<div class="tw-row" onclick="${go}">
       ${tag}
       <div class="tw-mid"><div class="tw-t">${esc(e.title||"—")}</div>${e.sub?`<div class="tw-s">${esc(e.sub)}</div>`:""}</div>
@@ -27673,7 +27724,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1530";
+  window.APP_VERSION = "2026.10.11-1545";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
