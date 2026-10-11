@@ -7280,7 +7280,7 @@ function _tplNoRow(label, no, date){
   </div>`;
 }
 // Case Details block — renders only rows that have values; long case title wraps full-width
-function _tplCaseBlock(m){
+function _tplCaseBlock(m, ourRef){
   if(!m) return "";
   const rows=[];
   const isCav=m.kind==="caveat";
@@ -7295,7 +7295,8 @@ function _tplCaseBlock(m){
   else if(m.caseNo) rows.push(`<div class="row"><span class="k">Case No.</span><b>${esc(m.caseNo)}</b></div>`);
   else if(isCav && m.caveatNo) rows.push(`<div class="row"><span class="k">Caveat No.</span><b>${esc(m.caveatNo)}</b></div>`);
   else if(m.diaryNo) rows.push(`<div class="row"><span class="k">Diary No.</span><b>${esc(m.diaryNo)}</b></div>`);
-  if(m.code) rows.push(`<div class="row"><span class="k">Our Ref.</span><b>${esc(m.code)}</b></div>`);
+  const _ref=ourRef===undefined?m.code:ourRef;
+  if(_ref) rows.push(`<div class="row"><span class="k">Our Ref.</span><b>${esc(_ref)}</b></div>`);
   if(!rows.length) return "";
   return `<div class="tpl-col">
     <div class="tpl-lbl">Case Details</div>
@@ -7370,7 +7371,7 @@ function printReceipt(rec, opts){
     ref?`<div class="row"><span class="k">${esc(refLabel)}</span><b>${esc(ref)}</b></div>`:"",
     `<div class="row caze"><span class="k">Towards</span><b>${esc(towards)}${rec.remarks?" — "+esc(rec.remarks):""}</b></div>`
   ].filter(Boolean).join("");
-  const caseBlock = _tplCaseBlock(m);
+  const caseBlock = _tplCaseBlock(m, m&&m.id?_docRef(rec,m):undefined);
   // Register ID of the payer — referring advocate (RA-) when the matter is billed to
   // the referrer, otherwise the client (CL-).
   const payId = (m && m.id) ? ((m.invoiceReferrer||m.filingOnly) ? _regCode(m.refAdvId) : _regCode(m.clientId)) : "";
@@ -11006,7 +11007,7 @@ function printInvoice(inv, opts){
   // case is filed and numbered) still carries its own case details. Print them in the
   // Case Details column beside Bill To — exactly like a case-linked invoice — instead
   // of burying the cause title in the fee particulars.
-  const caseBlock = isGeneral ? _tplCaseBlock(_invCaseObj(inv)) : _tplCaseBlock(m);
+  const caseBlock = isGeneral ? _tplCaseBlock(_invCaseObj(inv)) : _tplCaseBlock(m, _docRef(inv,m));
 
   document.getElementById("receiptArea").innerHTML=`
    <div class="tpl${opts.bw?" bw":""}">
@@ -13449,6 +13450,13 @@ function matterFormHTML(m, mode){
         </select>`}</div>
     </div>
     <input type="hidden" id="mfKind" value="${kind}">
+    ${(function(){ const staff=isStaffView(), ch=m.chamber||"AD", role=_roleOf(m), shared=!!m.id;
+      const fileTxt=m.serial?_fileNo(m):(staff?"given automatically when saved":`${nextSerial()} — given when saved (unless it already has a folder)`);
+      return `<div class="grid g3" id="mfFileRow" style="margin:10px 0 13px">
+      <div><label class="fld">File No.</label><input class="in mono" value="${esc(fileTxt)}" readonly style="background:#f1ece0;color:var(--muted)" title="The case's number in the Master Cases Folder — one series for both chambers"></div>
+      <div><label class="fld">Chamber</label><select class="in" id="mfChamber" onchange="_mfRoleOpts()"><option value="AD" ${ch==="AD"?"selected":""}>AD Chamber (mine)</option><option value="SD" ${ch==="SD"?"selected":""}>SD Chamber (Senior's brief)</option></select></div>
+      <div><label class="fld">Our role</label><select class="in" id="mfRole" data-shared="${shared?1:0}" onchange="_mfRoleSync()">${_ROLES.map(r=>`<option value="${r[0]}" ${role===r[0]?"selected":""}>${esc(r[1])}</option>`).join("")}</select></div>
+    </div>`; })()}
 
     <details class="form-grp" open>
       <summary>Client details</summary>
@@ -13517,7 +13525,7 @@ function matterFormHTML(m, mode){
           <option value="">— Select the party we represent —</option>
           ${PARTY_ROLES.map(r=>`<option ${m.appearFor===r?"selected":""}>${esc(r)}</option>`).join("")}
         </select></div>
-      <label class="checkline" style="margin-top:10px"><input type="checkbox" id="mfFilingOnly" ${m.filingOnly?"checked":""} onchange="_onFilingOnlyChange()"> Engaged only for <b>filing &amp; procedural</b> (AoR) — another advocate argues the substantive matter. <span style="color:var(--muted)">Won't count towards my success rate; billed to the engaging advocate.</span></label>
+      <label class="checkline" style="margin-top:10px"><input type="checkbox" id="mfFilingOnly" ${m.filingOnly?"checked":""} onchange="_onFilingOnlyChange();_mfRoleFromBox()"> Engaged only for <b>filing &amp; procedural</b> (AoR) — another advocate argues the substantive matter. <span style="color:var(--muted)">Won't count towards my success rate; billed to the engaging advocate.</span></label>
       <div class="grid g2" style="margin-top:10px" id="mfNumsRow">
         <div id="mfDiaryWrap" style="display:${kind==="ia"?"none":"block"}"><label class="fld">Diary No. <span style="color:var(--muted);font-weight:400">(optional)</span></label>
           <input class="in mono" id="mfDiary" value="${esc(m.diaryNo||"")}" placeholder="12345/2026"></div>
@@ -13555,6 +13563,15 @@ function _onRefTypeChange(){
 }
 // Filing/procedural-only toggle: the engaging advocate is billed, so open the
 // "Referred by" group, force advocate type, and default to billing the referrer.
+// "Assisting the Senior" exists only for an SD Chamber case added privately by the Head of Chamber (staff never see those)
+function _mfRoleOpts(){ const ch=(document.getElementById("mfChamber")||{}).value, r=document.getElementById("mfRole"); if(!r) return;
+  const o=r.querySelector('option[value="assist"]'); const ok=ch==="SD"&&!isStaffView()&&r.getAttribute("data-shared")!=="1";
+  if(o){ o.disabled=!ok; o.hidden=!ok; } if(!ok&&r.value==="assist") r.value="aor"; if(ok&&r.value==="aor"&&!r.dataset.touched) r.value="assist"; }
+function _mfRoleSync(){ const r=document.getElementById("mfRole"), b=document.getElementById("mfFilingOnly"); if(!r) return; r.dataset.touched="1";
+  if(b&&b.checked!==(r.value==="filing")){ b.checked=r.value==="filing"; _onFilingOnlyChange(); } }
+function _mfRoleFromBox(){ const r=document.getElementById("mfRole"), b=document.getElementById("mfFilingOnly"); if(!r||!b) return;
+  if(b.checked) r.value="filing"; else if(r.value==="filing") r.value="aor"; r.dataset.touched="1"; }
+try{ Object.assign(window,{_mfRoleOpts,_mfRoleSync,_mfRoleFromBox}); }catch(e){}
 function _onFilingOnlyChange(){
   if(!(document.getElementById("mfFilingOnly")||{}).checked) return;
   const rt=document.getElementById("mfRefType"); if(rt){ rt.value="advocate"; _onRefTypeChange(); }
@@ -13747,6 +13764,8 @@ function saveMatter(id){
     court: document.getElementById("mfCourt").value.trim(),
     appearFor: (document.getElementById("mfAppearFor")||{value:""}).value,
     filingOnly: !!(document.getElementById("mfFilingOnly")||{}).checked,
+    chamber: (document.getElementById("mfChamber")||{}).value||"AD",
+    role: (document.getElementById("mfRole")||{}).value||"aor",
     // An I.A. never carries a Diary/Case number of its own — its number goes into
     // iaNo instead, and diaryNo/caseNo stay blank so nothing downstream (duplicate-case
     // detection, the auto-fetched cause-list matcher) mistakes it for an independent
@@ -13759,6 +13778,10 @@ function saveMatter(id){
     status: document.getElementById("mfStatus").value,
     petitionNos: _parsePetNos((document.getElementById("mfPetNos")||{}).value)
   };
+  if(data.chamber==="SD"&&data.role==="assist"){
+    if(isStaffView()||id){ toast("A case where you only assist your Senior is kept private — choose AoR or counsel, or add it as a new private SD case.",true); return; }
+    if(kind==="case"||kind==="caveat"){ _sdPrivateSave(data); return; }
+  }
   // Outcome fields are shown for concluded cases — persist them when present.
   if(document.getElementById("pcResult")) data.result = document.getElementById("pcResult").value;
   if(document.getElementById("pcNote")) data.concludedNote = document.getElementById("pcNote").value.trim();
@@ -15992,10 +16015,17 @@ function doSavePastCase(id){
     matterType:(function(){ const v=g("mfType"); return v==="__custom__"?g("mfCustomType"):v; })(),
     court:g("mfCourt"), appearFor:g("mfAppearFor"),
     filingOnly:!!(document.getElementById("mfFilingOnly")||{}).checked,
+    chamber:g("mfChamber")||"AD", role:g("mfRole")||"aor",
     diaryNo:g("mfDiary"), caseNo:g("mfCase"), notes:g("mfNotes"),
     status:"Concluded", result:g("pcResult"), concludedNote:g("pcNote"),
     concludedYear:year, opened: year?year+"-01-01":todayISO()
   };
+  if(!id&&data.chamber==="SD"&&data.role==="assist"){ if(isStaffView()){ toast("Choose AoR or counsel — cases where the Head of Chamber only assists the Senior are kept private.",true); return; } data.concludedYear=year; _sdPrivateSave(data,true); return; }
+  // Disposal keeps the case's own entry (owner, 11 Oct 2026): if this case is already in the app, mark THAT disposed.
+  if(!id){ const probe=Object.assign({id:"_new",kind:"case",historical:true},data); const live=_cfSibling(probe);
+    if(live&&confirm(`This case is already in the app as ${live.code}${live.serial?" (File "+String(live.serial).padStart(3,"0")+")":""} — ${live.parties||live.client}.\n\nOK = mark that entry disposed (it moves to Past cases with its file number). Cancel = add a separate past-case entry anyway.`)){
+      live.status="Concluded"; live.concludedYear=year||live.concludedYear||""; ["result","concludedNote","appearFor"].forEach(k=>{ if(data[k]) live[k]=data[k]; });
+      _auditStamp(live,false); save(); closeModal(); renderPastCases(isStaffView()); toast(`${live.code} marked disposed — it is in Past cases.`); return; } }
   let rec;
   if(id){ rec=matterById(id); if(!rec){ toast("Case not found.",true); return; } Object.assign(rec,data); _auditStamp(rec,false); }
   let _askFolder=false;
@@ -16027,7 +16057,7 @@ function renderPastCases(staffBack){
   const staff=isStaffView();
   const backBar = staff ? `<div class="subnav"><button class="subnav-back" onclick="staffGo('matters')">‹</button><span style="align-self:center;font-weight:600;color:var(--seal)">Past cases</span></div>` : "";
   const row=(m)=>{
-    const codeCell=`<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${esc(m.code||"\u2014")}</a>`;
+    const codeCell=`<a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:600;text-decoration:none">${m.serial?esc(String(m.serial).padStart(3,"0")):esc(m.code||"\u2014")}</a>${m.serial&&!/^C-/.test(m.code||"")?`<div class="hint">${esc(m.code||"")}</div>`:""}`;
     const title=m.parties||m.client||"\u2014";
     const numCell = m.caseNo ? esc(m.caseNo) : (m.diaryNo ? "Diary "+esc(m.diaryNo) : "\u2014");
     const outCell = [m.result, m.concludedNote].filter(Boolean).map(esc).join(" \u2014 ") || "\u2014";
@@ -16476,7 +16506,7 @@ function renderMatters(){
     const files=_canFiles(m)?`<button class="row-act" style="font-weight:700" onclick="openFiles(${+m.serial})" title="Papers in this case's folder">Files</button>`:"";
     const filesBtn=_canFiles(m)?`<button onclick="openFiles(${+m.serial})" style="font-weight:700">📁 Files</button>`:"";
     cards.push(`<div class="mx-card" style="${cancelled?"opacity:.55":""}">
-      <div class="mx-top"><a href="#" onclick="openMatterDetail('${m.id}');return false" class="mono mx-code" style="${cancelled?"text-decoration:line-through":""}">${esc(m.code||"—")}</a>${m.serial?`<span class="fv-num">File ${esc(String(m.serial).padStart(3,"0"))}</span>`:""}${kindTag(m)}<span style="margin-left:auto">${st}</span></div>
+      <div class="mx-top"><a href="#" onclick="openMatterDetail('${m.id}');return false" class="mono mx-code" style="${cancelled?"text-decoration:line-through":""}">${m.serial?"File "+esc(String(m.serial).padStart(3,"0")):esc(m.code||"—")}</a>${m.serial&&!/^C-/.test(m.code||"")?`<span class="fv-num">${esc(m.code||"")}</span>`:""}${m.chamber==="SD"?`<span class="tag" style="background:#3b5a7a;color:#fff">SD</span>`:""}${kindTag(m)}<span style="margin-left:auto">${st}</span></div>
       <div class="mx-name" onclick="openMatterDetail('${m.id}')">${esc(m.parties||m.client||"—")}</div>
       ${((m.client&&m.parties&&m.client!==m.parties)||m.refName)?`<div class="mx-sub">${[(m.client&&m.parties&&m.client!==m.parties)?esc(m.client):"", m.refName?"Ref. "+esc(m.refName):""].filter(Boolean).join(" · ")}</div>`:""}
       ${iaParent?`<div class="mx-sub">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}
@@ -16485,7 +16515,7 @@ function renderMatters(){
       <div class="fv-acts mx-acts">${filesBtn}<button onclick="editMatter('${m.id}')">Edit</button>${staff?"":`<button onclick="deleteMatterPrompt('${m.id}','matters')" style="color:var(--seal)">Delete</button>`}</div>
     </div>`);
     return `<tr style="${cancelled?"opacity:.55":""}">
-      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:700;text-decoration:none;${cancelled?"text-decoration:line-through":""}">${esc(m.code||"—")}</a>${m.serial?`<div class="hint">File ${esc(String(m.serial).padStart(3,"0"))}</div>`:""}</td>
+      <td class="mono"><a href="#" onclick="openMatterDetail('${m.id}');return false" style="color:var(--seal);font-weight:700;text-decoration:none;${cancelled?"text-decoration:line-through":""}">${m.serial?esc(String(m.serial).padStart(3,"0")):esc(m.code||"—")}</a>${m.serial?(/^C-/.test(m.code||"")?"":`<div class="hint">${esc(m.code||"")}</div>`):`<div class="hint" style="color:var(--seal)">no file no.</div>`}${m.chamber==="SD"?`<div><span class="tag" style="background:#3b5a7a;color:#fff">SD</span></div>`:""}</td>
       <td><b>${esc(m.parties||m.client||"—")}</b> ${kindTag(m)}${(m.client&&m.parties&&m.client!==m.parties)?`<div class="hint">${esc(m.client)}</div>`:""}${m.refName?`<div class="hint">Ref. ${esc(m.refName)}</div>`:""}${iaParent?`<div class="hint">in <a href="#" onclick="openMatterDetail('${iaParent.id}');return false" style="color:var(--seal);text-decoration:none">${esc(iaParent.code)}</a></div>`:""}</td>
       <td>${num?`<span class="mono">${esc(num)}</span>`:`<span class="hint">—</span>`}${dia}</td>
       <td>${listed||(next?"":`<span class="hint">—</span>`)}${next}${!cancelled?"":""}</td>
@@ -18948,8 +18978,27 @@ try{ window.DB = DB; window.go = go; window.addMatter = addMatter; window.saveMa
    never reach staff devices. AD cases are linked to a matter (m.serial,
    m.petitionNos, m.folder travel on the shared matter so staff see them).
    =========================================================== */
+/* NUMBERING (owner, 11 Oct 2026): the File No. — the case register's single serial for both chambers, the "(NNN)" of
+   the case folder — is the identity of every case. App codes (M-YY-NNN, PC-, CAV-, C-NNN) are kept as aliases (old
+   bills print them; search finds them). Each case is ONE record carrying labels: chamber AD/SD, our role, kind, status. */
+var _ROLES=[["aor","AoR"],["filing","AoR — filing & procedural only"],["counsel","Arguing counsel"],["assist","Assisting the Senior"]];
+function _roleOf(m){ return (m&&m.role)||(m&&m.filingOnly?"filing":"aor"); }
+function _roleLabel(m){ const r=_ROLES.find(x=>x[0]===_roleOf(m)); return r?r[1]:""; }
+function _fileNo(m){ return m&&m.serial?"File No. "+String(m.serial).padStart(3,"0"):""; }
 function _mNo(m){ return m&&m.serial ? String(m.serial) : (m&&m.code||""); }
-function _mNoLabel(m){ if(!m) return ""; if(!m.serial) return m.code||""; return (m.code&&!/^C-/.test(m.code)) ? m.code+" · File "+m.serial : "File No. "+m.serial; }
+function _mNoLabel(m){ if(!m) return ""; if(!m.serial) return m.code||""; return _fileNo(m)+((m.code&&!/^C-/.test(m.code))?" · "+m.code:""); }
+// "Our Ref." on bills: the File No. from the numbering change on; bills issued before keep the app code they were printed
+// with. Frozen on the bill the first time it is printed, so a reprint never changes it.
+const _OURREF_FROM=Date.parse("2026-10-11T06:22:00Z");   // the moment the numbering change went live
+function _docRef(doc,m){
+  if(doc&&doc.ourRef) return doc.ourRef;
+  if(!m) return "";
+  let born=0; try{ born=_recBornMs(doc)||0; }catch(e){}
+  if(!doc||!doc.id||born<_OURREF_FROM||!m.serial) return m.code||"";
+  doc.ourRef=_fileNo(m); try{ save(); }catch(e){}
+  return doc.ourRef;
+}
+try{ Object.assign(window,{_roleOf,_roleLabel,_fileNo,_docRef}); }catch(e){}
 function _parsePetNos(v){ return [...new Set(String(v||"").split(/\n|;|,(?=\s*(?:SLP|Diary|Civil|Crim|W\.?P|T\.?P|C\.?A|Caveat|Contempt|Review))/i).map(x=>x.trim()).filter(Boolean))]; }
 // "SLP (C) No. 215-216/2023" -> ["215/2023","216/2023"]; "Diary No. 37510/2026" -> ["37510/2026"]
 function _petitionForms(label){
@@ -19022,7 +19071,7 @@ function _regEntryFromMatter(m){
 // register entry. Staff device: cannot see the full register (SD cases), so leave it
 // pending — the owner's device assigns it on its next sync (_assignPendingSerials).
 function _stampSerial(m){
-  if(!m || (m.kind!=="case" && m.kind!=="caveat")) return;
+  if(!m || (m.kind!=="case" && m.kind!=="caveat" && !(m.kind==="query"&&m.wantFile))) return;
   if(isStaffView()){ m.serialPending=true; return; }
   m.serial=nextSerial(); m.chamber=m.chamber||"AD"; delete m.serialPending;
   if(!Array.isArray(DB.register)) DB.register=[];
@@ -19032,7 +19081,7 @@ function _assignPendingSerials(){
   if(isStaffView()) return false;
   let n=0, ask=0;
   (DB.matters||[]).forEach(m=>{
-    if(m.serialPending && !m.serial && (m.kind==="case"||m.kind==="caveat") && !isVoided(m)){
+    if(m.serialPending && !m.serial && _cfIsCase(m)){
       // a folder may already exist for it (same number / name): the owner chooses instead of a new number
       let maybe=false, sib=null; try{ sib=_cfSibling(m); if(!sib) maybe=_cfMaybe(_cfCandidates(m)); }catch(e){}
       if(sib){ _cfShare(m,sib); n++; }
@@ -19055,10 +19104,10 @@ function _regHealLinks(){
    given a new number even when its folder already existed. Now: a case is matched to an existing folder (same
    case/diary number, same name) or given a new file number — the Mac makes "Title (NNN)" — and the owner chooses
    whenever a folder may already exist. Never a guess: only exact number + name matches are pre-chosen. */
-const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer".split(" "));
+const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer opinion advice query walk".split(" "));
 function _cfTok(t){ return String(t||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!_CF_STOP.has(w)); }
 function _cfNorm(t){ return String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b|\bv\/s\b/g," v ").replace(/[^a-z0-9]+/g," ").trim(); }
-function _cfIsCase(m){ return !!m&&!isVoided(m)&&(m.kind==="case"||m.kind==="caveat"); }
+function _cfIsCase(m){ return !!m&&!isVoided(m)&&(m.kind==="case"||m.kind==="caveat"||(m.kind==="query"&&!!m.wantFile)); }
 function _cfTodo(){ return (DB.matters||[]).filter(m=>_cfIsCase(m)&&!m.serial); }
 function _cfCandidates(m){
   const mk=_matterKeys(m), out=[];
@@ -19105,8 +19154,8 @@ function _cfAfterCreate(m){
 }
 function _cfLink(m,r){
   m.serial=+r.serial; m.chamber=r.chamber||"AD";
-  // an SD Chamber folder's name stays off the shared case (SD files are the owner's only); the owner opens it by number
-  m.folder=m.chamber==="SD"?"":(r.folder||"");
+  // a shared case is one we act in (AoR / counsel) — in either chamber its folder travels with it (owner, 11 Oct 2026)
+  m.folder=r.folder||""; if(!m.role) m.role=m.filingOnly?"filing":"aor";
   delete m.serialPending; delete m.folderAsk;
   const om=r.matterId?matterById(r.matterId):null;
   if(!om||isVoided(om)) r.matterId=m.id;
@@ -19117,7 +19166,7 @@ function _cfNew(m,title,chamber){
   const r=(DB.register||[]).find(x=>x.matterId===m.id&&+x.serial===+m.serial);
   const name=_ncTitle(title||m.parties||m.client);
   if(r){ r.title=name; r.chamber=m.chamber; }
-  m.folder=m.chamber==="SD"?"":`AD Chamber/${name} (${String(m.serial).padStart(3,"0")})`;
+  m.folder=`${m.chamber==="SD"?"SD":"AD"} Chamber/${name} (${String(m.serial).padStart(3,"0")})`;
 }
 function _cfShortTitle(m){
   // "Toufic Ahmod Majidkhan v/s Suhas Rajabhau Gandhewar" → "Toufic Ahmod Majidkhan v Suhas Rajabhau Gandhewar"; the owner can shorten it
@@ -19252,13 +19301,18 @@ function _cfApply(){
 }
 // staff: an older case with no file number — ask the owner's app to give it one
 function _cfAskOwner(id){ const m=matterById(id); if(!m||m.serial) return; m.serialPending=true; save(); toast("Asked — the Head of Chamber's app gives it its case folder when it next opens."); try{ openMatterDetail(id); }catch(e){} }
+// a query (walk-in) gets its File No. and folder once the client's papers arrive (owner, 11 Oct 2026)
+function _cfQueryPapers(id){ const m=matterById(id); if(!m||m.serial) return; m.wantFile=true;
+  if(isStaffView()){ m.serialPending=true; save(); toast("The Head of Chamber's app gives it a file number and folder when it next opens."); try{ openMatterDetail(id); }catch(e){} return; }
+  save(); closeModal(); _cfReview([id]); }
 function _cfDetailRow(m){
+  if(m&&m.kind==="query"&&!m.serial&&!m.wantFile&&!isVoided(m)) return `<div class="row"><span class="k" style="min-width:96px">Case folder</span><b>none — a query gets its file number when the client's papers arrive <button class="row-act" onclick="_cfQueryPapers('${m.id}')">📁 Papers have arrived</button></b></div>`;
   if(!_cfIsCase(m)||m.serial) return "";
   const k=`<span class="k" style="min-width:96px">`;
   if(isStaffView()) return m.serialPending?"":m.folderAsk?`<div class="row">${k}Case folder</span><b style="color:var(--muted)">waiting — the Head of Chamber chooses its folder</b></div>`:`<div class="row">${k}Case folder</span><b>none yet <button class="row-act" onclick="_cfAskOwner('${m.id}')">Ask for its folder</button></b></div>`;
   return `<div class="row">${k}Case folder</span><b style="color:var(--seal)">none yet <button class="row-act" onclick="closeModal();_cfReview(['${m.id}'])">📁 Give it its case folder</button></b></div>`;
 }
-try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow,_cfHintsLoad,_cfRefs,_cfIsStub,_cfAll,_cfMerge,_cfSibling,_cfShare}); }catch(e){}
+try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow,_cfHintsLoad,_cfRefs,_cfIsStub,_cfAll,_cfMerge,_cfSibling,_cfShare,_cfQueryPapers}); }catch(e){}
 const _FOLDER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2.2h8.8A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M3 11h18"/></svg>';
 function _filesTile(serial){ return serial?`<button class="cu-fbtn" onclick="event.stopPropagation(); openFiles(${+serial})" title="Open this case's papers">${_FOLDER_SVG}<span>Files</span></button>`:""; }
 function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
@@ -19268,6 +19322,7 @@ function _mRegisterRows(m){
   const k=`<span class="k" style="min-width:96px">`;
   let h="";
   h+=_cfDetailRow(m);
+  if(m.kind!=="query") h+=`<div class="row">${k}Our role</span><b>${esc(_roleLabel(m))}</b></div>`;
   if(m.serial) h+=`<div class="row">${k}File No.</span><b>${esc(String(m.serial))}${m.chamber?` <span class="tag" style="background:${m.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(m.chamber)} Chamber</span>`:""}</b></div>`;
   else if(m.serialPending) h+=`<div class="row">${k}File No.</span><b style="color:var(--muted)">pending — assigned when the owner's device next syncs</b></div>`;
   if((m.petitionNos||[]).length) h+=`<div class="row">${k}Other Nos.</span><b class="mono" style="font-weight:500">${m.petitionNos.map(esc).join("<br>")}</b></div>`;
@@ -19422,6 +19477,25 @@ function _regNewSD(){
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_regNewSDSave()">Create file</button></div>`);
   setTimeout(()=>{ const t=document.getElementById("sdTitle"); if(t){ t.focus(); t.oninput=()=>{ const v=t.value.trim().toLowerCase(); const hit=v&&(DB.register||[]).find(r=>String(r.title||"").toLowerCase()===v); const w=document.getElementById("sdDup"); if(w) w.textContent=hit?`Already in the register as file ${hit.serial} (${hit.chamber}).`:""; }; } },60);
 }
+// An SD Chamber case where the Head of Chamber only assists the Senior: a private register file (File No. + folder),
+// never a shared case (staff devices never receive SD Chamber cases). Checked first against existing files.
+function _sdPrivateSave(data, past){
+  const title=_ncTitle(String(data.parties||data.client||"").replace(/\s+(v\/s\.?|vs\.?|v\.|versus)\s+/ig," v "));
+  const nums=[data.caseNo&&!/_{2,}/.test(data.caseNo)?data.caseNo:"",data.diaryNo?("Diary No. "+data.diaryNo.replace(/^diary\s*no\.?\s*/i,"")):"",...(data.petitionNos||[])].filter(Boolean);
+  const probe={id:"_new",kind:"case",parties:data.parties||data.client,client:data.client,caseNo:data.caseNo,diaryNo:data.diaryNo,petitionNos:data.petitionNos||[]};
+  const hit=_cfCandidates(probe).find(c=>/number/.test(c.why)||c.names>=2||/^same name/.test(c.why));
+  if(hit&&confirm(`This looks like File ${String(hit.r.serial).padStart(3,"0")} · ${hit.r.title} (${hit.why}).\n\nOK = it is that file (its numbers are added there). Cancel = it is a different case — make a new file.`)){
+    const r=hit.r; r.petitionNos=[...new Set([...(r.petitionNos||[]),...nums])]; if(nums.length) r.petEdited=true; r.role=r.role||"assist";
+    if(past) r.disposed=r.disposed||{year:data.concludedYear||"",result:data.result||""};
+    save(); closeModal(); toast(`Added to File ${String(r.serial).padStart(3,"0")} (SD, private).`); try{ renderAll(); }catch(e){} return;
+  }
+  const serial=nextSerial(); if(!Array.isArray(DB.register)) DB.register=[];
+  DB.register.push({ id:uid(), serial, title, chamber:"SD", date:todayISO(), folder:"", batch:null, batchListNo:null, petitionNos:nums, petitionGuess:false, petEdited:!!nums.length,
+    matterId:null, status:"active", createdBy:"app", role:"assist", court:data.court||"", appearFor:data.appearFor||"", notes:data.notes||"", disposed:past?{year:data.concludedYear||"",result:data.result||""}:null });
+  save(); closeModal(); toast(`SD case saved privately as File ${String(serial).padStart(3,"0")} — your Mac makes its folder within two minutes.`);
+  try{ renderAll(); }catch(e){}
+}
+try{ window._sdPrivateSave=_sdPrivateSave; }catch(e){}
 function _regNewSDSave(){
   const title=((document.getElementById("sdTitle")||{}).value||"").replace(/\s+/g," ").trim();
   if(!title){ toast("Enter the short title.", true); return; }
@@ -19746,7 +19820,7 @@ var _fv={serial:null,folder:"",title:"",chamber:"",sub:"",idx:null,q:"",type:"al
 function _canFiles(m){
   if(!m||!m.serial||m.kind==="ia") return false;
   if(!isStaffView()) return true;
-  return !!(m.folder && /^AD Chamber\//.test(m.folder) && _gkUrl());
+  return !!(m.folder && (/^AD Chamber\//.test(m.folder) || (/^SD Chamber\//.test(m.folder) && _roleOf(m)!=="assist")) && _gkUrl());
 }
 function openFiles(serial, q, sub, view){
   serial=+serial; try{ _pfRemember(serial); }catch(e){}
@@ -27547,7 +27621,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1315";
+  window.APP_VERSION = "2026.10.11-1400";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
