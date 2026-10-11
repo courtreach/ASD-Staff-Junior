@@ -16467,7 +16467,17 @@ function doEditAdvanceEntry(id){
 
 // CASES register (formerly "Matters") — matters opened in the app (M- / Q- / CAV- / IA- numbers).
 // Cases that came in from the Master Cases Folder (code C-NNN) are reached through the Case register.
-var _mxFilter="all", _mxQuery="", _mxShow=200;
+var _mxFilter="all", _mxQuery="", _mxShow=200, _mxSort=(function(){ try{ return localStorage.getItem("asdc_mx_sort")||"recent"; }catch(e){ return "recent"; } })();
+function _mxSetSort(v){ _mxSort=v; _mxShow=200; try{ localStorage.setItem("asdc_mx_sort",v); }catch(e){} renderMatters(); }
+try{ window._mxSetSort=_mxSetSort; }catch(e){}
+// when anything in each case folder last changed (owner: the Mac's private record; staff: the shared case list)
+function _mxActLoad(){
+  if(isStaffView()||window.__fActLoading||(window.__fActAt&&Date.now()-window.__fActAt<120000)) return;
+  if(!(window.FB&&FB.getOwnMeta)) return;
+  window.__fActLoading=true;
+  FB.getOwnMeta("folderActivity").then(d=>{ window.__fAct=(d&&d.last)||{}; window.__fActAt=Date.now(); window.__fActLoading=false;
+    const pm=document.getElementById("panel-matters"); if(pm&&pm.classList.contains("active")) renderMatters(); }).catch(()=>{ window.__fActLoading=false; window.__fActAt=Date.now(); });
+}
 function _mxSetFilter(f){ _mxFilter=f; _mxShow=200; renderMatters(); }
 function _mxSetQuery(v){ _mxQuery=String(v||""); clearTimeout(window.__mxQT); window.__mxQT=setTimeout(()=>{ renderMatters(); const i=document.getElementById("mxQ"); if(i){ i.focus(); const n=i.value.length; try{ i.setSelectionRange(n,n); }catch(e){} } },160); }
 /* CASES = THE REGISTER (owner, 11 Oct 2026: "I need the cases register to be reworked … I have to go somewhere else to
@@ -16491,18 +16501,21 @@ function _mxEntries(){
     act.forEach(m=>{ add(m.caseNo); if(m.diaryNo) add("Diary No. "+String(m.diaryNo).replace(/^diary\s*no\.?\s*/i,"")); (m.petitionNos||[]).forEach(add); });
     if(r&&(!staff)&&_regConfirmed(r)) (r.petitionNos||[]).forEach(add); if(r&&staff) (r.n||[]).forEach(add);
     let L=null; try{ const ls=p&&!p.fromRegister?_matterListings(p):(r&&!staff?_registerListings(r):[]); L=(ls||[]).find(x=>x.date>=today)||null; }catch(e){}
-    out.push({serial:serial?+serial:null, r, ms:act, p, title:(p&&!p.fromRegister&&(p.parties||p.client))||(r&&(r.title||r.t))||(p&&(p.parties||p.client))||"—",
+    const actMap=staff?null:(window.__fAct||{});
+    const lastChange=serial?(staff?((r&&r.u)||""):(actMap[String(+serial)]||"")):"";
+    out.push({serial:serial?+serial:null, r, ms:act, p, act:lastChange, title:(p&&!p.fromRegister&&(p.parties||p.client))||(r&&(r.title||r.t))||(p&&(p.parties||p.client))||"—",
       folderTitle:r&&(r.title||r.t)||"", chamber, role, mine:chamber==="AD"||role!=="assist", status, kind:(p&&p.kind)||(/caveat/i.test((r&&(r.title||r.t))||"")?"caveat":"case"),
       nums, L, next:p&&p.nextDate&&p.nextDate>=today?p.nextDate:"", codes:act.map(m=>m.code).filter(c=>c&&!/^C-/.test(c))});
   };
   if(!staff) (DB.register||[]).forEach(r=>{ const ms=bySer.get(+r.serial)||[]; bySer.delete(+r.serial); mk(r.serial,r,ms); });
-  else (window.__adCases||[]).forEach(c=>{ if(!c||!c.s) return; const ms=bySer.get(+c.s)||[]; bySer.delete(+c.s); mk(c.s,{serial:c.s,t:c.t,title:c.t,chamber:/^SD Chamber\//.test(c.f||"")?"SD":"AD",folder:c.f,n:c.n||[]},ms); });
+  else (window.__adCases||[]).forEach(c=>{ if(!c||!c.s) return; const ms=bySer.get(+c.s)||[]; bySer.delete(+c.s); mk(c.s,{serial:c.s,t:c.t,title:c.t,chamber:/^SD Chamber\//.test(c.f||"")?"SD":"AD",folder:c.f,n:c.n||[],u:c.u||""},ms); });
   bySer.forEach((ms,s)=>mk(s,null,ms));
   live.filter(m=>!m.serial&&!isVoided(m)).forEach(m=>{ if(m.kind==="ia"){ const par=matterById(m.parentId); mk(null,null,[m]); out[out.length-1].iaParent=par; } else mk(null,null,[m]); });
   return out;
 }
 function renderMatters(){
   const staff=isStaffView(), today=todayISO();
+  if(_mxSort==="recent") _mxActLoad();
   const wk=(()=>{ const d=new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
   const E=_mxEntries();
   const inWeek=e=>(e.L&&e.L.date<=wk)||(e.next&&e.next<=wk);
@@ -16518,8 +16531,11 @@ function renderMatters(){
     if(q.split(/\s+/).every(w=>hay.indexOf(w)>=0)) return true;
     return qd.length>=3&&e.nums.some(n=>n.replace(/\D/g,"").indexOf(qd)>=0);
   }).sort((A,B)=>{
+    const low=e=>(e.p&&e.p.noFile)?2:(e.serial?0:1);           // unnumbered last; a case kept unnumbered on purpose at the very bottom
+    if(low(A)!==low(B)) return low(A)-low(B);
     if(_mxFilter==="listed"||_mxFilter==="week"){ const da=(A.L&&A.L.date)||A.next||"9", db=(B.L&&B.L.date)||B.next||"9"; return da.localeCompare(db); }
-    if(!A.serial!==!B.serial) return A.serial?1:-1;
+    if(_mxSort==="alpha") return String(A.title).toLowerCase().localeCompare(String(B.title).toLowerCase())||(B.serial||0)-(A.serial||0);
+    if(_mxSort==="recent"){ const c=String(B.act||"").localeCompare(String(A.act||"")); if(c) return c; }
     return (B.serial||0)-(A.serial||0)||String((B.p||{}).opened||"").localeCompare(String((A.p||{}).opened||""));
   });
   const SHOW=_mxShow||200, shown=rows.slice(0,SHOW);
@@ -16539,14 +16555,14 @@ function renderMatters(){
       <td style="white-space:nowrap">${chTag(e)}</td>
       <td>${e.nums.length?`<span class="mono">${esc(e.nums[0])}</span>${e.nums.length>1?`<div class="hint mono">${esc(e.nums.slice(1,3).join(" · "))}${e.nums.length>3?" …":""}</div>`:""}`:`<span class="hint">—</span>`}</td>
       <td>${listTag(e)||`<span class="hint">—</span>`}</td>
-      <td>${stTag(e)}</td>
+      <td>${stTag(e)}${e.act?`<div class="hint" title="Last change to a paper in its folder">changed ${esc(fmtDate(e.act.slice(0,10)))}</div>`:""}</td>
       <td style="white-space:nowrap">${acts(e,false)}</td></tr>`).join("");
   const cards=shown.map(e=>`<div class="mx-card" style="${e.status==="cancelled"?"opacity:.55":""}">
       <div class="mx-top"><a href="#" onclick="${openJs(e)};return false" class="mono mx-code">${e.serial?"File "+noTxt(e):noTxt(e)}</a>${chTag(e)}${kindTag(e.kind)}<span style="margin-left:auto">${stTag(e)}</span></div>
       <div class="mx-name" onclick="${openJs(e)}">${esc(e.title)}</div>
       ${sub(e)?`<div class="mx-sub">${sub(e)}</div>`:""}
       ${e.nums.length?`<div class="mx-num mono">${esc(e.nums.slice(0,2).join(" · "))}</div>`:""}
-      ${listTag(e)?`<div class="mx-when">${listTag(e)}</div>`:""}
+      ${listTag(e)||e.act?`<div class="mx-when">${listTag(e)}${e.act?`<span class="hint">changed ${esc(fmtDate(e.act.slice(0,10)))}</span>`:""}</div>`:""}
       <div class="fv-acts mx-acts">${acts(e,true)}</div></div>`).join("");
   const fbtn=(id,lbl)=>(id==="all"||cnt[id])?`<button class="btn ${_mxFilter===id?"seal":"ghost"} sm" onclick="_mxSetFilter('${id}')">${lbl} <span style="opacity:.75">${cnt[id]}</span></button>`:"";
   const nAD=E.filter(e=>e.serial&&e.chamber==="AD").length, nSD=E.filter(e=>e.serial&&e.chamber==="SD").length;
@@ -16558,10 +16574,11 @@ function renderMatters(){
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 10px">
         ${fbtn("all","All")}${fbtn("mine","Mine")}${staff?"":fbtn("AD","AD")+fbtn("SD","SD")}${fbtn("active","Active")}${fbtn("disposed","Disposed")}${fbtn("listed","Listed")}${fbtn("week","This week")}${fbtn("caveat","Caveats")}${fbtn("query","Queries")}${fbtn("ia","I.A.s")}${fbtn("nofile","No file no.")}
-        <input class="in" id="mxQ" style="flex:1;min-width:170px;max-width:340px;margin-left:auto" placeholder="Search File No., name, code, SLP / Diary No." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
+        <select class="in" style="width:auto;margin-left:auto" title="Sort" onchange="_mxSetSort(this.value)"><option value="recent" ${_mxSort==="recent"?"selected":""}>Sort: recently changed</option><option value="fileno" ${_mxSort==="fileno"?"selected":""}>Sort: File No.</option><option value="alpha" ${_mxSort==="alpha"?"selected":""}>Sort: A–Z</option></select>
+        <input class="in" id="mxQ" style="flex:1;min-width:170px;max-width:340px" placeholder="Search File No., name, code, SLP / Diary No." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
       </div>
       ${staff?"":`<div style="margin:0 0 10px"><input class="fv-search" style="width:100%" placeholder="Find a paper in any case — e.g. paper book, written submissions, Jintur" value="${esc(_gpQuery)}" oninput="_gpSearch(this.value)"><div id="gpResults"></div></div>`}
-      ${E.length?`<div class="mx-box"><div class="mx-wide tbl-wrap"><table class="sr-num"><thead><tr><th>File No.</th><th>Case</th><th>Chamber</th><th>Case / Diary No.</th><th>Listing</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="7" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>
+      ${E.length?`<div class="mx-box"><div class="mx-wide tbl-wrap"><table><thead><tr><th>File No.</th><th>Case</th><th>Chamber</th><th>Case / Diary No.</th><th>Listing</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="7" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>
         <div class="mx-narrow">${cards||`<div class="empty" style="padding:14px">Nothing matches.</div>`}</div></div>
         ${rows.length>SHOW?`<div style="text-align:center;margin-top:10px"><button class="btn ghost sm" onclick="_mxShow=${SHOW+200};renderMatters()">Show more (${rows.length-SHOW} more)</button></div>`:""}`
         :`<div class="empty">No cases yet. Add one to start.</div>`}
@@ -27650,7 +27667,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1445";
+  window.APP_VERSION = "2026.10.11-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
