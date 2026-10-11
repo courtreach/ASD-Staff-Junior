@@ -16507,7 +16507,7 @@ function renderMatters(){
   const E=_mxEntries();
   const inWeek=e=>(e.L&&e.L.date<=wk)||(e.next&&e.next<=wk);
   const F={all:()=>true, mine:e=>e.mine, AD:e=>e.chamber==="AD", SD:e=>e.chamber==="SD", active:e=>e.status==="active", disposed:e=>e.status==="disposed",
-    listed:e=>!!e.L, week:inWeek, caveat:e=>e.kind==="caveat", query:e=>e.kind==="query", ia:e=>e.kind==="ia", nofile:e=>!e.serial&&e.kind!=="ia"&&e.kind!=="query"};
+    listed:e=>!!e.L, week:inWeek, caveat:e=>e.kind==="caveat", query:e=>e.kind==="query", ia:e=>e.kind==="ia", nofile:e=>!e.serial&&e.kind!=="ia"&&e.kind!=="query"&&!(e.p&&e.p.noFile)};
   if(!F[_mxFilter]) _mxFilter="all";
   const cnt={}; Object.keys(F).forEach(k=>cnt[k]=E.filter(F[k]).length);
   const q=_mxQuery.trim().toLowerCase(), qd=q.replace(/\D/g,"");
@@ -16530,7 +16530,7 @@ function renderMatters(){
   const openJs=e=>e.p&&!e.p.fromRegister?`openMatterDetail('${e.p.id}')`:(e.r&&e.r.id&&!staff?`_regOpen('${e.r.id}')`:(e.p?`openMatterDetail('${e.p.id}')`:(e.serial?`openFiles(${e.serial})`:"")));
   const canF=e=>!!e.serial&&(staff?(e.p?_canFiles(e.p):!!(e.r&&e.r.folder)):true);
   const sub=e=>{ const m=e.p&&!e.p.fromRegister?e.p:null; return [e.folderTitle&&e.folderTitle!==e.title?"📁 "+esc(e.folderTitle):"", m&&m.client&&m.client!==e.title?esc(m.client):"", m&&m.refName?"Ref. "+esc(m.refName):"", e.codes.length?esc(e.codes.join(" · ")):"", e.iaParent?`in ${esc(_mNoLabel(e.iaParent))}`:""].filter(Boolean).join(" · "); };
-  const noTxt=e=>e.serial?esc(String(e.serial).padStart(3,"0")):(e.kind==="ia"?"I.A.":e.kind==="query"?"Query":`<span style="color:var(--seal);white-space:nowrap">none</span>`);
+  const noTxt=e=>e.serial?esc(String(e.serial).padStart(3,"0")):(e.kind==="ia"?"I.A.":e.kind==="query"?"Query":e.p&&e.p.noFile?`<span class="hint" style="white-space:nowrap" title="Kept without a file number (your decision)">—</span>`:`<span style="color:var(--seal);white-space:nowrap">none</span>`);
   const acts=(e,card)=>{ const b=card?(on,l,st)=>`<button onclick="${on}"${st?` style="${st}"`:""}>${l}</button>`:(on,l,st)=>`<button class="row-act" onclick="${on}"${st?` style="${st}"`:""}>${l}</button>`;
     return [canF(e)?b(`openFiles(${e.serial})`,card?"📁 Files":"Files","font-weight:700"):"", e.p&&!e.p.fromRegister?b(`editMatter('${e.p.id}')`,"Edit"):"", !e.p&&e.r&&e.r.id&&!staff?b(`_regOpen('${e.r.id}')`,"Details"):""].join(""); };
   const trs=shown.map(e=>`<tr style="${e.status==="cancelled"?"opacity:.55":""}">
@@ -19135,7 +19135,7 @@ function _regHealLinks(){
 const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer opinion advice query walk".split(" "));
 function _cfTok(t){ return String(t||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!_CF_STOP.has(w)); }
 function _cfNorm(t){ return String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b|\bv\/s\b/g," v ").replace(/[^a-z0-9]+/g," ").trim(); }
-function _cfIsCase(m){ return !!m&&!isVoided(m)&&(m.kind==="case"||m.kind==="caveat"||(m.kind==="query"&&!!m.wantFile)); }
+function _cfIsCase(m){ return !!m&&!isVoided(m)&&!m.noFile&&(m.kind==="case"||m.kind==="caveat"||(m.kind==="query"&&!!m.wantFile)); }   // noFile: owner's decision to keep it unnumbered
 function _cfTodo(){ return (DB.matters||[]).filter(m=>_cfIsCase(m)&&!m.serial); }
 function _cfCandidates(m){
   const mk=_matterKeys(m), out=[];
@@ -19334,6 +19334,7 @@ function _cfQueryPapers(id){ const m=matterById(id); if(!m||m.serial) return; m.
   if(isStaffView()){ m.serialPending=true; save(); toast("The Head of Chamber's app gives it a file number and folder when it next opens."); try{ openMatterDetail(id); }catch(e){} return; }
   save(); closeModal(); _cfReview([id]); }
 function _cfDetailRow(m){
+  if(m&&m.noFile&&!m.serial) return `<div class="row"><span class="k" style="min-width:96px">File No.</span><b style="color:var(--muted)">none — kept without a file number (Head of Chamber's decision)</b></div>`;
   if(m&&m.kind==="query"&&!m.serial&&!m.wantFile&&!isVoided(m)) return `<div class="row"><span class="k" style="min-width:96px">Case folder</span><b>none — a query gets its file number when the client's papers arrive <button class="row-act" onclick="_cfQueryPapers('${m.id}')">📁 Papers have arrived</button></b></div>`;
   if(!_cfIsCase(m)||m.serial) return "";
   const k=`<span class="k" style="min-width:96px">`;
@@ -27649,7 +27650,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1430";
+  window.APP_VERSION = "2026.10.11-1445";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
