@@ -20657,12 +20657,16 @@ function _scViewHTML(i){
 /* Which camera: the one last chosen with ⇄ on this phone; else the back camera. Some Android phones ignore
    "back camera, please" and hand over the front one — then the app looks for a camera named back/rear itself. */
 const _SC_CAM_KEY="asdc_scan_cam", _SC_RES={width:{ideal:3840},height:{ideal:2160}};
-function _scCamPref(){ try{ return localStorage.getItem(_SC_CAM_KEY)||""; }catch(e){ return ""; } }
+// iPhone/iPad: flip front ↔ back by facing (as the iPhone's own camera does); opening its lenses one by one by id can
+// give a black picture. Android: step through every camera (some phones list several back ones).
+const _scIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function _scCamPref(){ let p=""; try{ p=localStorage.getItem(_SC_CAM_KEY)||""; }catch(e){} return (_scIOS&&!/^facing:/.test(p))?"":p; }
 async function _scCams(){ try{ return (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput"); }catch(e){ return []; } }
 function _scIsFront(track){ try{ const s=track.getSettings(); if(s.facingMode) return s.facingMode==="user"; }catch(e){} return /front|user|facetime|selfie/i.test(track&&track.label||""); }
 async function _scGetStream(devId, res){
   const gum=v=>navigator.mediaDevices.getUserMedia({audio:false,video:v}), deny=e=>e&&(e.name==="NotAllowedError"||e.name==="SecurityError");
   res=res||{};
+  if(/^facing:/.test(devId||"")){ try{ return await gum(Object.assign({facingMode:{exact:devId.slice(7)}},res)); }catch(e){ if(deny(e)) throw e; } devId=""; }
   if(devId){ try{ return await gum(Object.assign({deviceId:{exact:devId}},res)); }catch(e){ if(deny(e)) throw e; } }
   try{ return await gum(Object.assign({facingMode:{exact:"environment"}},res)); }catch(e){ if(deny(e)) throw e; }
   try{ return await gum(Object.assign({facingMode:{ideal:"environment"}},res)); }catch(e){ if(deny(e)) throw e; }
@@ -20712,6 +20716,7 @@ async function _scCamOpen(repl, devId){
     if(!stream){ _scCamBlank(c); return false; }
     c.stream=stream; c.track=stream.getVideoTracks()[0];
     try{ c.devId=(c.track.getSettings()||{}).deviceId||target||""; }catch(e){ c.devId=target||""; }
+    c.front=_scIsFront(c.track);
     _scCams().then(cs=>{ if(cs.length>1&&live()){ const b=document.getElementById("scFlip"); if(b) b.style.display=""; } });
     try{ const caps=c.track.getCapabilities&&c.track.getCapabilities(); if(caps&&caps.torch){ const b=document.getElementById("scTorch"); if(b) b.style.visibility="visible"; } }catch(e){}
     c.track.addEventListener("ended",()=>{ if(live()&&!c.stopped){ const m=document.getElementById("scCamMsg"); if(m){ m.classList.remove("fade"); m.innerHTML=`The camera stopped. <button class="sc-link2" onclick="_scCamOpen(${c.repl})">Start again</button>`; } } });
@@ -20735,6 +20740,14 @@ function _scCamBlank(c){
 }
 async function _scCamSwitch(){
   const c=_sc&&_sc.cam; if(!c||c.switching) return; c.switching=true;
+  if(_scIOS){
+    const to=c.front?"environment":"user", name=to==="user"?"Front camera":"Back camera";
+    toast("Opening the "+name.toLowerCase()+"…");
+    const ok=await _scCamOpen(c.repl,"facing:"+to);
+    if(_sc&&_sc.cam&&!_sc.cam.stream) _sc.cam.front=to==="user";   // a black one: the next tap flips back
+    if(ok){ try{ localStorage.setItem(_SC_CAM_KEY,"facing:"+to); }catch(e){} toast(name); }
+    return;
+  }
   const cs=await _scCams(); if(cs.length<2){ c.switching=false; toast("This phone has only one camera.",true); return; }
   const i=cs.findIndex(d=>d.deviceId&&d.deviceId===c.devId), k=(i+1)%cs.length, nx=cs[k], L=nx.label||"";
   const name=(/front|user|facetime|selfie/i.test(L)?"Front camera":/back|rear|environment/i.test(L)?"Back camera":"Camera")+(cs.length>2?` (${k+1} of ${cs.length})`:"");
@@ -20746,6 +20759,7 @@ async function _scCamSwitch(){
 function _scCamStop(){
   const c=_sc&&_sc.cam; if(!c) return;
   c.stopped=true; clearTimeout(c.timer);
+  try{ const v=document.getElementById("scVid"); if(v){ v.pause(); v.srcObject=null; } }catch(e){}
   if(c.stream){ try{ c.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
   _sc.cam=null;
 }
@@ -27449,7 +27463,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1215";
+  window.APP_VERSION = "2026.10.11-1245";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
