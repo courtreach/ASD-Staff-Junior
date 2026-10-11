@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T15:04:18.941975Z",
+  "generated_at": "2026-10-11T15:16:22.839672Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -232,7 +232,8 @@
           "court_fresh": "",
           "matched_on": [
             "advocate",
-            "aor"
+            "aor",
+            "number"
           ],
           "confidence": "high",
           "case_no": "SLP(C) No. 26198/2026",
