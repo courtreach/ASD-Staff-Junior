@@ -2225,6 +2225,36 @@
   .sc-cam{cursor:pointer}
   .sc-sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9600}
   .sc-sheet-in{background:var(--paper,#fff);color:var(--ink,#2a2420);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  body.sc-lock #toast{z-index:9800;bottom:calc(150px + env(safe-area-inset-bottom))}
+  .sc-sub{font-weight:400;color:#cfc6bb;font-size:13px}
+  .sc-cam-wrap{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}
+  .sc-cam-wrap video,.sc-cam-wrap svg{position:absolute;inset:0;width:100%;height:100%}
+  .sc-cam-wrap video{object-fit:contain}
+  .sc-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+  .sc-flash.go{animation:scFlash .35s ease-out}
+  @keyframes scFlash{0%{opacity:.8}100%{opacity:0}}
+  .sc-cam-msg{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:7px 14px;border-radius:16px;font-size:13px;text-align:center;width:max-content;max-width:90%;transition:opacity .6s}
+  .sc-cam-msg.fade{opacity:0;pointer-events:none}
+  .sc-link2{background:none;border:0;color:#9fe3cf;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+  .sc-cam-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-bottom:max(14px,env(safe-area-inset-bottom));background:#000}
+  .sc-cam-side{width:84px;display:flex;justify-content:center}
+  .sc-shutter{width:74px;height:74px;border-radius:50%;border:4px solid #fff;background:#fff;box-shadow:inset 0 0 0 3px #000;cursor:pointer;transition:transform .08s;-webkit-tap-highlight-color:transparent}
+  .sc-shutter:active{transform:scale(.9)}
+  .sc-last{position:relative;width:54px;height:68px;border:2px solid #fff;border-radius:6px;background:#333;padding:0;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center}
+  .sc-last img{width:100%;height:100%;object-fit:cover;border-radius:4px;display:block}
+  .sc-last b{position:absolute;top:-10px;right:-10px;background:#c0392b;border-radius:11px;min-width:22px;height:22px;font-size:12px;line-height:22px;padding:0 5px}
+  .sc-ph{height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:rgba(255,255,255,.08);border-radius:4px;font-size:12px;color:#cfc6bb;cursor:pointer;padding:6px}
+  .sc-th.err .sc-ph{background:#5a1f1f;color:#fff}
+  .sc-spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:scSpin .8s linear infinite;display:inline-block}
+  @keyframes scSpin{to{transform:rotate(360deg)}}
+  .sc-repl{width:100%;margin-top:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;border-radius:6px;padding:5px;font-size:12.5px;cursor:pointer;font-family:inherit}
+  .sc-view{position:fixed;inset:0;z-index:9550;background:#1d1a17;color:#fff;display:flex;flex-direction:column}
+  .sc-view-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px}
+  .sc-view-img img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;border-radius:4px}
+  .sc-bot .btn:disabled{opacity:.35}
+  .sc-nav{display:flex;align-items:center;gap:12px}.sc-x:disabled{opacity:.3}
+  .sc-bot select.sc-pos{width:auto;flex:0 0 auto;padding:6px 8px;min-height:0;background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+  .sc-pos option{color:#000}
   @container (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
   @media (max-width:520px){ .fv-isls{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .fv-row.sel{border-color:var(--seal);box-shadow:0 0 0 2px var(--seal-soft)}
@@ -2508,10 +2538,6 @@ html[data-theme=dark] .df-kind.pages{background:#2c1818}
 html[data-theme=dark] .df-kind.new{background:#19232e;color:#8bb3d5}
 html[data-theme=dark] .df-cure{color:var(--green,#88cb8b)}
 html[data-theme=dark] .ck-row{background:#201c18}
-html[data-theme=dark] .sc-x{background:rgba(32,28,24,.12)}
-html[data-theme=dark] .sc-th{background:rgba(32,28,24,.06)}
-html[data-theme=dark] .sc-th-b button{background:rgba(32,28,24,.14)}
-html[data-theme=dark] .sc-bot .btn.ghost{border-color:rgba(64,64,64,.35)}
 html[data-theme=dark] .sc-sheet-in{background:var(--paper,#201c18);color:var(--ink,#dbd4cf)}
 html[data-theme=dark] .mx-card{background:#201c18}
 html[data-theme=dark] .ql-head{background:#201c18}
@@ -20382,64 +20408,228 @@ function _flDiarySave(){
 
 /* ---------- SCANNER: camera photo → page edges found → straightened → cleaned → one PDF ---------- */
 var _sc=null;
+function _scCamOK(){ return !!(window.isSecureContext&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia); }
 function _scanOpen(opt){
   if(!_gkUrl()){ toast("Documents are not set up yet (Settings → Documents).",true); return; }
   if(!_fv.folder){ toast("Open a case's files first.",true); return; }
-  _sc={opt:opt||{}, pages:[], edit:null, busy:""};
+  _sc={opt:opt||{}, pages:[], edit:null, busy:"", view:-1, replAsk:-1, cam:null, seq:0};
   let ov=document.getElementById("scOv");
   if(!ov){ ov=document.createElement("div"); ov.id="scOv"; document.body.appendChild(ov); }
   ov.style.display="flex"; document.body.classList.add("sc-lock");
   _scRender();
+  // On a phone or tablet go straight to the camera; on a computer let them choose.
+  if(_scCamOK()&&window.matchMedia&&matchMedia("(pointer:coarse)").matches) _scCamOpen(-1);
 }
 function _scClose(force){
   if(!force&&_sc&&_sc.pages.length&&!confirm("Discard the scanned pages?")) return;
+  _scCamStop(); _scViewUrl(null);
   const ov=document.getElementById("scOv"); if(ov){ ov.style.display="none"; ov.innerHTML=""; }
   document.body.classList.remove("sc-lock"); _sc=null;
 }
+function _scNewPage(file, mode){ return {id:++_sc.seq, file, quad:null, rot:0, mode:mode||"bw", warn:[], state:"wait"}; }
 function _scRender(){
   const ov=document.getElementById("scOv"); if(!ov||!_sc) return;
+  if(_sc.cam) return;   // the camera screen draws itself and must not be redrawn (it would drop the video)
   const fil=_inFiling(); const st=+_sc.opt.stage||1;
   if(_sc.edit){ _scRenderEditor(ov); return; }
-  const thumbs=_sc.pages.map((p,i)=>`<div class="sc-th">
-      <img src="${p.thumb}" alt="" onclick="_scEditPage(${i})">
-      <div class="sc-th-n">${i+1}${p.warn.length?` <span title="${esc(p.warn.join(", "))}">⚠️</span>`:""}</div>
-      <div class="sc-th-b"><button onclick="_scMove(${i},-1)" ${i?"":"disabled"}>‹</button><button onclick="_scRot(${i})">⟳</button><button onclick="_scDel(${i})">🗑</button><button onclick="_scMove(${i},1)" ${i<_sc.pages.length-1?"":"disabled"}>›</button></div></div>`).join("");
-  const warns=_sc.pages.map((p,i)=>p.warn.length?`Page ${i+1}: ${p.warn.join(", ")}`:"").filter(Boolean);
-  ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_scClose()">✕</button><div class="sc-title">Scan${_sc.pages.length?` · ${_sc.pages.length} page${_sc.pages.length===1?"":"s"}`:""}</div><div style="width:40px"></div></div>
+  const oldBody=ov.querySelector(".sc-body"), keepScroll=oldBody?oldBody.scrollTop:0;
+  const n=_sc.pages.length, waiting=_sc.pages.filter(p=>p.state==="wait").length, camOK=_scCamOK()&&!_sc.noCam;
+  const thumbs=_sc.pages.map((p,i)=>`<div class="sc-th${p.state==="err"?" err":""}">
+      ${p.state==="ok"?`<img src="${p.thumb}" alt="Page ${i+1}" onclick="_scView(${i})">`:
+        p.state==="err"?`<div class="sc-ph" onclick="_scView(${i})">⚠️<br>${esc(p.err||"Could not read this photo")}</div>`:
+        `<div class="sc-ph"><span class="sc-spin"></span><br>Cleaning up…</div>`}
+      <div class="sc-th-n">${i+1}${p.warn&&p.warn.length?` <span title="${esc(p.warn.join(", "))}">⚠️</span>`:""}</div>
+      <div class="sc-th-b"><button onclick="_scMove(${i},-1)" ${i?"":"disabled"} aria-label="Move earlier">‹</button><button onclick="_scRot(${i})" aria-label="Turn">⟳</button><button onclick="_scDel(${i})" aria-label="Remove">🗑</button><button onclick="_scMove(${i},1)" ${i<n-1?"":"disabled"} aria-label="Move later">›</button></div>
+      <button class="sc-repl" onclick="_scReplAsk(${i})">↺ Replace</button></div>`).join("");
+  const warns=_sc.pages.map((p,i)=>p.warn&&p.warn.length?`Page ${i+1}: ${p.warn.join(", ")}`:"").filter(Boolean);
+  const nativeCam=(lbl,on)=>`<label class="btn seal sc-cam">${lbl}<input type="file" accept="image/*" capture="environment" onchange="${on}" hidden></label>`;
+  const ra=_sc.replAsk, rp=_sc.pages[ra];
+  ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_scClose()" aria-label="Close">✕</button><div class="sc-title">Scan${n?` · ${n} page${n===1?"":"s"}`:""}${waiting?` <span class="sc-sub">· cleaning ${waiting}</span>`:""}</div><div style="width:40px"></div></div>
     <div class="sc-body">
       ${_sc.busy?`<div class="sc-busy">${esc(_sc.busy)}</div>`:""}
-      ${_sc.pages.length?`<div class="sc-grid">${thumbs}</div><div class="hint" style="text-align:center;margin:6px 0 0">Tap a page to adjust its corners · ‹ › to reorder</div>`:
-        `<div class="sc-empty"><div style="font-size:46px">📄</div><div style="font-weight:600;margin:6px 0 4px">Photograph each page</div><div class="hint">Lay the page on a darker surface in good light and fill the frame. The app finds the edges, straightens and cleans the page.</div></div>`}
-      ${warns.length?`<div class="sc-warn">⚠️ ${warns.map(esc).join("<br>")} — retake if it is hard to read.</div>`:""}
+      ${n?`<div class="sc-grid">${thumbs}</div><div class="hint" style="text-align:center;margin:8px 0 0;color:#cfc6bb">Tap a page to see it large, adjust its corners or replace it · ‹ › to reorder</div>`:
+        `<div class="sc-empty"><div style="font-size:46px">📄</div><div style="font-weight:600;margin:6px 0 4px">Scan the pages one after another</div><div class="hint">Lay each page on a darker surface in good light and fill the frame. Keep pressing the button for every page; the app finds the edges, straightens and cleans each page while you go.</div></div>`}
+      ${warns.length?`<div class="sc-warn">⚠️ ${warns.map(esc).join("<br>")} — replace the page if it is hard to read.</div>`:""}
     </div>
     <div class="sc-bot">
-      <label class="btn seal sc-cam">📷 ${_sc.pages.length?"Add page":"Take photo"}<input type="file" accept="image/*" capture="environment" onchange="_scPicked(this)" hidden></label>
+      ${camOK?`<button class="btn seal sc-cam" onclick="_scCamOpen(-1)">📷 ${n?"Scan more pages":"Scan pages"}</button>`:nativeCam(`📷 ${n?"Next page":"Take photo"}`,"_scPicked(this)")}
       <label class="btn ghost">🖼 Photos<input type="file" accept="image/*" multiple onchange="_scPicked(this)" hidden></label>
-      ${_sc.pages.length?`<button class="btn seal" onclick="_scSaveAsk()">Save PDF ›</button>`:""}
+      ${n?`<button class="btn seal" onclick="_scSaveAsk()">Save PDF ›</button>`:""}
     </div>
+    ${_sc.view>=0&&_sc.pages[_sc.view]?_scViewHTML(_sc.view):""}
+    ${rp?`<div class="sc-sheet" onclick="if(event.target===this){_sc.replAsk=-1;_scRender()}"><div class="sc-sheet-in">
+      <h3 style="margin:0 0 4px">Replace page ${ra+1}</h3>
+      <div class="hint" style="margin-bottom:12px">The new page takes the same place; the other pages stay as they are.</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${camOK?`<button class="btn seal" onclick="_scCamOpen(${ra})">📷 Retake with the camera</button>`:nativeCam("📷 Retake with the camera",`_scReplPicked(this,${ra})`)}
+        <label class="btn ghost" style="color:inherit;border-color:var(--line)">🖼 Choose a photo<input type="file" accept="image/*" onchange="_scReplPicked(this,${ra})" hidden></label>
+        <button class="btn ghost" style="color:inherit;border-color:var(--line)" onclick="_sc.replAsk=-1;_scRender()">Cancel</button>
+      </div></div></div>`:""}
     ${_sc.saving?`<div class="sc-sheet"><div class="sc-sheet-in">
-      <h3 style="margin:0 0 10px">Save ${_sc.pages.length} page${_sc.pages.length===1?"":"s"} as PDF</h3>
+      <h3 style="margin:0 0 10px">Save ${n} page${n===1?"":"s"} as PDF</h3>
       <label class="fld">Title</label><input class="in" id="scTitle" value="${esc(_sc.opt.title||"")}" placeholder="e.g. Signed Vakalatnama">
       ${fil?`<label class="fld" style="margin-top:10px">Stage</label><select class="in" id="scStage">${_STG.map(s=>`<option value="${s.n}" ${s.n===st?"selected":""}>${s.n} · ${esc(s.l)}</option>`).join("")}</select>`:
         `<div class="hint" style="margin-top:8px">Saved in <b>${esc(_fv.folder.split("/").pop())}</b>; your Mac helper numbers it.</div>`}
       <div id="scProg" class="hint" style="margin-top:10px"></div>
       <div class="btn-row" style="margin-top:12px"><button class="btn ghost" onclick="_sc.saving=false;_scRender()">Back</button><button class="btn seal" id="scGo" onclick="_scSaveGo()">Save</button></div>
     </div></div>`:""}`;
+  const nb=ov.querySelector(".sc-body"); if(nb&&keepScroll) nb.scrollTop=keepScroll;
+}
+// Redraw after background work, without disturbing the camera, the corner editor or the save form.
+function _scTick(){ if(!_sc) return; if(_sc.cam){ _scCamCount(); return; } if(_sc.edit||_sc.saving) return; _scRender(); }
+function _scViewUrl(p){
+  if(!_sc) return "";
+  if(p&&_sc.vuFor===p.jpeg&&_sc.vu) return _sc.vu;
+  if(_sc.vu){ try{ URL.revokeObjectURL(_sc.vu); }catch(e){} }
+  _sc.vu=p&&p.jpeg?URL.createObjectURL(p.jpeg):""; _sc.vuFor=p?p.jpeg:null; return _sc.vu;
+}
+function _scView(i){ if(!_sc) return; _sc.view=(i>=0&&i<_sc.pages.length)?i:-1; if(_sc.view<0) _scViewUrl(null); _scRender(); }
+function _scViewHTML(i){
+  const p=_sc.pages[i], n=_sc.pages.length, url=p.state==="ok"?_scViewUrl(p):"";
+  const pos=_sc.pages.map((_,k)=>`<option value="${k+1}" ${k===i?"selected":""}>Position ${k+1}</option>`).join("");
+  return `<div class="sc-view"><div class="sc-top"><button class="sc-x" onclick="_scView(-1)" aria-label="Back to all pages">✕</button><div class="sc-title sc-nav"><button class="sc-x" onclick="_scView(${i-1})" ${i?"":"disabled"} aria-label="Previous page">‹</button><span>Page ${i+1} of ${n}</span><button class="sc-x" onclick="_scView(${i+1})" ${i<n-1?"":"disabled"} aria-label="Next page">›</button></div><div style="width:40px"></div></div>
+    <div class="sc-view-img">${url?`<img src="${url}" alt="Page ${i+1}">`:`<div class="sc-ph" style="width:70%">${p.state==="err"?"⚠️<br>"+esc(p.err||"Could not read this photo"):`<span class="sc-spin"></span><br>Cleaning up…`}</div>`}</div>
+    ${p.warn&&p.warn.length?`<div class="sc-warn" style="margin:0 12px 6px">⚠️ ${esc(p.warn.join(", "))}</div>`:""}
+    <div class="sc-bot">
+      <button class="btn seal" onclick="_scReplAsk(${i})">↺ Replace</button>
+      <button class="btn ghost" onclick="_scEditPage(${i})">Corners</button>
+      <button class="btn ghost" onclick="_scRot(${i})">⟳ Turn</button>
+      <button class="btn ghost" onclick="_scModeFlip(${i})">${p.mode==="bw"?"Colour":"B&amp;W"}</button>
+      <button class="btn ghost" onclick="_scDel(${i})">🗑 Remove</button>
+      ${n>1?`<select class="in sc-pos" onchange="_scMoveTo(${i},+this.value)" aria-label="Move to position">${pos}</select>`:""}
+    </div></div>`;
+}
+
+/* --- live camera: one press per page; pages are cleaned up in the background --- */
+async function _scCamOpen(repl){
+  if(!_sc) return;
+  _scCamStop(); _sc.replAsk=-1; _sc.view=-1; _scViewUrl(null);
+  _sc.cam={repl:repl>=0?repl:-1, stream:null, track:null, torch:false, quad:null, found:false, busy:false};
+  _scCamRender();
+  const c=_sc.cam;
+  try{
+    let stream;
+    try{ stream=await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:{ideal:"environment"}, width:{ideal:3840}, height:{ideal:2160}}}); }
+    catch(e){ if(e&&(e.name==="NotAllowedError"||e.name==="SecurityError")) throw e; stream=await navigator.mediaDevices.getUserMedia({audio:false, video:true}); }
+    if(!_sc||_sc.cam!==c){ stream.getTracks().forEach(t=>t.stop()); return; }
+    c.stream=stream; c.track=stream.getVideoTracks()[0];
+    const v=document.getElementById("scVid"); if(v){ v.srcObject=stream; try{ await v.play(); }catch(e){} }
+    try{ const caps=c.track.getCapabilities&&c.track.getCapabilities(); if(caps&&caps.torch){ const b=document.getElementById("scTorch"); if(b) b.style.visibility="visible"; } }catch(e){}
+    c.track.addEventListener("ended",()=>{ if(_sc&&_sc.cam===c&&!c.stopped){ const m=document.getElementById("scCamMsg"); if(m){ m.classList.remove("fade"); m.innerHTML=`The camera stopped. <button class="sc-link2" onclick="_scCamOpen(${c.repl})">Start again</button>`; } } });
+    _scCamLoop();
+  }catch(e){
+    if(!_sc||_sc.cam!==c) return;
+    _scCamStop(); _sc.noCam=true; if(repl>=0) _sc.replAsk=repl; _scRender();
+    toast(e&&e.name==="NotAllowedError"?"The camera is not allowed for this site — use the camera button below (it opens the phone's camera), or allow the camera in the browser settings.":"The live camera is not available here — the camera button below opens the phone's camera instead.",true);
+  }
+}
+function _scCamStop(){
+  const c=_sc&&_sc.cam; if(!c) return;
+  c.stopped=true; clearTimeout(c.timer);
+  if(c.stream){ try{ c.stream.getTracks().forEach(t=>t.stop()); }catch(e){} }
+  _sc.cam=null;
+}
+function _scCamRender(){
+  const ov=document.getElementById("scOv"); if(!ov||!_sc||!_sc.cam) return;
+  const rp=_sc.cam.repl>=0;
+  ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_scCamDone()" aria-label="Close the camera">✕</button><div class="sc-title" id="scCamTitle">${rp?`Retake page ${_sc.cam.repl+1}`:"Point at the page"}</div><button class="sc-x" id="scTorch" style="visibility:hidden" onclick="_scTorch()" aria-label="Light">🔦</button></div>
+    <div class="sc-cam-wrap"><video id="scVid" autoplay muted playsinline></video><svg id="scLive"></svg><div class="sc-flash" id="scFlash"></div><div class="sc-cam-msg" id="scCamMsg">Starting the camera…</div></div>
+    <div class="sc-cam-bar">
+      <div class="sc-cam-side">${rp?"":`<button class="sc-last" id="scLast" onclick="_scCamDone()" aria-label="See the pages"></button>`}</div>
+      <button class="sc-shutter" id="scShut" onclick="_scShot()" aria-label="Take this page"></button>
+      <div class="sc-cam-side">${rp?`<button class="btn ghost sm" onclick="_scCamDone()">Cancel</button>`:`<button class="btn seal sm" onclick="_scCamDone()">Done</button>`}</div>
+    </div>`;
+  _scCamCount();
+}
+function _scCamCount(){   // counter + last-page thumbnail; never touches the video
+  if(!_sc||!_sc.cam) return; const n=_sc.pages.length;
+  const t=document.getElementById("scCamTitle"); if(t&&_sc.cam.repl<0) t.textContent=n?`${n} page${n===1?"":"s"} · next page`:"Point at the page";
+  const l=document.getElementById("scLast"); if(!l) return; const p=_sc.pages[n-1];
+  l.style.visibility=p?"visible":"hidden";
+  l.innerHTML=p?(p.thumb?`<img src="${p.thumb}" alt="">`:`<span class="sc-spin"></span>`)+`<b>${n}</b>`:"";
+}
+function _scCamDone(){ _scCamStop(); if(_sc){ _sc.camResume=null; _scRender(); _scPump(); } }
+function _scTorch(){ const c=_sc&&_sc.cam; if(!c||!c.track) return; c.torch=!c.torch; c.track.applyConstraints({advanced:[{torch:c.torch}]}).catch(()=>{}); }
+function _scIsFull(q){ return !q||(q[0][0]===0.01&&q[0][1]===0.01&&q[2][0]===0.99&&q[2][1]===0.99); }
+function _scCamLoop(){   // a green outline shows where the app sees the page
+  const c=_sc&&_sc.cam; if(!c||c.stopped) return;
+  const v=document.getElementById("scVid");
+  if(v&&v.videoWidth&&!c.busy){
+    const m=document.getElementById("scCamMsg");
+    if(m&&!m.dataset.s){ m.dataset.s="1"; m.textContent=c.repl>=0?"Hold steady over the page and press the button":"Press the button for each page — keep going, they are cleaned up as you scan"; setTimeout(()=>m.classList.add("fade"),4000); }
+    try{
+      const s=320/Math.max(v.videoWidth,v.videoHeight), t=c.small||(c.small=document.createElement("canvas"));
+      t.width=Math.max(8,Math.round(v.videoWidth*s)); t.height=Math.max(8,Math.round(v.videoHeight*s)); t.getContext("2d").drawImage(v,0,0,t.width,t.height);
+      c.quad=_scDetect(t); c.found=!_scIsFull(c.quad);
+      const svg=document.getElementById("scLive");
+      if(svg){ const W=v.clientWidth,H=v.clientHeight,k=Math.min(W/v.videoWidth,H/v.videoHeight),dw=v.videoWidth*k,dh=v.videoHeight*k,ox=(W-dw)/2,oy=(H-dh)/2;
+        svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+        svg.innerHTML=c.found?`<polygon points="${c.quad.map(p=>(ox+p[0]*dw).toFixed(1)+","+(oy+p[1]*dh).toFixed(1)).join(" ")}" fill="rgba(46,138,120,.16)" stroke="#3fd0a8" stroke-width="3" stroke-linejoin="round"/>`:""; }
+    }catch(e){}
+  }
+  c.timer=setTimeout(_scCamLoop,280);
+}
+async function _scShot(){
+  const c=_sc&&_sc.cam, v=document.getElementById("scVid");
+  if(!c||!v||!v.videoWidth){ toast("The camera is not ready yet.",true); return; }
+  if(c.busy) return; c.busy=true;
+  const f=document.getElementById("scFlash"); if(f){ f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
+  try{ if(navigator.vibrate) navigator.vibrate(25); }catch(e){}
+  try{
+    const cv=document.createElement("canvas"); cv.width=v.videoWidth; cv.height=v.videoHeight; cv.getContext("2d").drawImage(v,0,0);
+    const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",0.9)); cv.width=cv.height=1;
+    if(!blob) throw new Error("Could not take the photo — try again.");
+    if(!_sc||_sc.cam!==c) return;
+    if(c.repl>=0){ const i=c.repl; _scCamStop(); _scReplaceWith(i,_scNewPage(blob)); _scRender(); return; }
+    _sc.pages.push(_scNewPage(blob)); _sc.lastShot=Date.now(); _scCamCount(); _scPump();
+  }catch(e){ toast(e.message||"Could not take the photo.",true); }
+  finally{ c.busy=false; }
+}
+document.addEventListener("keydown",e=>{
+  if(!_sc||!_sc.cam) return;
+  if(e.code==="Space"||e.key==="Enter"){ e.preventDefault(); _scShot(); } else if(e.key==="Escape"){ e.preventDefault(); _scCamDone(); }
+});
+document.addEventListener("visibilitychange",()=>{   // the phone stops the camera in the background; start it again on return
+  if(!_sc) return;
+  if(document.hidden){ if(_sc.cam){ const r=_sc.cam.repl; _scCamStop(); _sc.camResume=r; } }
+  else if(_sc.camResume!=null){ const r=_sc.camResume; _sc.camResume=null; _scCamOpen(r); }
+});
+
+/* --- background clean-up: one page at a time, paused while the camera is busy taking pages --- */
+async function _scPump(){
+  const S=_sc; if(!S||S.pumping) return; S.pumping=true;
+  try{
+    for(;;){
+      if(_sc!==S) return;
+      if(S.cam&&Date.now()-(S.lastShot||0)<1200){ await new Promise(r=>setTimeout(r,350)); continue; }
+      const pg=S.pages.find(p=>p.state==="wait"); if(!pg) break;
+      try{
+        const src=await _scLoad(pg.file);
+        await new Promise(r=>setTimeout(r,0));
+        if(!pg.quad){ pg.quad=_scDetect(src); pg.noEdge=_scIsFull(pg.quad); }
+        await _scFinish(pg,src);
+      }catch(e){ pg.state="err"; pg.err=e.message||"Could not read this photo"; }
+      _scTick();
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }finally{ S.pumping=false; }
+  _scTick();
 }
 async function _scPicked(inp){
   const files=inp&&inp.files?Array.from(inp.files):[]; inp.value="";
   if(!files.length||!_sc) return;
-  for(let i=0;i<files.length;i++){
-    _sc.busy=`Reading photo ${i+1} of ${files.length}…`; _scRender();
-    try{
-      const src=await _scLoad(files[i]);
-      const quad=_scDetect(src);
-      const pg={file:files[i], quad, rot:0, mode:"bw", w:src.width, h:src.height};
-      if(files.length===1){ _sc.busy=""; _sc.edit={pg, src, idx:-1}; _scRender(); return; }
-      await _scFinish(pg, src); _sc.pages.push(pg);
-    }catch(e){ toast(e.message||"Could not read that photo.",true); }
-  }
-  _sc.busy=""; _scRender();
+  files.forEach(f=>_sc.pages.push(_scNewPage(f)));
+  _scRender(); _scPump();
+}
+function _scReplAsk(i){ if(!_sc||!_sc.pages[i]) return; _sc.replAsk=i; _scRender(); }
+function _scReplPicked(inp,i){
+  const f=inp&&inp.files&&inp.files[0]; inp.value=""; if(!f||!_sc) return;
+  _scReplaceWith(i,_scNewPage(f)); _scRender();
+}
+function _scReplaceWith(i,pg){
+  const old=_sc.pages[i]; if(!old) return;
+  pg.mode=old.mode; _sc.pages[i]=pg; _sc.replAsk=-1; _sc.view=i; _scPump();
+  toastUndo(`Page ${i+1} replaced`,()=>{ if(!_sc) return; const j=_sc.pages.indexOf(pg); if(j>=0) _sc.pages[j]=old; else _sc.pages.splice(Math.min(i,_sc.pages.length),0,old); _scRender(); });
 }
 async function _scLoad(file){
   const url=URL.createObjectURL(file);
@@ -20528,15 +20718,18 @@ function _scRotate(c, rot){
 }
 async function _scFinish(pg, src){
   src=src||await _scLoad(pg.file);
-  const im=_scWarp(src,pg.quad), q=_scEnhance(im,pg.mode);
+  const im=_scWarp(src,pg.quad); await new Promise(r=>setTimeout(r,0));
+  const q=_scEnhance(im,pg.mode); await new Promise(r=>setTimeout(r,0));
   let c=document.createElement("canvas"); c.width=im.width; c.height=im.height; c.getContext("2d").putImageData(im,0,0);
   c=_scRotate(c,pg.rot);
   pg.warn=[]; if(q.meanBg<95) pg.warn.push("taken in poor light");
   if(_scSharp(c)<9) pg.warn.push("may be blurred");
+  if(pg.noEdge) pg.warn.push("page edges not found — tap the page, then Corners");
   pg.jpeg=await new Promise(r=>c.toBlob(r,"image/jpeg",pg.mode==="bw"?0.62:0.72));
   pg.pw=c.width; pg.ph=c.height;
   const t=document.createElement("canvas"), ts=180/Math.max(c.width,c.height); t.width=Math.round(c.width*ts); t.height=Math.round(c.height*ts);
   t.getContext("2d").drawImage(c,0,0,t.width,t.height); pg.thumb=t.toDataURL("image/jpeg",0.7);
+  pg.state="ok"; pg.err=null;
 }
 function _scSharp(c){   // mean absolute Laplacian on a small copy: low = soft/blurred
   const s=Math.min(1,600/Math.max(c.width,c.height)), w=Math.round(c.width*s), h=Math.round(c.height*s);
@@ -20546,7 +20739,7 @@ function _scSharp(c){   // mean absolute Laplacian on a small copy: low = soft/b
     const lap=4*L(k)-L(k-4)-L(k+4)-L(k-w*4)-L(k+w*4); sum+=Math.abs(lap); n++; }
   return n?sum/n:99;
 }
-function _scEditPage(i){ const pg=_sc.pages[i]; if(!pg) return; _sc.busy="Opening…"; _scRender(); _scLoad(pg.file).then(src=>{ _sc.busy=""; _sc.edit={pg:Object.assign({},pg,{quad:pg.quad.map(p=>p.slice())}), src, idx:i}; _scRender(); }).catch(e=>{ _sc.busy=""; toast(e.message,true); _scRender(); }); }
+function _scEditPage(i){ const pg=_sc.pages[i]; if(!pg) return; _sc.busy="Opening…"; _scRender(); _scLoad(pg.file).then(src=>{ _sc.busy=""; _sc.edit={pg:Object.assign({},pg,{quad:(pg.quad||_scDetect(src)).map(p=>p.slice())}), src, idx:i}; _scRender(); }).catch(e=>{ _sc.busy=""; toast(e.message,true); _scRender(); }); }
 function _scRenderEditor(ov){
   const e=_sc.edit, pg=e.pg;
   ov.innerHTML=`<div class="sc-top"><button class="sc-x" onclick="_sc.edit=null;_scRender()">‹</button><div class="sc-title">Drag the corners to the page edges</div><div style="width:40px"></div></div>
@@ -20578,14 +20771,31 @@ function _scEdWhole(){ _sc.edit.pg.quad=[[0,0],[1,0],[1,1],[0,1]]; _scDrawQuad()
 async function _scEdUse(){
   const e=_sc.edit; _sc.busy="Straightening and cleaning…"; _sc.edit=null; _scRender();
   await new Promise(r=>setTimeout(r,30));
-  try{ await _scFinish(e.pg,e.src); if(e.idx>=0) _sc.pages[e.idx]=e.pg; else _sc.pages.push(e.pg); }
+  try{ e.pg.noEdge=false; await _scFinish(e.pg,e.src); if(e.idx>=0&&_sc.pages[e.idx]) _sc.pages[e.idx]=e.pg; else _sc.pages.push(e.pg); }
   catch(err){ toast(err.message||"Could not process the page.",true); }
   _sc.busy=""; _scRender();
 }
-function _scMove(i,d){ const j=i+d; if(j<0||j>=_sc.pages.length) return; const t=_sc.pages[i]; _sc.pages[i]=_sc.pages[j]; _sc.pages[j]=t; _scRender(); }
-function _scDel(i){ _sc.pages.splice(i,1); _scRender(); }
-async function _scRot(i){ const pg=_sc.pages[i]; pg.rot=(pg.rot+1)%4; _sc.busy="Turning…"; _scRender(); try{ await _scFinish(pg); }catch(e){} _sc.busy=""; _scRender(); }
-function _scSaveAsk(){ _sc.saving=true; _scRender(); setTimeout(()=>{ const t=document.getElementById("scTitle"); if(t&&!t.value) t.focus(); },50); }
+function _scMove(i,d){ const j=i+d; if(j<0||j>=_sc.pages.length) return; const t=_sc.pages[i]; _sc.pages[i]=_sc.pages[j]; _sc.pages[j]=t; if(_sc.view===i) _sc.view=j; _scRender(); }
+function _scMoveTo(i,k){ k=Math.max(1,Math.min(_sc.pages.length,k|0))-1; if(k===i) return; const pg=_sc.pages.splice(i,1)[0]; _sc.pages.splice(k,0,pg); if(_sc.view>=0) _sc.view=k; _scRender(); toast(`Now page ${k+1}`); }
+function _scDel(i){
+  const pg=_sc.pages.splice(i,1)[0]; if(!pg) return;
+  if(_sc.view>=0){ _sc.view=_sc.pages.length?Math.min(i,_sc.pages.length-1):-1; if(_sc.view<0) _scViewUrl(null); }
+  _scRender();
+  toastUndo(`Page ${i+1} removed`,()=>{ if(!_sc) return; _sc.pages.splice(Math.min(i,_sc.pages.length),0,pg); _scRender(); });
+}
+async function _scRot(i){ const pg=_sc.pages[i]; if(!pg) return; pg.rot=(pg.rot+1)%4; if(pg.state!=="ok"){ _scRender(); return; } _sc.busy="Turning…"; _scRender(); try{ await _scFinish(pg); }catch(e){} _sc.busy=""; _scRender(); }
+function _scModeFlip(i){ const pg=_sc.pages[i]; if(!pg) return; pg.mode=pg.mode==="bw"?"color":"bw"; if(pg.state!=="err") pg.state="wait"; _scRender(); _scPump(); }
+async function _scSaveAsk(){
+  if(!_sc) return;
+  if(_sc.pages.some(p=>p.state==="wait")){
+    _sc.busy="Finishing the last pages…"; _scRender(); _scPump();
+    const S=_sc; while(_sc===S&&S.pages.some(p=>p.state==="wait")) await new Promise(r=>setTimeout(r,250));
+    if(_sc!==S) return; _sc.busy="";
+  }
+  const bad=_sc.pages.findIndex(p=>p.state==="err");
+  if(bad>=0){ _scRender(); toast(`Page ${bad+1} could not be read — replace or remove it first.`,true); return; }
+  _sc.view=-1; _scViewUrl(null); _sc.saving=true; _scRender(); setTimeout(()=>{ const t=document.getElementById("scTitle"); if(t&&!t.value) t.focus(); },50);
+}
 async function _scBuildPdf(pages){
   const {PDFDocument}=await _libPdfLib(); const doc=await PDFDocument.create();
   for(const p of pages){
@@ -23741,7 +23951,7 @@ function _aiEditCopy(did){ const {d}=_defFind(did); const items=((d&&d.ai&&d.ai.
   if(items.length===1){ _peOpenFile(items[0].file,'aiprop'); return; }
   openModal("Which AI copy?", `<div class="btn-row" style="flex-direction:column;align-items:stretch;gap:6px">${items.map(it=>`<button class="btn ghost" onclick="closeModal();_peOpenFile(${_fvQuote(it.file)},'aiprop')">${esc(it.label||it.file)}</button>`).join("")}</div>`); }
 try{ Object.assign(window,{_pageTop,_pieceAnnex,_caseNameOfFolder,_staffCured,_aiCanCheck,_aiQueueCheck,_aiQueueCheckAll,_aiKeepStaff,_defState,_ddOpen,_ddQuick,_aiQueueInline,_aiEditInstr,_aiQueueAllGo,_defTrueCopyGo,_flOpenStored,_refApprove,_refBackAsk,_refBackGo,_aiWho,_aiCan,_aiRunHTML,_aiRunText,_aiTag,_aiBlockHTML,_aiWhen,_aiSet,_aiQueueAsk,_aiQueueGo,_aiQueueAll,_aiCancel,_aiAnswer,_aiStaffDone,_aiChangeAsk,_aiChangeGo,_aiReject,_aiApprove,_aiCompare}); }catch(e){}
-try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
+try{ Object.assign(window,{_readySave,_readyFile,_addPaperGo,_blankSpot,_checkRun,_curedPieces,_decChkGo,_defAttachGo,_defMapPages,_defPreview,_defReadGo,_defTrueCopy,_docFromTpl,_docHtmlToPdf,_docPdfLibs,_docSaveNow,_docToCase,_flLoadCtx,_gkNew,_libPdfLib,_libZip,_loadCure,_newFilingGo,_pageQuality,_pdfTextDoc,_scBuildPdf,_scEdUse,_scFinish,_scLoad,_scPicked,_scRot,_scSaveGo,_sortIntoStage,_uploadPaper,_addPaperAsk,_baseOf,_blobReady,_buildFinalAsk,_buildRefilingAsk,_caseDiary,_caseFolderPath,_checkHTML,_classifyDefect,_currentNames,_decChkAsk,_defAddAsk,_defAddGo,_defAttachAsk,_defCheckDone,_defDelete,_defEditAsk,_defEditSave,_defFind,_defFromText,_defPagesAsk,_defPagesSave,_defReadAsk,_defRescan,_defSet,_defUncure,_defectsAutoCure,_defectsHTML,_docAutoOn,_docCaseFolder,_docCtx,_docDateDots,_docFileNo,_docHash,_docSaveBtnHTML,_docShort,_expandLabels,_extOf,_filingColl,_filingFolderRel,_filingRec,_filingTouch,_filingViewHTML,_findPagesByText,_flDiaryAsk,_flDiarySave,_flItems,_flLatest,_flRec,_flSet,_flState,_inFiling,_itemRows,_joinItems,_labelsOf,_localISO,_looksFinancial,_newFilingAsk,_pageLabel,_parseDefectList,_parseIndex,_pgWhere,_progressModal,_progressSet,_rangeText,_resolvePart,_safeName,_scClose,_scDel,_scDetect,_scDrawQuad,_scEdWhole,_scEditPage,_scEnhance,_scMove,_scRender,_scRenderEditor,_scRotate,_scSaveAsk,_scSharp,_scWarp,_scanOpen,_scCamOK,_scNewPage,_scTick,_scViewUrl,_scView,_scViewHTML,_scCamOpen,_scCamStop,_scCamRender,_scCamCount,_scCamDone,_scTorch,_scIsFull,_scCamLoop,_scShot,_scPump,_scReplAsk,_scReplPicked,_scReplaceWith,_scMoveTo,_scModeFlip,_sq2quad,_stageNext,_stampLabel,_textLines,_xmlEsc,_caseFolderPdfs,_flLinkFCAsk,_flLinkFCGo,_dlStartAsk,_dlStartGo,_defIngest,_ocrTextDoc,_pdfGarbled,_ocrLib,_flFC,_flOpenFC,_flSentence,_flStepper,_flNextHTML,_flPapersHTML,_fcOptions,_flHasStage5,_defDefaultMode,_sfx,_partAnchor,_cleanFileName,_flCleanBase,_flStage5,_cureModeHTML,_defModeSet,_flDownloadStored,_pieceLabels,_ctxLabelTop,_addPieceTo,_docxToPdf,_flDeclAttachAsk,_flDeclAttachGo,_flAsks,_collateAsk,_collateGo,_finalAsk,_finalGo,_docxSimplePdf}); }catch(e){}
 /* ===========================================================
    QUICK LOOK — Space (or tapping a paper's name) pops up a preview.
    PDFs render with pdf.js straight from Microsoft using range requests,
@@ -27019,7 +27229,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.10-1100";
+  window.APP_VERSION = "2026.10.11-1030";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
