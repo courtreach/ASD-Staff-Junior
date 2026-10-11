@@ -2227,6 +2227,15 @@
   .sc-sheet-in{background:var(--paper,#fff);color:var(--ink,#2a2420);width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
   body.sc-lock #toast{z-index:9800;bottom:calc(150px + env(safe-area-inset-bottom))}
   .sc-sub{font-weight:400;color:#cfc6bb;font-size:13px}
+  .cf-list{max-height:62vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+  .cf-row{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+  .cf-case{font-size:13.5px;line-height:1.35}.cf-case .mono{color:var(--seal);font-weight:700}
+  .cf-new{gap:6px}.cf-new .in{min-width:0}
+  .cf-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .cf-chip{border:1px solid var(--line);background:var(--paper,#fff);color:var(--ink);border-radius:8px;padding:6px 9px;font:inherit;font-size:12.5px;text-align:left;cursor:pointer;max-width:100%}
+  .cf-chip .cf-why{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+  .cf-chip.cf-alt{color:var(--muted)}
+  .cf-chip.on{border-color:var(--seal);background:var(--seal-soft,#f6e9e6);color:var(--ink);box-shadow:inset 0 0 0 1px var(--seal)}
   .sc-cam-wrap{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}
   .sc-cam-wrap video,.sc-cam-wrap svg{position:absolute;inset:0;width:100%;height:100%}
   .sc-cam-wrap video{object-fit:contain}
@@ -13780,10 +13789,13 @@ function saveMatter(id){
     window._conflictAck=false;
     const code = kind==="query"? nextQueryCode() : (kind==="caveat"? nextCaveatCode() : (kind==="ia"? nextIACode() : nextMatterCode()));
     const _newMatter=Object.assign({id:uid(), code, kind, opened:todayISO()}, data);
-    _stampSerial(_newMatter);   // chamber file number (cases & caveats): owner device assigns, staff leaves pending
+    // chamber file number + case folder (cases & caveats): owner device assigns — or asks, when a folder may
+    // already exist for it; staff leaves it pending for the owner's app
+    const _askFolder=_cfAfterCreate(_newMatter);
     DB.matters.push(_newMatter);
     logActivity("matter", `New ${_kindWord.toLowerCase()} ${code}${data.parties?" — "+data.parties:(data.client?" — "+data.client:"")}`, {refId:_newMatter.id});
     save(); renderAll(); closeModal(); toast(_kindWord+" saved.");
+    if(_askFolder) setTimeout(()=>_cfReview([_newMatter.id]),450);
     // (The old "set up this case's OneDrive folder" prompt is gone: case folders are now
     //  made by the ASDC Helper and opened from the app's Files screen.)
   }
@@ -13816,9 +13828,11 @@ function doConvertToCase(id){
   m.diaryNo = document.getElementById("cvDiary").value.trim() || m.diaryNo;
   m.caseNo = document.getElementById("cvCase").value.trim() || m.caseNo;
   m.parties = document.getElementById("cvParties").value.trim() || m.parties;
+  const _askFolder=_cfAfterCreate(m);
   // documents and receipts reference matterId (unchanged), so they follow automatically.
   save(); renderAll(); closeModal();
   toast(`${originQuery} converted to ${m.code}. All records moved.`);
+  if(_askFolder) setTimeout(()=>_cfReview([m.id]),450);
 }
 function doDeleteMatter(id){
   const reused=softDelete("matters",id);
@@ -15981,10 +15995,12 @@ function doSavePastCase(id){
   };
   let rec;
   if(id){ rec=matterById(id); if(!rec){ toast("Case not found.",true); return; } Object.assign(rec,data); _auditStamp(rec,false); }
-  else { rec=_auditStamp(Object.assign({id:uid(), code:nextPastCode(), kind:"case", historical:true, dates:[]}, data), true); DB.matters.push(rec); }
+  let _askFolder=false;
+  if(!id){ rec=_auditStamp(Object.assign({id:uid(), code:nextPastCode(), kind:"case", historical:true, dates:[]}, data), true); _askFolder=_cfAfterCreate(rec); DB.matters.push(rec); }
   if(client){ try{ rec.clientId=_resolveClientId(client,{addr:rec.address,phone:rec.contact,email:rec.email}); }catch(e){} }
   if(rec.refName){ try{ rec.refAdvId=_resolveRefAdvId(rec.refName,{phone:rec.refContact,email:rec.refEmail,addr:rec.refAddress}); }catch(e){} }
   save(); closeModal(); renderPastCases(isStaffView()); toast(id?"Past case updated.":"Added to Past cases register.");
+  if(_askFolder) setTimeout(()=>_cfReview([rec.id]),450);
 }
 // Backwards-compatible alias (older buttons/paths may still call it).
 function doAddPastCase(){ doSavePastCase(""); }
@@ -16484,6 +16500,7 @@ function renderMatters(){
         ${fbtn("all","All")}${fbtn("listed","Listed")}${fbtn("week","This week")}${fbtn("caveat","Caveats")}${fbtn("query","Queries")}${fbtn("ia","I.A.s")}
         <input class="in" id="mxQ" style="flex:1;min-width:170px;max-width:340px;margin-left:auto" placeholder="Search name, code, SLP / Diary No." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
       </div>
+      ${(()=>{ if(staff) return ""; const n=_cfTodo().length; return n?`<div class="co-warn" style="margin:0 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>📁 <b>${n} case${n===1?"":"s"}</b> ${n===1?"has":"have"} an app number but no case folder.</span><button class="btn seal sm" onclick="_cfReview()">Match or make folders</button></div>`:""; })()}
       ${all.length?`<div class="mx-box"><div class="mx-wide tbl-wrap"><table class="sr-num"><thead><tr><th>No.</th><th>Case</th><th>Case / Diary No.</th><th>Next</th><th>Status</th><th></th></tr></thead><tbody>${trs||`<tr><td colspan="6" class="hint" style="padding:12px">Nothing matches.</td></tr>`}</tbody></table></div>
         <div class="mx-narrow">${cards.join("")||`<div class="empty" style="padding:14px">Nothing matches.</div>`}</div></div>`
         :`<div class="empty">No cases yet. Add one to start.</div>`}
@@ -18241,6 +18258,7 @@ async function saveMDoc(kind){
     const ncase = (document.getElementById("mdNewCase").value||"").trim();
     const code = nk==="query"? nextQueryCode() : nextMatterCode();
     const nm = {id:uid(), code, kind:nk, opened:todayISO(), client:nt, parties:nt, caseNo: nk==="case"?ncase:"", diaryNo:"", status:"Active"};
+    if(nk==="case") _cfAfterCreate(nm);
     DB.matters.push(nm); matterId=nm.id;
   }
   const rec={id, kind:isFiled?"filed":"inward", date:document.getElementById("mdDate").value, title,
@@ -18297,6 +18315,7 @@ function saveAssign(kind, id){
     const nc=(document.getElementById("adNewCase").value||"").trim();
     const code=nk==="query"?nextQueryCode():nextMatterCode();
     const nm={id:uid(),code,kind:nk,opened:todayISO(),client:nt,parties:nt,caseNo:nk==="case"?nc:"",diaryNo:"",status:"Active"};
+    if(nk==="case") _cfAfterCreate(nm);
     DB.matters.push(nm); v=nm.id;
   }
   d.matterId=v; save(); closeModal();
@@ -19008,12 +19027,15 @@ function _stampSerial(m){
 }
 function _assignPendingSerials(){
   if(isStaffView()) return false;
-  let n=0;
+  let n=0, ask=0;
   (DB.matters||[]).forEach(m=>{
-    if(m.serialPending && !m.serial && (m.kind==="case"||m.kind==="caveat") && !isVoided(m)){ _stampSerial(m); n++; }
+    if(m.serialPending && !m.serial && (m.kind==="case"||m.kind==="caveat") && !isVoided(m)){
+      // a folder may already exist for it (same number / name): the owner chooses instead of a new number
+      let maybe=false; try{ maybe=_cfMaybe(_cfCandidates(m)); }catch(e){}
+      if(maybe){ delete m.serialPending; m.folderAsk=true; ask++; } else { _stampSerial(m); n++; } }
   });
-  if(n){ save(); toast(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."); }
-  return n>0;
+  if(n||ask){ save(); toast((n?(n===1?"File number assigned to a case added by staff.":n+" file numbers assigned to cases added by staff."):"")+(ask?` ${ask===1?"A case":ask+" cases"} added by staff may already have a case folder — choose it from Cases.`:"")); }
+  return n+ask>0;
 }
 // A register entry can lose its matter link if a cloud snapshot races a local edit; the matter
 // keeps its file number, so re-link from that (owner device, at start-up).
@@ -19024,6 +19046,133 @@ function _regHealLinks(){
   if(n) save();
   return n;
 }
+/* ---- CASE FOLDER for every case (owner, Oct 2026): "a case gets its app number but not its case folder".
+   Past cases, queries turned into cases and cases made from Documents never got a file number, and a new case was
+   given a new number even when its folder already existed. Now: a case is matched to an existing folder (same
+   case/diary number, same name) or given a new file number — the Mac makes "Title (NNN)" — and the owner chooses
+   whenever a folder may already exist. Never a guess: only exact number + name matches are pre-chosen. */
+const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer".split(" "));
+function _cfTok(t){ return String(t||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!_CF_STOP.has(w)); }
+function _cfNorm(t){ return String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b|\bv\/s\b/g," v ").replace(/[^a-z0-9]+/g," ").trim(); }
+function _cfIsCase(m){ return !!m&&!isVoided(m)&&(m.kind==="case"||m.kind==="caveat"); }
+function _cfTodo(){ return (DB.matters||[]).filter(m=>_cfIsCase(m)&&!m.serial); }
+function _cfCandidates(m){
+  const mk=_matterKeys(m), out=[];
+  const parts=String(m.parties||m.client||"").split(/\s+(?:v\/s\.?|vs\.?|v\.|v|versus)\s+/i);
+  const pt=new Set([..._cfTok(parts[0]),..._cfTok(m.client)]), rt=new Set(_cfTok(parts.slice(1).join(" ")));
+  const exact=_cfNorm(m.parties||m.client);
+  (DB.register||[]).forEach(r=>{
+    if(r.status==="removed"||r.status==="merged") return;
+    const conf=new Set(), sug=new Set();
+    (r.petitionNos||[]).forEach(pn=>_numKeys(pn,_labelKind(pn)).forEach(x=>conf.add(x)));
+    (r.petitionSuggest||[]).forEach(pn=>_numKeys(pn,_labelKind(pn)).forEach(x=>sug.add(x)));
+    let score=0, names=0; const why=[];
+    if(mk.size&&_keysMatch(mk,conf)){ score+=10; why.push("same case/diary number"); }
+    else if(mk.size&&_keysMatch(mk,sug)){ score+=6; why.push("its number is in that folder's papers"); }
+    const tt=new Set(_cfTok(r.title)), hit=[];
+    pt.forEach(w=>{ if(tt.has(w)) hit.push(w); }); rt.forEach(w=>{ if(tt.has(w)&&hit.indexOf(w)<0) hit.push(w); });
+    if(exact&&_cfNorm(r.title)===exact){ score+=12; names=9; why.unshift("same name"); }
+    else if(hit.length){ names=hit.length; score+=hit.length*2; why.push("name: "+hit.join(" ")); }
+    if(score<2) return;
+    const om=r.matterId&&r.matterId!==m.id?matterById(r.matterId):null;
+    out.push({r, score, names, why:why.join(" · "), other:(om&&!isVoided(om))?om:null});
+  });
+  return out.sort((a,b)=>b.score-a.score||(+b.r.serial)-(+a.r.serial)).slice(0,4);
+}
+// a folder that is clearly this case: same number AND a name in common (or the very same name), not another case's
+function _cfStrong(c){ return !!c&&!c.other&&((c.score>=10&&c.names>=1&&/number/.test(c.why))||/^same name/.test(c.why)); }
+// a folder that MAY be this case — worth asking before a new number is given
+function _cfMaybe(cands){ return cands.some(c=>/number/.test(c.why)||c.names>=2); }
+// Every way a case is made calls this. Owner: a new file number at once, unless a folder may already exist — then
+// the case waits for the owner's choice. Staff: pending; the owner's app decides when it next opens.
+function _cfAfterCreate(m){
+  if(!_cfIsCase(m)||m.serial) return false;
+  if(isStaffView()){ m.serialPending=true; return false; }
+  if(_cfMaybe(_cfCandidates(m))){ m.folderAsk=true; delete m.serialPending; return true; }
+  _stampSerial(m); return false;
+}
+function _cfLink(m,r){
+  m.serial=+r.serial; m.chamber=r.chamber||"AD";
+  // an SD Chamber folder's name stays off the shared case (SD files are the owner's only); the owner opens it by number
+  m.folder=m.chamber==="SD"?"":(r.folder||"");
+  delete m.serialPending; delete m.folderAsk;
+  const om=r.matterId?matterById(r.matterId):null;
+  if(!om||isVoided(om)) r.matterId=m.id;
+}
+function _cfNew(m,title,chamber){
+  m.chamber=chamber==="SD"?"SD":"AD"; delete m.folderAsk;
+  _stampSerial(m); if(!m.serial) return;
+  const r=(DB.register||[]).find(x=>x.matterId===m.id&&+x.serial===+m.serial);
+  const name=_ncTitle(title||m.parties||m.client);
+  if(r){ r.title=name; r.chamber=m.chamber; }
+  m.folder=m.chamber==="SD"?"":`AD Chamber/${name} (${String(m.serial).padStart(3,"0")})`;
+}
+function _cfShortTitle(m){
+  // "Toufic Ahmod Majidkhan v/s Suhas Rajabhau Gandhewar" → "Toufic Ahmod Majidkhan v Suhas Rajabhau Gandhewar"; the owner can shorten it
+  return _ncTitle(String(m.parties||m.client||"").replace(/\s+(v\/s\.?|vs\.?|v\.|versus)\s+/ig," v ").replace(/\s*\(\s*/g," (").replace(/\s+/g," "));
+}
+function _cfReview(ids){
+  if(isStaffView()){ toast("Case folders are given by the Head of Chamber's app.",true); return; }
+  const list=(ids&&ids.length?ids.map(matterById).filter(m=>m&&_cfIsCase(m)&&!m.serial):_cfTodo())
+    .sort((a,b)=>String(a.opened||"").localeCompare(String(b.opened||""))||String(a.code||"").localeCompare(String(b.code||""),undefined,{numeric:true}));
+  if(!list.length){ toast("Every case has its case folder."); return; }
+  const one=list.length===1;
+  let nLink=0,nNew=0,nAsk=0;
+  const rows=list.map(m=>{
+    const c=_cfCandidates(m).slice(0,3), strong=c.find(_cfStrong);
+    const pick=strong?"r:"+strong.r.id:(c.length?"later":"new");   // a possible folder → the owner decides; none at all → a new folder
+    if(pick==="new") nNew++; else if(pick==="later") nAsk++; else nLink++;
+    const chip=(v,html,cls)=>`<button type="button" class="cf-chip${cls?" "+cls:""}${pick===v?" on":""}" data-v="${v}" onclick="_cfPick(this)">${html}</button>`;
+    const chips=c.map(x=>chip("r:"+x.r.id,`📁 <b>${String(x.r.serial).padStart(3,"0")}</b> · ${esc(String(x.r.title||"").slice(0,60))}${x.r.chamber==="SD"?" <i>(SD)</i>":""}<span class="cf-why">${esc(x.why)}${x.other?` · already has ${esc(x.other.code||"another case")}`:""}</span>`)).join("")
+      +chip("new","＋ New case folder","cf-alt")+chip("other","Other file No.","cf-alt")+chip("later","Later","cf-alt");
+    const nums=[m.caseNo&&!/_{2,}/.test(m.caseNo)?m.caseNo:"",m.diaryNo?"Diary "+m.diaryNo:""].filter(Boolean).join(" · ");
+    return `<div class="cf-row" data-m="${m.id}" data-v="${pick}">
+      <div class="cf-case"><span class="mono">${esc(m.code||"")}</span> <b>${esc(m.parties||m.client||"")}</b>${m.status==="Concluded"?` <span class="tag">Concluded</span>`:""}${m.serialPending?` <span class="tag">added by staff</span>`:""}${nums?`<div class="hint mono">${esc(nums)}</div>`:""}</div>
+      <div class="cf-chips">${chips}</div>
+      <div class="cf-new" style="display:${pick==="new"?"flex":"none"}"><input class="in" data-k="title" value="${esc(_cfShortTitle(m))}" title="Folder name — shorten it if you like"><select class="in" data-k="ch" style="flex:0 0 auto;width:auto"><option value="AD" ${m.chamber==="SD"?"":"selected"}>AD</option><option value="SD" ${m.chamber==="SD"?"selected":""}>SD</option></select></div>
+      <div class="cf-other" style="display:none"><input class="in mono" data-k="ser" inputmode="numeric" placeholder="File No., e.g. 212" oninput="_cfOtherShow(this)"><div class="hint" data-k="who"></div></div>
+    </div>`;
+  }).join("");
+  openModal(one?"Case folder for this case":`${list.length} cases without a case folder`, `
+    <div class="hint" style="margin-bottom:8px">${one?"This case may already have a folder in the Master Cases Folder. Tap its folder, or give it a new one.":"Tap the folder each case already has, or <b>＋ New case folder</b> for a new file number (your Mac makes the folder within two minutes). Only a folder with the same case/diary number <i>and</i> name is chosen for you; folders with only a similar name are shown for you to check."} New file numbers are permanent.</div>
+    ${one?"":`<div class="hint" style="margin-bottom:8px"><b>${nLink}</b> matched · <b>${nNew}</b> new folder${nNew===1?"":"s"} · <b style="color:var(--seal)">${nAsk}</b> to check (left as “Later” until you tap)</div>`}
+    <div class="cf-list" id="cfRows">${rows}</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">${one?"Later":"Close"}</button><button class="btn seal" onclick="_cfApply()">Apply</button></div>`);
+}
+function _cfPick(btn){ const row=btn.closest(".cf-row"), v=btn.getAttribute("data-v"); row.setAttribute("data-v",v);
+  row.querySelectorAll(".cf-chip").forEach(b=>b.classList.toggle("on",b===btn));
+  row.querySelector(".cf-new").style.display=v==="new"?"flex":"none"; row.querySelector(".cf-other").style.display=v==="other"?"block":"none";
+  if(v==="other"){ const i=row.querySelector('[data-k="ser"]'); if(i) i.focus(); } }
+function _cfOtherShow(inp){ const row=inp.closest(".cf-row"), who=row.querySelector('[data-k="who"]'); const r=(DB.register||[]).find(x=>+x.serial===+inp.value.replace(/\D/g,""));
+  who.innerHTML=!inp.value.trim()?"":r?`📁 ${esc(String(r.serial).padStart(3,"0"))} · ${esc(r.title||"")}${r.chamber==="SD"?" (SD)":""}${r.status==="removed"||r.status==="merged"?` <b style="color:var(--seal)">— ${esc(r.status)}</b>`:""}`:`<span style="color:var(--seal)">No file with that number.</span>`; }
+function _cfApply(){
+  const plan=[...document.querySelectorAll("#cfRows .cf-row")].map(row=>{
+    const m=matterById(row.getAttribute("data-m")), v=row.getAttribute("data-v");
+    if(!m||m.serial||v==="later") return null;
+    if(v==="new") return {m,act:"new",title:(row.querySelector('[data-k="title"]').value||"").trim(),ch:row.querySelector('[data-k="ch"]').value};
+    if(v==="other"){ const n=+(row.querySelector('[data-k="ser"]').value||"").replace(/\D/g,""); const r=(DB.register||[]).find(x=>+x.serial===n); return r?{m,act:"link",r}:{m,act:"bad",n}; }
+    const r=_regById(v.slice(2)); return r?{m,act:"link",r}:null;
+  }).filter(Boolean);
+  const bad=plan.find(p=>p.act==="bad"); if(bad){ toast(`${bad.m.code}: no file numbered ${bad.n||"(blank)"}.`,true); return; }
+  if(plan.some(p=>p.act==="new"&&p.title.length<3)){ toast("Give each new folder a name.",true); return; }
+  if(!plan.length){ closeModal(); return; }
+  const nNew=plan.filter(p=>p.act==="new").length, nLink=plan.length-nNew, first=nextSerial();
+  if(nNew&&!confirm(`${nLink?`Link ${nLink} case${nLink===1?"":"s"} to ${nLink===1?"its folder":"their folders"} and give`:"Give"} ${nNew} case${nNew===1?"":"s"} new file number${nNew===1?"":"s"} (${nNew===1?first:first+"–"+(first+nNew-1)}) and folder${nNew===1?"":"s"}?\n\nNew file numbers are permanent.`)) return;
+  plan.forEach(p=>{ if(p.act==="link") _cfLink(p.m,p.r); else _cfNew(p.m,p.title,p.ch); });
+  plan.forEach(p=>{ try{ logActivity("matter",`${p.m.code} — case folder ${p.act==="link"?"linked to":"made as"} file ${String(p.m.serial).padStart(3,"0")}`,{refId:p.m.id}); }catch(e){} });
+  save(); closeModal();
+  toast(nNew?`${nLink?nLink+" linked · ":""}${nNew} new case folder${nNew===1?"":"s"} — your Mac makes ${nNew===1?"it":"them"} within two minutes.`:`${nLink} linked to ${nLink===1?"its folder":"their folders"}.`);
+  try{ renderAll(); }catch(e){}
+}
+// staff: an older case with no file number — ask the owner's app to give it one
+function _cfAskOwner(id){ const m=matterById(id); if(!m||m.serial) return; m.serialPending=true; save(); toast("Asked — the Head of Chamber's app gives it its case folder when it next opens."); try{ openMatterDetail(id); }catch(e){} }
+function _cfDetailRow(m){
+  if(!_cfIsCase(m)||m.serial) return "";
+  const k=`<span class="k" style="min-width:96px">`;
+  if(isStaffView()) return m.serialPending?"":m.folderAsk?`<div class="row">${k}Case folder</span><b style="color:var(--muted)">waiting — the Head of Chamber chooses its folder</b></div>`:`<div class="row">${k}Case folder</span><b>none yet <button class="row-act" onclick="_cfAskOwner('${m.id}')">Ask for its folder</button></b></div>`;
+  return `<div class="row">${k}Case folder</span><b style="color:var(--seal)">none yet <button class="row-act" onclick="closeModal();_cfReview(['${m.id}'])">📁 Give it its case folder</button></b></div>`;
+}
+try{ Object.assign(window,{_cfTok,_cfNorm,_cfIsCase,_cfTodo,_cfCandidates,_cfStrong,_cfMaybe,_cfAfterCreate,_cfLink,_cfNew,_cfShortTitle,_cfReview,_cfPick,_cfOtherShow,_cfApply,_cfAskOwner,_cfDetailRow}); }catch(e){}
 const _FOLDER_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.2l2 2.2h8.8A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><path d="M3 11h18"/></svg>';
 function _filesTile(serial){ return serial?`<button class="cu-fbtn" onclick="event.stopPropagation(); openFiles(${+serial})" title="Open this case's papers">${_FOLDER_SVG}<span>Files</span></button>`:""; }
 function _regById(id){ return (DB.register||[]).find(r=>r.id===id)||null; }
@@ -19032,6 +19181,7 @@ function _mRegisterRows(m){
   if(!m || m.kind==="ia") return "";
   const k=`<span class="k" style="min-width:96px">`;
   let h="";
+  h+=_cfDetailRow(m);
   if(m.serial) h+=`<div class="row">${k}File No.</span><b>${esc(String(m.serial))}${m.chamber?` <span class="tag" style="background:${m.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff">${esc(m.chamber)} Chamber</span>`:""}</b></div>`;
   else if(m.serialPending) h+=`<div class="row">${k}File No.</span><b style="color:var(--muted)">pending — assigned when the owner's device next syncs</b></div>`;
   if((m.petitionNos||[]).length) h+=`<div class="row">${k}Other Nos.</span><b class="mono" style="font-weight:500">${m.petitionNos.map(esc).join("<br>")}</b></div>`;
