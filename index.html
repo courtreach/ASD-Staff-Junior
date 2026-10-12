@@ -9628,8 +9628,11 @@ function _fillHomeCourtCard(){
   const el=document.getElementById("homeCourtCard");
   if(!el) return;
   fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
-  .then((rawCU)=>{ window.__cuCache=_normCourtUpdates(rawCU); try{ _autoTrackListings(); }catch(e){} _renderHomeCourt();
-    try{ const tw=document.getElementById("todayWidget"); if(tw) tw.outerHTML=todayWidgetHTML(); }catch(e){} });
+  .then((rawCU)=>{ window.__cuCache=_normCourtUpdates(rawCU); try{ _autoTrackListings(); }catch(e){}
+    // redraw the Today card (so it can leave out cases listed today) FIRST — the Supreme Court list sits inside it —
+    // then fill the list (12 Oct 2026: the other order wiped the listings off the Today card)
+    try{ const tw=document.getElementById("todayWidget"); if(tw) tw.outerHTML=todayWidgetHTML(); }catch(e){}
+    _renderHomeCourt(); });
 }
 // Move the home cause-list view to the previous / next day that has data in the fetched window.
 function _hcShift(delta){
@@ -27745,7 +27748,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.12-1545";
+  window.APP_VERSION = "2026.10.12-1600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
