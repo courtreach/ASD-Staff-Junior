@@ -9626,7 +9626,8 @@ function _fillHomeCourtCard(){
   const el=document.getElementById("homeCourtCard");
   if(!el) return;
   fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
-  .then((rawCU)=>{ window.__cuCache=_normCourtUpdates(rawCU); try{ _autoTrackListings(); }catch(e){} _renderHomeCourt(); });
+  .then((rawCU)=>{ window.__cuCache=_normCourtUpdates(rawCU); try{ _autoTrackListings(); }catch(e){} _renderHomeCourt();
+    try{ const tw=document.getElementById("todayWidget"); if(tw) tw.outerHTML=todayWidgetHTML(); }catch(e){} });
 }
 // Move the home cause-list view to the previous / next day that has data in the fetched window.
 function _hcShift(delta){
@@ -15522,7 +15523,7 @@ function _eventsOn(iso){
         matterId:m.id, dateId:de?de.id:"", time:t,
         code:m.code||"", caseNo:m.caseNo||"", court:m.court||"",
         reason:(de&&de.reason)||m.hearingNote||"", courtNo:(de&&de.courtNo)||"",
-        itemNo:(de&&de.itemNo)||"", coram:(de&&de.coram)||"", special:(de&&de.specialTime)||""});
+        itemNo:(de&&de.itemNo)||"", coram:(de&&de.coram)||"", special:(de&&de.specialTime)||"", src:(de&&de.src)||""});
     }
   });
   _allApptsForMe().forEach(a=>{ if(a.date===iso) ev.push({type:a.kind==="personal"?"personal":"appt", title:a.title||"Appointment", sub:(a.time?a.time+" · ":"")+(a.location||"")+(a.createdBy?" · by "+a.createdBy:""), apptId:a.id, time:a.time||"", location:a.location||"", matterId:a.matterId||""}); });
@@ -25238,7 +25239,7 @@ function todayWidgetHTML(){
   // nor a hearing that is the same listing (auto-added from the cause list for that day).
   const _listedIds=(dayIso)=>{ const ids=new Set(); try{ const cu=window.__cuCache, day=cu&&(cu.days||[]).find(d=>d.date===dayIso);
     (day&&day.matches||[]).forEach(mt=>{ const mm=_listingMatch(_parseListing(mt.title)); if(mm&&mm.id) ids.add(mm.id); }); }catch(e){} return ids; };
-  const _dedupe=(arr,dayIso)=>{ const ids=_listedIds(dayIso); return arr.filter(e=>e.type!=="listing" && !(e.type==="hearing" && ids.has(e.matterId))); };
+  const _dedupe=(arr,dayIso)=>{ const ids=_listedIds(dayIso); return arr.filter(e=>e.type!=="listing" && !(e.type==="hearing" && (e.src==="cl" || ids.has(e.matterId)))); };   // owner, 12 Oct 2026: the listing alone, no second "Hearing" line
   const todayEv=_dedupe(_todayItems(), iso);
   let tmrEv=[]; try{ tmrEv=_dedupe(_eventsOn(tIso)||[], tIso); }catch(e){ tmrEv=[]; }
   const actionBar=`<div class="tw-actions">
@@ -25285,7 +25286,7 @@ function todayWidgetHTML(){
   };
   // Tomorrow section only appears when it actually has something (keeps it calm).
   const tmrSection = tmrEv.length ? section("Tomorrow", tmrEv, tIso, "") : "";
-  return `<div class="hcard"><div class="hcard-h"><div class="eyebrow" onclick="_hcToday()" style="cursor:pointer" title="Show today's Supreme Court list below">Today · ${dstr}</div>
+  return `<div class="hcard" id="todayWidget"><div class="hcard-h"><div class="eyebrow" onclick="_hcToday()" style="cursor:pointer" title="Show today's Supreme Court list below">Today · ${dstr}</div>
       <button class="seeall" onclick="shellGo('calendar')">Calendar ›</button></div>
     ${section("Today", todayEv, iso, "Nothing scheduled today.")}
     ${tmrSection}
@@ -26040,12 +26041,12 @@ function renderPhoneHome(){
   for(let i=2;i<=14;i++){ const d=new Date(); d.setDate(d.getDate()+i); const iso=d.toISOString().slice(0,10);
     let ev=[]; try{ ev=(_eventsOn(iso)||[]).filter(e=>e.type!=="listing"); }catch(e){}
     if(ev.length) days.push({iso,ev}); }
-  const tag=e=>e.type==="hearing"?`<span class="tw-tag hear">Hearing</span>`:e.type==="deadline"?`<span class="tw-tag dl">Deadline</span>`:e.type==="reminder"?`<span class="tw-tag rem">Reminder</span>`:e.type==="personal"?`<span class="tw-tag pers">Personal</span>`:`<span class="tw-tag appt">Meeting</span>`;
+  const tag=e=>e.type==="hearing"?`<span class="tw-tag hear">${e.src==="cl"?"Listed":"Hearing"}</span>`:e.type==="deadline"?`<span class="tw-tag dl">Deadline</span>`:e.type==="reminder"?`<span class="tw-tag rem">Reminder</span>`:e.type==="personal"?`<span class="tw-tag pers">Personal</span>`:`<span class="tw-tag appt">Meeting</span>`;
   const agenda=days.length?days.map(({iso,ev})=>{
     const lab=new Date(iso+"T00:00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
     return `<div class="pa-day"><div class="pa-dh" onclick="_calDayView('${iso}')">${esc(lab)}</div>${ev.slice(0,6).map(e=>{
       const fm=e.type==="hearing"&&e.matterId?matterById(e.matterId):null; const fser=(fm&&_canFiles(fm))?+fm.serial:0;
-      return `<div class="tw-row" onclick="${e.type==="hearing"&&e.matterId?`openMatterDetail('${e.matterId}')`:`_calDayView('${iso}')`}">${tag(e)}<div class="tw-mid"><div class="tw-t">${esc(e.title||"—")}</div>${e.sub?`<div class="tw-s">${esc(e.sub)}</div>`:""}</div>${_filesTile(fser)}</div>`; }).join("")}${ev.length>6?`<button class="tw-more" onclick="_calDayView('${iso}')">+ ${ev.length-6} more ›</button>`:""}</div>`; }).join("")
+      return `<div class="tw-row" onclick="${e.type==="hearing"&&e.matterId?`openMatterDetail('${e.matterId}')`:`_calDayView('${iso}')`}">${tag(e)}<div class="tw-mid"><div class="tw-t">${esc(e.title||"—")}</div>${(()=>{ const s=e.type==="hearing"&&e.src==="cl"?[fm?_fno(fm):"",e.courtNo?"Ct "+e.courtNo:"",e.itemNo?"Item "+e.itemNo:""].filter(Boolean).join(" · "):e.sub; return s?`<div class="tw-s">${esc(s)}</div>`:""; })()}</div>${_filesTile(fser)}</div>`; }).join("")}${ev.length>6?`<button class="tw-more" onclick="_calDayView('${iso}')">+ ${ev.length-6} more ›</button>`:""}</div>`; }).join("")
     :`<div class="tw-empty-day">Nothing in the next two weeks.</div>`;
   home.innerHTML=`${todayWidgetHTML()}
     <div class="hcard"><div class="hcard-h"><div class="eyebrow">Next two weeks</div><button class="seeall" onclick="openCalendar()">Full calendar ›</button></div>${agenda}</div>
@@ -27737,7 +27738,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.11-1600";
+  window.APP_VERSION = "2026.10.12-1530";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
