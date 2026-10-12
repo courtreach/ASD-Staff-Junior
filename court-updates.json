@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T08:39:56.006291Z",
+  "generated_at": "2026-10-12T10:48:05.981060Z",
   "window": [
     "2026-10-12",
     "2026-10-13",
@@ -212,12 +212,13 @@
       "lists_found": [
         "Miscellaneous - Main",
         "Regular / Final - Main",
+        "Registrar - Main",
         "Miscellaneous - Advance"
       ],
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 1,
+      "match_count": 2,
       "matches": [
         {
           "for_date": "2026-10-14",
@@ -240,6 +241,28 @@
           "petitioner": "SANTOSH KUMAR .R AND ORS.",
           "respondent": "SANJAY BEHARI",
           "text": "30 SLP(C) No. 26198/2026 SANTOSH KUMAR .R AND ORS. Versus SANJAY BEHARI"
+        },
+        {
+          "for_date": "2026-10-14",
+          "list": "Registrar - Main",
+          "kind": "main",
+          "family": "MR",
+          "is_supplementary": false,
+          "court": "2",
+          "item": "17",
+          "coram": "MS. GRACY L. BAWITLUNG, REGISTRAR",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 11406-11407/2026",
+          "petitioner": "SANJEEV MALHOTRA AND ANR.",
+          "respondent": "USHA SETH AND ORS.",
+          "text": "17 SLP(C) No. 11406-11407/2026 SANJEEV MALHOTRA AND ANR. Versus USHA SETH AND ORS."
         }
       ]
     },
@@ -374,6 +397,6 @@
       ]
     }
   },
-  "match_count": 14,
+  "match_count": 15,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
