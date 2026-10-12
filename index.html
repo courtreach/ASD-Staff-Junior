@@ -1957,6 +1957,8 @@
   .fv-hit{background:#fff1b8;border-radius:2px}
   .fv-res{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;cursor:pointer}
   .fv-res:hover{border-color:var(--seal)}
+  .fv-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.fv-col{min-width:0}
+  @media (max-width:760px){ .fv-cols{grid-template-columns:1fr} }
   .fv-isls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   .fv-isl{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px 14px 12px;cursor:pointer;font-family:inherit;min-height:118px;transition:border-color .15s,box-shadow .15s}
   .fv-isl:hover{border-color:var(--seal);box-shadow:0 2px 10px rgba(107,31,31,.08)}
@@ -20061,9 +20063,11 @@ function _fvRenderList(){
     return `<div class="fv-row"><div class="fv-ic dir">${fil?"⚖️":"📁"}</div><div class="fv-main" onclick="_filesSub(${_fvQuote(x.name)})"><div class="fv-name">${_hl(x.name,q)}</div><div class="fv-meta"><span>${x.count} item${x.count===1?"":"s"}</span></div></div><div class="fv-acts"><button onclick="_filesSub(${_fvQuote(x.name)})">Open</button>${fil&&!isStaffView()?`<button class="fv-more" onclick="event.stopPropagation();_fvDirMenu(this,${_fvQuote(path)},true)" title="More" aria-label="More">⋯</button>`:""}</div></div>`; };
   let h="";
   if(f.type==="all"&&!q&&!__fvSel.on){
-    // ISLANDS: the latest few papers, then one big tile per kind of paper
-    const latest=files.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))).slice(0,3);
-    const kinds=[["fil","⚖️","Filings"],["N","📝","Notes"],["F","📕","PDF files"],["LS","📄","Lists & Submissions"],["C","📚","Compilations"],["D","✏️","Drafts"],["X","❔","Not yet numbered"],["dir","📁","Older folders"]];
+    // Every paper of the folder in two columns — Word documents | PDFs — newest first (owner, 12 Oct 2026); folders as tiles above
+    const newest=(a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))||String(a._label).localeCompare(String(b._label));
+    const words=files.filter(x=>_fileKind(x.ext)==="word").sort(newest), pdfs=files.filter(x=>_fileKind(x.ext)==="pdf").sort(newest),
+          others=files.filter(x=>{ const k=_fileKind(x.ext); return k!=="word"&&k!=="pdf"; }).sort(newest);
+    const kinds=[["fil","⚖️","Filings"],["dir","📁","Older folders"]];
     const tiles=kinds.map(([t,ic,lab])=>{
       const g=(t==="dir"||t==="fil")?dirs.filter(x=>x._t===t):files.filter(x=>t==="LS"?(x._t==="L"||x._t==="S"):x._t===t);
       if(!g.length) return "";
@@ -20073,7 +20077,10 @@ function _fvRenderList(){
     }).join("");
     const nFil=dirs.filter(x=>x._t==="fil").length;
     const fdTile=nFil?`<button class="fv-isl" onclick="_fvFilingDocs()"><span class="fv-isl-ic">📑</span><span class="fv-isl-n" style="font-size:20px">PDFs</span><span class="fv-isl-l">Filing documents</span><span class="fv-isl-d">filing copy, defect pages, final copy…</span></button>`:"";
-    h=`<div class="fv-isls" style="margin-top:4px">${tiles}${fdTile}</div>`+(latest.length?`<div class="fv-group" style="margin-top:18px">Latest papers</div>`+latest.map(row).join(""):"");
+    const col=(lab,xs)=>`<div class="fv-col"><div class="fv-group" style="margin-top:0">${lab} · ${xs.length}</div>${xs.length?xs.map(row).join(""):`<div class="hint" style="padding:8px 2px">None.</div>`}</div>`;
+    h=(tiles||fdTile?`<div class="fv-isls" style="margin-top:4px">${tiles}${fdTile}</div>`:"")
+      +(files.length?`<div class="fv-cols" style="margin-top:${tiles||fdTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
+        +(others.length?`<div class="fv-group" style="margin-top:14px">Other files · ${others.length}</div>`+others.map(row).join(""):""):"");
     if(!files.length&&!dirs.length) h=`<div class="fv-empty">The folder is empty.</div>`;
     box.innerHTML=h; return;
   }
@@ -27738,7 +27745,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.12-1530";
+  window.APP_VERSION = "2026.10.12-1545";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
