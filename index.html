@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASDC</title>
 <style>
+  /* no text autosizing on phones (it enlarged paragraph text in printed invoices) */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   :root{
     /* Restrained system: both apps share every neutral below; the ONLY
        per-role variable is the seal hue (owner oxblood / staff teal). */
@@ -549,6 +551,7 @@
     #receiptArea table.tpl-paged>thead{ display:table-header-group; }
     #receiptArea table.tpl-paged>tfoot{ display:table-footer-group; }
     #receiptArea table.tpl-paged .tpl-foot{ position:static !important; height:auto !important; bottom:auto !important; }
+    #receiptArea table.tpl-paged>tfoot, #receiptArea table.tpl-paged>tfoot tr, #receiptArea .tpl-foot{ break-inside:avoid; page-break-inside:avoid; }
     #receiptArea table.tpl-paged .tpl-run-head{ position:static !important; top:auto !important; height:auto !important; }
     #receiptArea table.tpl-paged>tbody>tr>td.tpl-b{ height:100%; }
     /* Running footer (and, for notices, running header). They are fixed to the
@@ -6644,7 +6647,7 @@ function _openPrintView(title){
       "<meta name='viewport' content='width=device-width, initial-scale=1'>"+
       "<title>"+String(title||"Document").replace(/[<>]/g,"")+"</title>"+
       "<style>"+styles+"</style>"+
-      "<style>html,body{margin:0;background:#f2eee6}"+
+      "<style>html{-webkit-text-size-adjust:100% !important;text-size-adjust:100% !important}html,body{margin:0;background:#f2eee6}"+
       "body{padding:12px 0 84px;overflow-x:hidden}"+
       "#receiptArea{position:static !important;left:auto !important;top:auto !important}"+
       // On screen, scale the fixed A4 page down to fit the device width so it never
@@ -27763,7 +27766,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.13-1000";
+  window.APP_VERSION = "2026.10.13-1800";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
