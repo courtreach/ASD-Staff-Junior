@@ -16636,7 +16636,7 @@ function renderMatters(){
     <div class="card">
       <div class="card-head">
         <div><h2>Cases</h2><div class="hint">${rows.length===E.length?`${E.length} cases`:`${rows.length} of ${E.length}`}${cnt.listed?` · <b style="color:var(--green)">${cnt.listed} listed</b>`:""}</div></div>
-        <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="_fvMenu(this,[{l:'Past cases',on:'openPastCases()'},{l:'Unassigned papers',on:'openUnassigned()'},{l:'New case folder (client papers)',on:'_ncAsk()'}])">More ▾</button><button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
+        <div style="display:flex;gap:6px"><button class="btn ghost sm" onclick="_fvMenu(this,[{l:'Past cases',on:'openPastCases()'},{l:'Unassigned papers',on:'openUnassigned()'},{l:'New case folder (client papers)',on:'_ncAsk()'}])">More ▾</button>${staff?"":`<button class="btn ghost sm" onclick="_regNewSD()">+ SD case</button>`}<button class="btn seal sm" onclick="addMatter()">+ New case</button></div>
       </div>
       <div class="cr-bar">
         <input class="in" id="mxQ" placeholder="Search — file no., name, SLP / diary no." value="${esc(_mxQuery)}" oninput="_mxSetQuery(this.value)">
@@ -19224,7 +19224,7 @@ function _regHealLinks(){
    given a new number even when its folder already existed. Now: a case is matched to an existing folder (same
    case/diary number, same name) or given a new file number — the Mac makes "Title (NNN)" — and the owner chooses
    whenever a folder may already exist. Never a guess: only exact number + name matches are pre-chosen. */
-const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer opinion advice query walk".split(" "));
+const _CF_STOP=new Set("and ors anr the of state union india maharashtra kerala assam karnataka gujarat gujrat punjab versus vs ltd limited pvt private co company society others another smt shri sri mr mrs dr through its secretary deceased lrs alias son wife daughter case matter caveat slp appeal petition syed shaikh sheikh mohd mohammad mohammed kumar singh devi bai government jintur midc insurance united national new company corporation bank commissioner district council board authority department ministry director directors commercial complex education educational trust mandal sanstha shikshan prasarak gram panchayat municipal nagar parishad zilla collector police inspector officer opinion advice query walk tamil nadu pradesh uttar madhya andhra west bengal rajasthan delhi bihar haryana telangana odisha orissa jharkhand chhattisgarh uttarakhand himachal jammu kashmir goa tripura manipur meghalaya nagaland mizoram sikkim arunachal puducherry chandigarh industry industries development".split(" "));
 function _cfTok(t){ return String(t||"").toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(w=>w.length>=3&&!_CF_STOP.has(w)); }
 function _cfNorm(t){ return String(t||"").toLowerCase().replace(/\bv(s|ersus)?\.?\b|\bv\/s\b/g," v ").replace(/[^a-z0-9]+/g," ").trim(); }
 function _cfIsCase(m){ return !!m&&!isVoided(m)&&!m.noFile&&(m.kind==="case"||m.kind==="caveat"||(m.kind==="query"&&!!m.wantFile)); }   // noFile: owner's decision to keep it unnumbered
@@ -19583,22 +19583,49 @@ function _folderPapersCard(m){
 }
 // New SD Chamber file: owner only, register entry only (no matter, so staff never see it).
 // The ASDC Helper on the Mac creates "SD Chamber/<Title> (NNN)" on its next run.
+/* QUICK SD CHAMBER CASE (owner, 13 Oct 2026: "an option … where I don't have to give so many details except the cause title
+   and SLP/Petition or Diary Number and a case folder with serial number is created"). Assisting the Senior → a private file
+   (staff never see it); "I am the AoR" → a case staff see and can file in. Either way: the next File No. and its folder. */
 function _regNewSD(){
   if(isStaffView()) return;
-  openModal("New SD Chamber file", `
-    <div class="hint" style="margin-bottom:10px">Gets the next file number in the single series (both chambers). Visible only to you. The helper on your Mac creates the folder <b>SD Chamber/&lt;Title&gt; (No.)</b> within minutes.</div>
-    <label class="fld">Short title <span style="color:var(--muted);font-weight:400">(as you name folders, e.g. Alan Tang v HDFC)</span></label>
-    <input class="in" id="sdTitle" maxlength="110" placeholder="Petitioner v Respondent">
+  openModal("New SD Chamber case", `
+    <label class="fld">Cause title</label>
+    <input class="in" id="sdTitle" maxlength="140" placeholder="e.g. Lamax Rubber Industry v Tamil Nadu Small Industries" oninput="_sdDupShow()">
+    <label class="fld" style="margin-top:10px">SLP / Petition / Diary No. <span style="color:var(--muted);font-weight:400">(one per line)</span></label>
+    <textarea class="in mono" id="sdNums" rows="2" placeholder="SLP (C) No. 35678-35682/2025&#10;Diary No. 6789/2026" oninput="_sdDupShow()"></textarea>
     <div id="sdDup" class="dup-warn"></div>
-    <div class="grid g2" style="margin-top:10px">
-      <div><label class="fld">Came to you on</label><input class="in" type="date" id="sdDate" value="${todayISO()}"></div>
-      <div><label class="fld">File No. (automatic)</label><input class="in mono" value="${nextSerial()}" disabled></div>
-    </div>
-    <label class="fld" style="margin-top:10px">Petition / Diary numbers <span style="color:var(--muted);font-weight:400">(optional, one per line)</span></label>
-    <textarea class="in mono" id="sdNums" rows="2" placeholder="SLP (C) No. 12345/2026&#10;Diary No. 6789/2026"></textarea>
-    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_regNewSDSave()">Create file</button></div>`);
-  setTimeout(()=>{ const t=document.getElementById("sdTitle"); if(t){ t.focus(); t.oninput=()=>{ const v=t.value.trim().toLowerCase(); const hit=v&&(DB.register||[]).find(r=>String(r.title||"").toLowerCase()===v); const w=document.getElementById("sdDup"); if(w) w.textContent=hit?`Already in the register as file ${hit.serial} (${hit.chamber}).`:""; }; } },60);
+    <label class="checkline" style="margin-top:10px"><input type="checkbox" id="sdAor"> I am the AoR in this case <span class="hint">(staff will see it and can work on it)</span></label>
+    <div class="hint" style="margin-top:8px">Gets File No. <b>${nextSerial()}</b>; your Mac makes <b>SD Chamber/&lt;cause title&gt; (${nextSerial()})</b> within two minutes. Anything else can be added later.</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_regNewSDSave()">Create</button></div>`);
+  setTimeout(()=>{ const t=document.getElementById("sdTitle"); if(t) t.focus(); },60);
 }
+function _sdForm(){
+  const title=((document.getElementById("sdTitle")||{}).value||"").replace(/\s+/g," ").trim();
+  const lines=_parsePetNos((document.getElementById("sdNums")||{}).value);
+  const diary=lines.find(x=>/diary/i.test(x))||"", caseNo=lines.find(x=>!/diary/i.test(x))||"";
+  return {title, lines, caseNo, diaryNo:diary?diary.replace(/^.*?(\d[\d\s\-–]*\/\s*\d{4}).*$/,"$1").replace(/\s/g,""):"", rest:lines.filter(x=>x!==diary&&x!==caseNo)};
+}
+function _sdDupShow(){ const w=document.getElementById("sdDup"); if(!w) return; const f=_sdForm(); if(f.title.length<4&&!f.lines.length){ w.className="dup-warn"; w.innerHTML=""; return; }
+  const probe={id:"_sd",kind:"case",parties:f.title,client:"",caseNo:f.caseNo,diaryNo:f.diaryNo,petitionNos:f.rest};
+  const hit=_cfCandidates(probe).find(c=>/number/.test(c.why)||c.names>=2||/^same name/.test(c.why));
+  w.className="dup-warn"+(hit?" show":""); w.innerHTML=hit?`⚠️ Looks like <b>File ${String(hit.r.serial).padStart(3,"0")} · ${esc(hit.r.title)}</b> (${esc(hit.why)}).`:""; }
+function _regNewSDSave(){
+  const f=_sdForm();
+  if(f.title.length<4){ toast("Type the cause title.", true); return; }
+  if(/["*:<>?\/\\|]/.test(f.title)){ toast('The title cannot contain any of  " * : < > ? / \\ |', true); return; }
+  const data={client:f.title, parties:f.title, caseNo:f.caseNo, diaryNo:f.diaryNo, petitionNos:f.rest, court:"Supreme Court of India", chamber:"SD"};
+  if(!(document.getElementById("sdAor")||{}).checked){ _sdPrivateSave(data); return; }          // assisting the Senior: private file
+  // the AoR: a case in the shared list (staff see SD cases we act in)
+  const probe=Object.assign({id:"_sd",kind:"case"},data); const hit=_cfCandidates(probe).find(c=>/number/.test(c.why)||/^same name/.test(c.why));
+  if(hit&&!confirm(`This looks like File ${String(hit.r.serial).padStart(3,"0")} · ${hit.r.title}.\n\nOK = create a new case anyway. Cancel = stop (open that file instead).`)) return;
+  const m=Object.assign({id:uid(), code:nextMatterCode(), kind:"case", opened:todayISO(), status:"Active", role:"aor", appearFor:""},data);
+  _stampSerial(m); if(m.serial) m.folder=`SD Chamber/${_ncTitle(f.title)} (${String(m.serial).padStart(3,"0")})`;
+  const r=(DB.register||[]).find(x=>x.matterId===m.id); if(r){ r.title=_ncTitle(f.title); r.chamber="SD"; r.petEdited=!!f.lines.length; }
+  DB.matters.push(m); try{ logActivity("matter",`New SD case ${m.code} — ${f.title}`,{refId:m.id}); }catch(e){}
+  save(); closeModal(); try{ renderAll(); }catch(e){}
+  toast(`SD case created as File ${String(m.serial||"").padStart(3,"0")} — your Mac makes its folder within two minutes.`);
+}
+try{ Object.assign(window,{_regNewSD,_sdForm,_sdDupShow,_regNewSDSave}); }catch(e){}
 // An SD Chamber case where the Head of Chamber only assists the Senior: a private register file (File No. + folder),
 // never a shared case (staff devices never receive SD Chamber cases). Checked first against existing files.
 function _sdPrivateSave(data, past){
@@ -19618,18 +19645,6 @@ function _sdPrivateSave(data, past){
   try{ renderAll(); }catch(e){}
 }
 try{ window._sdPrivateSave=_sdPrivateSave; }catch(e){}
-function _regNewSDSave(){
-  const title=((document.getElementById("sdTitle")||{}).value||"").replace(/\s+/g," ").trim();
-  if(!title){ toast("Enter the short title.", true); return; }
-  if(/["*:<>?\/\\|]/.test(title)){ toast('The title cannot contain any of  " * : < > ? / \\ |', true); return; }
-  const serial=nextSerial();
-  if(!Array.isArray(DB.register)) DB.register=[];
-  DB.register.push({ id:uid(), serial, title, chamber:"SD", date:(document.getElementById("sdDate")||{}).value||todayISO(), folder:"", batch:null, batchListNo:null,
-    petitionNos:_parsePetNos((document.getElementById("sdNums")||{}).value), petitionGuess:false, petEdited:true, matterId:null, status:"active", createdBy:"app" });
-  save(); closeModal();
-  toast(`SD file No. ${serial} created. Its folder appears in the Master Cases Folder when the helper next runs.`);
-  if(document.getElementById("panel-register")&&document.getElementById("panel-register").classList.contains("active")) renderCaseRegister();
-}
 /* ===========================================================
    DOCUMENTS — open, edit and share case papers through the ASDC Gatekeeper
    (a Cloudflare Worker holding the OneDrive sign-in). Staff: AD Chamber only,
@@ -27748,7 +27763,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.12-1600";
+  window.APP_VERSION = "2026.10.13-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
