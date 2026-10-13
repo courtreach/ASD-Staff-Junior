@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T09:00:24.567242Z",
+  "generated_at": "2026-10-13T12:04:41.967597Z",
   "window": [
     "2026-10-13",
     "2026-10-14",
@@ -156,14 +156,15 @@
       "lists_found": [
         "Miscellaneous - Main",
         "Regular / Final - Main",
+        "Regular / Final - Supplementary",
         "Registrar - Main",
         "Curative & Review (circulation)",
         "Miscellaneous - Advance"
       ],
-      "has_supplementary": false,
+      "has_supplementary": true,
       "has_advance": true,
       "has_main": true,
-      "match_count": 2,
+      "match_count": 3,
       "matches": [
         {
           "for_date": "2026-10-14",
@@ -186,6 +187,26 @@
           "petitioner": "SANTOSH KUMAR .R AND ORS.",
           "respondent": "SANJAY BEHARI",
           "text": "30 SLP(C) No. 26198/2026 SANTOSH KUMAR .R AND ORS. Versus SANJAY BEHARI"
+        },
+        {
+          "for_date": "2026-10-14",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "14",
+          "item": "7",
+          "coram": "HON'BLE MR. JUSTICE S.V.N. BHATTI; HON'BLE MR. JUSTICE N.V. ANJARIA",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 35678-35682/2025",
+          "petitioner": "LAMAX RUBBER INDUSTRY PRIVATE LIMITED",
+          "respondent": "THE TAMIL NADU SMALL INDUSTRIES DEVELOPMENT CORPORATION LIMITED (SIDCO) AND ANR.",
+          "text": "7 SLP(C) No. 35678-35682/2025 LAMAX RUBBER INDUSTRY PRIVATE LIMITED Versus THE TAMIL NADU SMALL INDUSTRIES DEVELOPMENT CORPORATION LIMITED (SIDCO) AND ANR."
         },
         {
           "for_date": "2026-10-14",
@@ -215,10 +236,10 @@
       "lists_found": [
         "Miscellaneous - Main",
         "Registrar - Main",
-        "Miscellaneous - Advance"
+        "Curative & Review (circulation)"
       ],
       "has_supplementary": false,
-      "has_advance": true,
+      "has_advance": false,
       "has_main": true,
       "match_count": 1,
       "matches": [
@@ -342,6 +363,6 @@
       ]
     }
   },
-  "match_count": 13,
+  "match_count": 14,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
