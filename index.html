@@ -1960,6 +1960,7 @@
   .fv-hit{background:#fff1b8;border-radius:2px}
   .fv-res{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;margin-bottom:6px;cursor:pointer}
   .fv-res:hover{border-color:var(--seal)}
+  .rn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.rn-row .in{flex:1 1 220px;min-width:0}.rn-fix{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
   .fv-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.fv-col{min-width:0}
   @media (max-width:760px){ .fv-cols{grid-template-columns:1fr} }
   .fv-isls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -23658,6 +23659,36 @@ async function _gkTrash(path){
   try{ return await _gk("/api/trash",{path}); }
   catch(e){ if(/Unknown request/i.test(e.message)) throw new Error(isStaffView()?"Remove is not switched on yet — ask the Head of Chamber to update the ASDC Gatekeeper.":"Remove needs the updated ASDC Gatekeeper — paste the new worker.js into Cloudflare (gatekeeper/SETUP.md, 9 October update)."); throw e; }
 }
+/* RENAME a paper in the case folder (owner, 14 Oct 2026). A numbered paper keeps its number and case title at the front
+   ("F389.8 Ulahanathan … - ") and its file type, so the Mac's numbering and register stay right; only the description
+   after them changes. Staff: papers of the last 7 days, never financial ones (the gatekeeper enforces both). */
+function _rnParts(name){
+  const ext=(/\.[A-Za-z0-9]{1,6}$/.exec(name)||[""])[0], stem=name.slice(0,name.length-ext.length);
+  const m=/^([NLSCFD]\d{3}(?:\.\d+)?) (.*)$/.exec(stem);
+  if(!m) return {fixed:"", edit:stem, ext};
+  const i=m[2].indexOf(" - ");
+  return i>0?{fixed:m[1]+" "+m[2].slice(0,i+3), edit:m[2].slice(i+3), ext}:{fixed:m[1]+" ", edit:m[2], ext};
+}
+function _paperRenameAsk(path){
+  const name=String(path).split("/").pop(), p=_rnParts(name);
+  openModal("Rename paper", `
+    <div class="hint" style="margin-bottom:8px">${p.fixed?"The paper's number and case title stay as they are; change the description.":"Type the new name."}</div>
+    <div class="rn-row">${p.fixed?`<span class="rn-fix mono">${esc(p.fixed)}</span>`:""}<input class="in" id="rnName" value="${esc(p.edit)}" onkeydown="if(event.key==='Enter')_paperRenameGo(${_fvQuote(path)})"><span class="rn-fix">${esc(p.ext)}</span></div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" id="rnGo" onclick="_paperRenameGo(${_fvQuote(path)})">Rename</button></div>`);
+  setTimeout(()=>{ const i=document.getElementById("rnName"); if(i){ i.focus(); i.select(); } },60);
+}
+async function _paperRenameGo(path){
+  const name=String(path).split("/").pop(), p=_rnParts(name);
+  const edit=((document.getElementById("rnName")||{}).value||"").replace(/\s+/g," ").trim();
+  if(!edit){ toast("Type a name.",true); return; }
+  if(/[\/\\:*?"<>|]/.test(edit)){ toast('A name cannot contain any of  / \\ : * ? " < > |',true); return; }
+  const nn=p.fixed+edit+p.ext; if(nn===name){ closeModal(); return; }
+  const b=document.getElementById("rnGo"); if(b){ b.disabled=true; b.textContent="Renaming…"; }
+  try{ await _gkNew("/api/rename",{path, name:nn}); closeModal(); toast("Renamed."); _fv.live=true; _filesLoad(); }
+  catch(e){ if(b){ b.disabled=false; b.textContent="Rename"; }
+    toast(/filing folder/i.test(e.message)?(isStaffView()?"Rename is not switched on yet — ask the Head of Chamber to update the ASDC Gatekeeper.":"Rename needs the updated ASDC Gatekeeper (Settings → Documents)."):e.message,true); }
+}
+try{ Object.assign(window,{_rnParts,_paperRenameAsk,_paperRenameGo}); }catch(e){}
 function _paperRemoveAsk(path){
   const name=String(path).split("/").pop();
   openModal("Remove this paper?", `<div style="margin-bottom:8px"><b>${esc(name)}</b></div>
@@ -24128,7 +24159,7 @@ function _fvMenu(btn, items){
 }
 function _fvFileMenu(btn,k,path,word,canRm){ _fvMenu(btn,[
   {l:"Download",on:`_paperDownload(${k})`},{l:"Share",on:`_paperShare(${k})`}, word?{l:"Edit in Word",on:`_paperEdit(${k})`}:null,
-  canRm?"-":null, canRm?{l:"Replace with a new copy…",on:`_paperReplaceAsk(${_fvQuote(path)})`}:null, canRm?{l:"Remove…",on:`_paperRemoveAsk(${_fvQuote(path)})`,danger:true}:null]); }
+  canRm?"-":null, canRm?{l:"Rename…",on:`_paperRenameAsk(${_fvQuote(path)})`}:null, canRm?{l:"Replace with a new copy…",on:`_paperReplaceAsk(${_fvQuote(path)})`}:null, canRm?{l:"Remove…",on:`_paperRemoveAsk(${_fvQuote(path)})`,danger:true}:null]); }
 function _fvDirMenu(btn,path,isFiling){ _fvMenu(btn,[{l:"Open",on:`_filesSub(${_fvQuote(path.split("/").pop())})`},
   isFiling&&!isStaffView()?"-":null, isFiling&&!isStaffView()?{l:"Remove this filing…",on:`_fvRemoveFilingAsk(${_fvQuote(path)})`,danger:true}:null]); }
 function _fvRemoveFilingAsk(path){
@@ -27766,7 +27797,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.13-1800";
+  window.APP_VERSION = "2026.10.14-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
