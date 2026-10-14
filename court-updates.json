@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T07:08:53.081819Z",
+  "generated_at": "2026-10-14T08:55:55.126894Z",
   "window": [
     "2026-10-14",
     "2026-10-15",
@@ -103,8 +103,28 @@
       "has_supplementary": false,
       "has_advance": true,
       "has_main": true,
-      "match_count": 1,
+      "match_count": 2,
       "matches": [
+        {
+          "for_date": "2026-10-15",
+          "list": "Miscellaneous - Main",
+          "kind": "main",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "5",
+          "item": "13",
+          "coram": "HON'BLE MR. JUSTICE J.B. PARDIWALA; HON'BLE MR. JUSTICE K. VINOD CHANDRAN",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 30360-30361/2026",
+          "petitioner": "AIRPORT AUTHORITY OF INDIA AND ANR.",
+          "respondent": "HAGWOOD COMMERCIAL DEVELOPERS PRIVATE LIMITED, AND ORS.",
+          "text": "13 SLP(C) No. 30360-30361/2026 AIRPORT AUTHORITY OF INDIA AND ANR. Versus HAGWOOD COMMERCIAL DEVELOPERS PRIVATE LIMITED, AND ORS."
+        },
         {
           "for_date": "2026-10-15",
           "list": "Miscellaneous - Main",
@@ -184,6 +204,6 @@
       ]
     }
   },
-  "match_count": 6,
+  "match_count": 7,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
