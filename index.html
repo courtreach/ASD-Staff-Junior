@@ -2066,11 +2066,15 @@
   .pe-body{flex:1;min-height:0;display:flex} .pe-thumbs{width:120px;flex:none;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:#f4f2ee;border-right:1px solid var(--line)}
   .pe-th.drag{opacity:.4} .pe-th.dropA{box-shadow:0 -3px 0 var(--seal)} .pe-th.dropB{box-shadow:0 3px 0 var(--seal)} .pe-th[draggable=true]{cursor:grab} .pe-capb:disabled{opacity:.35;cursor:default}
   .pe-th{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted)} .pe-th canvas{width:100%;height:auto}
-  .pe-main{flex:1;min-width:0;overflow:auto;padding:12px 16px 80px;display:flex;flex-direction:column;align-items:center}
+  .pe-main{flex:1;min-width:0;overflow:auto;padding:12px 16px 80px;display:block;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .pe-zoomer{width:max-content;min-width:100%;display:flex;flex-direction:column;align-items:center;transform-origin:0 0}
+  #peOverlay{touch-action:pan-x pan-y} #peOverlay button{touch-action:manipulation}
+  .pe-pc{position:absolute;left:0;top:0} .pe-ink{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
+  .pe-thph{width:100%;background:#fff} .pe-zoomer .pe-cap{flex-wrap:wrap;row-gap:4px;box-sizing:border-box} .pe-zv{min-width:46px;border:0;background:none;font:inherit;font-size:12px;color:var(--muted);cursor:pointer;border-radius:6px;padding:4px 2px} .pe-zv:hover{background:var(--line2)}
   .pe-cap{font-size:11.5px;color:var(--muted);margin:10px 0 4px} .pe-pg{position:relative;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;touch-action:pan-x pan-y}
-  .pe-pg[data-tool="white"]{cursor:crosshair;touch-action:none} .pe-pg[data-tool="add"],.pe-pg[data-tool="tick"],.pe-pg[data-tool="truecopy"],.pe-pg[data-tool="num"]{cursor:copy} .pe-pg[data-tool="text"]{cursor:text}
+  .pe-pg[data-tool="white"]{cursor:crosshair} .pe-pg[data-tool="add"],.pe-pg[data-tool="tick"],.pe-pg[data-tool="truecopy"],.pe-pg[data-tool="num"]{cursor:copy} .pe-pg[data-tool="text"]{cursor:text}
   .pe-svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible} .pe-pg[data-tool="select"] .pe-svg .pe-v{pointer-events:visiblePainted;cursor:move}
-  .pe-pg[data-tool="pen"],.pe-pg[data-tool="hl"],.pe-pg[data-tool="box"],.pe-pg[data-tool="line"]{touch-action:none;cursor:crosshair}
+  .pe-pg[data-tool="pen"],.pe-pg[data-tool="hl"],.pe-pg[data-tool="box"],.pe-pg[data-tool="line"],.pe-pg[data-tool="erase"]{cursor:crosshair}
   .pe-selbox{position:absolute;outline:1.5px dashed var(--seal);pointer-events:none}
   .pe-opts{display:flex;align-items:center;gap:6px;padding-left:8px;margin-left:4px;border-left:1px solid var(--line)} .pe-opts:empty{display:none}
   .pe-dot{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;flex:none} .pe-dot.on{box-shadow:0 0 0 2px var(--seal)}
@@ -23839,7 +23843,7 @@ try{ Object.assign(window,{_canRemove,_gkTrash,_paperRemoveAsk,_paperRemoveGo,_p
    "5.N Corrected - <part>.pdf" and attaches it to the defect. The filing copy itself is never changed. */
 var _pe=null;
 const _PE_TOOLS=[["select","Select","M4 3l7 17 2-7 7-2z"],["pen","Pen / sign","M3 21l3.5-1L19 7.5 16.5 5 4 17.5zM14.5 7l2.5 2.5"],["hl","Highlight","M5 19h14M8 15l3-9h2l3 9M9.5 11h5"],
-  ["text","Edit text","M4 7V4h16v3M9 20h6M12 4v16"],["add","Add text","M12 5v14M5 12h14"],["box","Box","M4 6h16v12H4z"],["line","Line","M5 19L19 5"],
+  ["text","Edit text","M4 7V4h16v3M9 20h6M12 4v16"],["add","Add text","M12 5v14M5 12h14"],["box","Box","M4 6h16v12H4z"],["line","Line","M5 19L19 5"],["erase","Eraser","M8 20h12M5.5 14.5l8-8 5 5-6 6H9z"],
   ["white","White-out","M3 5h18v14H3z"],["tick","Tick","M4 12l5 5L20 6"],["truecopy","TRUE COPY","M4 18h16M7 14h10"],["num","Page no.","M10 4L8 20M16 4l-2 16M4 9h17M3 15h17"]];
 function _peIcon(d){ return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`; }
 /* 1 · choose the pages (the defect's own pages are ticked) */
@@ -23878,59 +23882,216 @@ function _peStart(o){
   let ov=document.getElementById("peOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="peOverlay"; document.body.appendChild(ov); }
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_peClose()" title="Close (Esc)">✕</button><div class="pe-ttl"><b>${esc(o.label)}</b><span>${o.idx.map(i=>o.ctx.labelOf[i]||("p"+(i+1))).join(", ")}</span></div>
       <button class="pe-ib" id="peUndo" onclick="_peUndo()" title="Undo (⌘Z)">↶</button><button class="pe-ib" id="peRedo" onclick="_peRedo()" title="Redo (⇧⌘Z)">↷</button>
-      <span class="pe-zm"><button class="pe-ib" onclick="_peZoom(-1)" title="Zoom out">−</button><span id="peZv">100%</span><button class="pe-ib" onclick="_peZoom(1)" title="Zoom in">+</button></span>
+      <span class="pe-zm"><button class="pe-ib" onclick="_peZoom(-1)" title="Zoom out">−</button><button class="pe-zv" id="peZv" onclick="_peZoom(0)" title="Fit the page to the screen">100%</button><button class="pe-ib" onclick="_peZoom(1)" title="Zoom in">+</button></span>
       <button class="btn seal sm pe-save" onclick="_peSave()">Save</button></div>
     <div class="pe-tools">${_PE_TOOLS.map(([k,l,d])=>`<button class="pe-t" data-t="${k}" onclick="_peTool('${k}')" title="${l}">${_peIcon(d)}<span>${l}</span></button>`).join("")}<span class="pe-opts" id="peOpts"></span><span class="pe-hint" id="peHint"></span></div>
     <div class="pe-body"><div class="pe-thumbs" id="peThumbs"></div><div class="pe-main" id="peMain"></div></div>`;
   ov.classList.add("show"); document.body.style.overflow="hidden";
   document.addEventListener("keydown",_peKey);
+  _peUnzoomPage(); _peGestures();
   _peTool(o.kind==="case"?"pen":"text"); _peRender();
 }
 // pen / highlight / box / line options: colour, thickness, finger drawing
 function _peOptsDraw(){ const el=document.getElementById("peOpts"); if(!el||!_pe) return; const t=_pe.tool;
+  if(t==="erase"){ el.innerHTML=`<button class="pe-fg${_pe.finger?" on":""}" title="Erase with a finger too (otherwise a finger scrolls)" onclick="_pe.finger=!_pe.finger;_peOptsDraw()">✋ Finger</button>`; return; }
   if(["pen","box","line","hl"].indexOf(t)<0){ el.innerHTML=""; return; }
   const cols=t==="hl"?[["#ffe14d","Yellow"],["#8fe28f","Green"],["#ff9ccf","Pink"]]:[["#111111","Black"],["#1d3f9a","Blue"],["#c0392b","Red"]];
   const cur=t==="hl"?_pe.hlc:_pe.color;
   el.innerHTML=cols.map(([c,l])=>`<button class="pe-dot${c===cur?" on":""}" style="background:${c}" title="${l}" onclick="_peSetC('${c}')"></button>`).join("")
     +(t==="hl"?"":[[1.2,"Thin"],[2,"Medium"],[3.6,"Thick"]].map(([w,l])=>`<button class="pe-wd${w===_pe.width?" on":""}" title="${l}" onclick="_peSetW(${w})"><i style="height:${Math.max(1,w)}px"></i></button>`).join(""))
-    +((t==="pen"||t==="hl")?`<button class="pe-fg${_pe.finger?" on":""}" title="Draw with a finger too (otherwise a finger scrolls)" onclick="_pe.finger=!_pe.finger;_peOptsDraw()">✋ Finger</button>`:"");
+    +(true?`<button class="pe-fg${_pe.finger?" on":""}" title="Draw with a finger too (otherwise a finger scrolls)" onclick="_pe.finger=!_pe.finger;_peOptsDraw()">✋ Finger</button>`:"");
 }
 function _peSetC(c){ if(!_pe) return; if(_pe.tool==="hl") _pe.hlc=c; else _pe.color=c; _peOptsDraw(); }
 function _peSetW(w){ if(!_pe) return; _pe.width=w; _peOptsDraw(); }
-const _PE_HINT={pen:"Write or sign with the Apple Pencil (or mouse) — your finger scrolls",hl:"Drag over the words to highlight",box:"Drag to draw a box",line:"Drag to draw a line",select:"Tap something you added to move or delete it",text:"Tap a line to change its words",add:"Tap where the text should go",white:"Drag over what should be hidden",tick:"Tap a box to tick it",truecopy:"Tap where the TRUE COPY line goes (you sign above it)",num:"Tap a page to write its page number at the top"};
+const _PE_HINT={pen:"Write or sign with the Apple Pencil (or mouse) — one finger scrolls, two fingers zoom",hl:"Drag over the words to highlight",box:"Drag to draw a box",line:"Drag to draw a line",erase:"Rub over a mark you made to remove it",select:"Tap something you added to move or delete it",text:"Tap a line to change its words",add:"Tap where the text should go",white:"Drag over what should be hidden",tick:"Tap a box to tick it",truecopy:"Tap where the TRUE COPY line goes (you sign above it)",num:"Tap a page to write its page number at the top"};
 function _peTool(t){ if(!_pe) return; _peCommitInput(); _pe.tool=t; _pe.sel=null;
   document.querySelectorAll(".pe-t").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); const h=document.getElementById("peHint"); if(h) h.textContent=_PE_HINT[t]||"";
   document.querySelectorAll(".pe-pg").forEach(el=>el.dataset.tool=t); _peOptsDraw(); _peDrawOps(); }
-function _peZoom(d){ if(!_pe) return; _peCommitInput(); _pe.zoom=Math.max(0.5,Math.min(2.5,+(_pe.zoom+(d*0.25)).toFixed(2))); _peRender(); }
+/* Display core (owner, 15 Oct 2026: "sloppy and lagging … stuck on zoom"). Pages are drawn only when they come near the
+   screen and dropped when far away (an iPad runs out of canvas memory otherwise); the finger scrolls natively; two fingers
+   pinch-zoom the pages (never the whole app); the Pencil stroke is drawn live on a canvas and turned into a mark on lift. */
+const _PE_MAXPX=6e6;
+function _peAvailW(main){ return Math.min(900,((main&&main.clientWidth)||window.innerWidth)-32); }
+function _pePR(cw,ch){ return Math.max(0.5,Math.min(window.devicePixelRatio||1,2,Math.sqrt(_PE_MAXPX/Math.max(1,cw*ch)))); }
+function _peZoom(d){ if(!_pe) return; _peZoomTo(d===0?1:_pe.zoom*(d>0?1.25:0.8)); }
+function _peZoomTo(z,fx,fy){ if(!_pe) return; _peCommitInput(); const main=document.getElementById("peMain"); if(!main) return;
+  z=Math.max(0.5,Math.min(4,+(+z).toFixed(3))); const mr=main.getBoundingClientRect(); if(fx==null){ fx=mr.left+mr.width/2; fy=mr.top+Math.min(mr.height/2,200); }
+  const f=_peFocus(fx,fy); _pe.zoom=z; _peLayout(); _peRefocus(f,fx,fy); _peSyncSoon(); }
+function _peFocus(fx,fy){ let best=null,bd=1e12; (_pe.pages||[]).forEach(P=>{ const r=P.wrap.getBoundingClientRect(); const d=fy<r.top?r.top-fy:(fy>r.bottom?fy-r.bottom:0); if(d<bd){ bd=d; best={P,r}; } });
+  return best?{P:best.P,ax:(fx-best.r.left)/(best.r.width||1),ay:(fy-best.r.top)/(best.r.height||1)}:null; }
+function _peRefocus(f,fx,fy){ const main=document.getElementById("peMain"); if(!f||!main) return; const r=f.P.wrap.getBoundingClientRect(); main.scrollLeft+=r.left+f.ax*r.width-fx; main.scrollTop+=r.top+f.ay*r.height-fy; }
+function _peLayout(){ if(!_pe) return; const main=document.getElementById("peMain"); const avail=_peAvailW(main);
+  (_pe.pages||[]).forEach(P=>{ P.s=(avail/P.w)*_pe.zoom; const W=P.w*P.s+"px", H=P.h*P.s+"px"; P.wrap.style.width=W; P.wrap.style.height=H; if(P.cap) P.cap.style.width=W; if(P.c){ P.c.style.width=W; P.c.style.height=H; } if(P.ink){ P.ink.c.remove(); P.ink.c.width=0; P.ink=null; } });
+  const zv=document.getElementById("peZv"); if(zv) zv.textContent=Math.round(_pe.zoom*100)+"%"; _peDrawOps(); }
+function _peSync(){ if(!_pe||_pe._raf) return; _pe._raf=requestAnimationFrame(()=>{ if(!_pe) return; _pe._raf=0; _peSyncNow(); }); }
+function _peSyncSoon(){ if(!_pe) return; clearTimeout(_pe._st); _pe._st=setTimeout(_peSync,160); }
+function _peSyncNow(){ const main=document.getElementById("peMain"); if(!main||!_pe) return; const mr=main.getBoundingClientRect(), H=mr.height||window.innerHeight; const want=[];
+  _pe.pages.forEach(P=>{ const r=P.wrap.getBoundingClientRect(); const dist=r.bottom<mr.top?mr.top-r.bottom:(r.top>mr.bottom?r.top-mr.bottom:0);
+    if(dist<=H*0.9){ if(!P.c||P.cs!==P.s) want.push({P,dist}); } else if(dist>H*3&&P.c&&!P.busy) _peDrop(P); });
+  want.sort((a,b)=>a.dist-b.dist); _pe._want=want.map(x=>x.P); _pePump(); }
+async function _pePump(){ const E=_pe; if(!E||E._pumping) return; E._pumping=true;
+  try{ while(E===_pe&&E._want&&E._want.length){ const P=E._want.shift(); if(P.dead||(P.c&&P.cs===P.s)) continue; await _peDrawPage(P,E); } }
+  catch(e){ console.warn("pdf editor: page", e); } finally{ E._pumping=false; } }
+async function _peDrawPage(P,E){ P.busy=true;
+  try{ const s=P.s; const pg=await E.ctx.doc.getPage(P.i+1); if(E!==_pe||P.dead) return;
+    const cw=P.w*s, ch=P.h*s, pr=_pePR(cw,ch); const c=document.createElement("canvas"); c.className="pe-pc"; c.width=Math.round(cw*pr); c.height=Math.round(ch*pr);
+    await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*pr})}).promise;
+    if(E!==_pe||P.dead){ c.width=0; return; }
+    if(P.c){ P.c.width=0; P.c.remove(); } P.c=c; P.cs=s; c.style.width=P.w*P.s+"px"; c.style.height=P.h*P.s+"px"; P.wrap.insertBefore(c,P.wrap.firstChild);
+    if(!P.segs){ const tc=await pg.getTextContent(); if(E!==_pe) return; P.segs=_peSegs(tc,{width:P.w,height:P.h},pg); if(_pe.tool==="text"||_pe.tool==="add") _peDrawOps(null,P.k); }
+  }finally{ P.busy=false; } }
+function _peDrop(P){ if(P.c){ P.c.width=0; P.c.height=0; P.c.remove(); P.c=null; P.cs=0; } if(P.ink){ P.ink.c.width=0; P.ink.c.remove(); P.ink=null; } }
 async function _peRender(){
-  const main=document.getElementById("peMain"), th=document.getElementById("peThumbs"); if(!main) return;
-  const zv=document.getElementById("peZv"); if(zv) zv.textContent=Math.round(_pe.zoom*100)+"%";
-  const avail=Math.min(900,(main.clientWidth||window.innerWidth)-32);
-  main.innerHTML=""; th.innerHTML=""; _pe.pages=[];
-  for(let k=0;k<_pe.idx.length;k++){ const i=_pe.idx[k];
-    const pg=await _pe.ctx.doc.getPage(i+1); const v0=pg.getViewport({scale:1}); const s=(avail/v0.width)*_pe.zoom; const vp=pg.getViewport({scale:s});
-    const wrap=document.createElement("div"); wrap.className="pe-pg"; wrap.dataset.k=k; wrap.dataset.tool=_pe.tool; wrap.style.width=vp.width+"px"; wrap.style.height=vp.height+"px";
-    const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
-    wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
-    const del=_pe.ops.some(o=>o.k===k&&o.t==="del");
-    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span>${_pe.idx.length>1?`<button class="pe-capb" title="Move this page up" ${k===0?"disabled":""} onclick="_peMove(${k},-1)">↑</button><button class="pe-capb" title="Move this page down" ${k===_pe.idx.length-1?"disabled":""} onclick="_peMove(${k},1)">↓</button>`:""}<button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" title="Turn this page 90°" onclick="_peRotate(${k})">⟳ Rotate</button><button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button><button class="pe-capb" onclick="_peBlank(${k})">＋ Blank page</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
-    if(del) wrap.classList.add("pe-deleted"); main.appendChild(cap); main.appendChild(wrap);
-    await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
-    const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
-    _pe.pages.push({k,i,s,w:v0.width,h:v0.height,segs,wrap,lay});
-    _peWire(_pe.pages[_pe.pages.length-1]);
-    const t=document.createElement("canvas"); const tv=pg.getViewport({scale:90/v0.width}); t.width=tv.width; t.height=tv.height; await pg.render({canvasContext:t.getContext("2d"),viewport:tv,intent:"print"}).promise;
-    const tb=document.createElement("button"); tb.className="pe-th"; tb.appendChild(t); const tl=document.createElement("span"); tl.textContent=_pe.ctx.labelOf[i]||("p"+(i+1)); tb.appendChild(tl); tb.onclick=()=>wrap.scrollIntoView({behavior:"smooth",block:"start"});
-    if(_pe.idx.length>1){ tb.draggable=true; tb.title="Drag to move this page"; tb.dataset.k=k;
+  if(!_pe) return; const E=_pe; const main=document.getElementById("peMain"), th=document.getElementById("peThumbs"); if(!main) return;
+  E.gen=(E.gen||0)+1; const gen=E.gen; const doc=E.ctx.doc;
+  const zv=document.getElementById("peZv"); if(zv) zv.textContent=Math.round(E.zoom*100)+"%";
+  if(!E._sz||E._szDoc!==doc){ E._sz={}; E._th={}; E._szDoc=doc; }
+  const need=E.idx.filter(i=>!E._sz[i]);
+  if(need.length){ if(!main.firstChild) main.innerHTML=`<div class="hint" style="padding:30px;text-align:center">Opening the pages…</div>`;
+    await Promise.all(need.map(i=>doc.getPage(i+1).then(pg=>{ const v=pg.getViewport({scale:1}); E._sz[i]={w:v.width,h:v.height}; })));
+    if(E!==_pe||gen!==E.gen) return; }
+  const keepTop=main.scrollTop, keepLeft=main.scrollLeft;
+  const old=new Map(); (E.pages||[]).forEach(P=>{ P.dead=true; if(P.doc===doc&&!old.has(P.i)) old.set(P.i,P); });
+  const avail=_peAvailW(main); const zm=document.createElement("div"); zm.className="pe-zoomer"; const tf=document.createDocumentFragment(); E.pages=[];
+  E.idx.forEach((i,k)=>{ const sz=E._sz[i], s=(avail/sz.w)*E.zoom;
+    const wrap=document.createElement("div"); wrap.className="pe-pg"; wrap.dataset.k=k; wrap.dataset.tool=E.tool; wrap.style.width=sz.w*s+"px"; wrap.style.height=sz.h*s+"px";
+    const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
+    const del=E.ops.some(o=>o.k===k&&o.t==="del");
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(E.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span>${E.idx.length>1?`<button class="pe-capb" title="Move this page up" ${k===0?"disabled":""} onclick="_peMove(${k},-1)">↑</button><button class="pe-capb" title="Move this page down" ${k===E.idx.length-1?"disabled":""} onclick="_peMove(${k},1)">↓</button>`:""}<button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" title="Turn this page 90°" onclick="_peRotate(${k})">⟳ Rotate</button><button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button><button class="pe-capb" onclick="_peBlank(${k})">＋ Blank page</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
+    if(del) wrap.classList.add("pe-deleted"); cap.style.width=sz.w*s+"px"; zm.appendChild(cap); zm.appendChild(wrap);
+    const P={k,i,s,w:sz.w,h:sz.h,segs:null,wrap,lay,cap,c:null,cs:0,doc};
+    const o=old.get(i); if(o){ old.delete(i); P.segs=o.segs; if(o.c){ P.c=o.c; P.cs=o.cs; o.c=null; P.c.style.width=sz.w*s+"px"; P.c.style.height=sz.h*s+"px"; wrap.insertBefore(P.c,lay); } }
+    E.pages.push(P); _peWire(P);
+    const tb=document.createElement("button"); tb.className="pe-th"; tb.dataset.i=i; const ph=E._th[i]||Object.assign(document.createElement("div"),{className:"pe-thph"}); if(!E._th[i]) ph.style.paddingTop=(sz.h/sz.w*100)+"%"; tb.appendChild(ph);
+    const tl=document.createElement("span"); tl.textContent=E.ctx.labelOf[i]||("p"+(i+1)); tb.appendChild(tl); tb.onclick=()=>wrap.scrollIntoView({behavior:"smooth",block:"start"});
+    if(E.idx.length>1){ tb.draggable=true; tb.title="Drag to move this page"; tb.dataset.k=k;
       tb.addEventListener("dragstart",e=>{ e.dataTransfer.setData("text/pe-k",String(k)); e.dataTransfer.effectAllowed="move"; tb.classList.add("drag"); });
       tb.addEventListener("dragend",()=>tb.classList.remove("drag"));
       tb.addEventListener("dragover",e=>{ if([...e.dataTransfer.types].includes("text/pe-k")){ e.preventDefault(); const r=tb.getBoundingClientRect(); tb.classList.toggle("dropA",e.clientY<r.top+r.height/2); tb.classList.toggle("dropB",e.clientY>=r.top+r.height/2); } });
       tb.addEventListener("dragleave",()=>tb.classList.remove("dropA","dropB"));
       tb.addEventListener("drop",e=>{ e.preventDefault(); const from=+e.dataTransfer.getData("text/pe-k"); const r=tb.getBoundingClientRect(); const after=e.clientY>=r.top+r.height/2; tb.classList.remove("dropA","dropB"); _peMoveTo(from,k+(after?1:0)); }); }
-    th.appendChild(tb);
-  }
-  _peDrawOps(); _peBtns();
+    tf.appendChild(tb); });
+  old.forEach(P=>_peDrop(P));
+  main.innerHTML=""; main.appendChild(zm); main.scrollTop=keepTop; main.scrollLeft=keepLeft;
+  if(th){ th.innerHTML=""; th.appendChild(tf); _peThumbsLazy(); }
+  _peDrawOps(); _peBtns(); _peSync();
 }
+function _peThumbsLazy(){ const th=document.getElementById("peThumbs"); if(!th||!_pe) return; if(_pe.tio) _pe.tio.disconnect();
+  if(getComputedStyle(th).display==="none") return;   // phone: no thumbnail strip, nothing to draw
+  const go=tb=>_peThumb(tb);
+  if(!window.IntersectionObserver){ th.querySelectorAll(".pe-th").forEach(go); return; }
+  _pe.tio=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting&&_pe&&_pe.tio){ _pe.tio.unobserve(en.target); go(en.target); } }),{root:th,rootMargin:"400px 0px"});
+  th.querySelectorAll(".pe-th").forEach(tb=>{ if(tb.querySelector(".pe-thph")) _pe.tio.observe(tb); }); }
+async function _peThumb(tb){ const E=_pe; if(!E) return; const i=+tb.dataset.i; if(E._th[i]) return; const sz=E._sz[i]; if(!sz) return;
+  try{ const pg=await E.ctx.doc.getPage(i+1); if(E!==_pe) return; const tv=pg.getViewport({scale:180/sz.w}); const t=document.createElement("canvas"); t.width=tv.width; t.height=tv.height;
+    await pg.render({canvasContext:t.getContext("2d"),viewport:tv}).promise; if(E!==_pe) return; E._th[i]=t; const ph=tb.querySelector(".pe-thph"); if(ph) ph.replaceWith(t); }catch(e){} }
+// live ink: one canvas over the page while a stroke or shape is being drawn
+function _peInk(P){ if(P.ink) return P.ink; const cw=P.w*P.s, ch=P.h*P.s, pr=_pePR(cw,ch); const c=document.createElement("canvas"); c.className="pe-ink"; c.width=Math.round(cw*pr); c.height=Math.round(ch*pr); c.style.width=cw+"px"; c.style.height=ch+"px";
+  P.wrap.appendChild(c); const g=c.getContext("2d"); P.ink={c,g,m:pr*P.s}; return P.ink; }
+function _peInkClear(P){ if(!P.ink) return; const {c,g}=P.ink; g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height); }
+function _peInkPath(g,pts,from){ for(let j=Math.max(1,from);j<pts.length;j++){ const a=pts[j-1], b=pts[j], pa=pts[j-2]||a; g.moveTo((pa[0]+a[0])/2,(pa[1]+a[1])/2); g.quadraticCurveTo(a[0],a[1],(a[0]+b[0])/2,(a[1]+b[1])/2); } }
+function _peInkDraw(P,d){ const I=_peInk(P), g=I.g; g.setTransform(I.m,0,0,I.m,0,0); g.lineCap="round"; g.lineJoin="round";
+  if(d.ink==="pen"){ const pts=d.pts, op={w:d.w};
+    if(pts.length===1){ const p=pts[0]; g.fillStyle=d.c; g.beginPath(); g.arc(p[0],p[1],_pePW(op,p[2])/2,0,Math.PI*2); g.fill(); d.drawn=1; return; }
+    g.strokeStyle=d.c; for(let j=Math.max(1,d.drawn||1);j<pts.length;j++){ const a=pts[j-1], b=pts[j]; g.lineWidth=_pePW(op,((a[2]==null?0.5:a[2])+(b[2]==null?0.5:b[2]))/2); g.beginPath(); _peInkPath(g,pts.slice(Math.max(0,j-2),j+1),Math.min(j,2)); g.stroke(); }
+    d.drawn=pts.length; return; }
+  _peInkClear(P); g.setTransform(I.m,0,0,I.m,0,0); g.lineCap="round"; g.lineJoin="round";
+  if(d.ink==="hl"){ g.globalAlpha=0.38; g.globalCompositeOperation="multiply"; g.strokeStyle=d.c; g.lineWidth=14; g.beginPath(); if(d.pts.length===1){ g.moveTo(d.pts[0][0],d.pts[0][1]); g.lineTo(d.pts[0][0]+0.1,d.pts[0][1]); } else _peInkPath(g,d.pts,1); g.stroke(); g.globalAlpha=1; g.globalCompositeOperation="source-over"; return; }
+  g.strokeStyle=d.c; g.lineWidth=d.w; g.beginPath();
+  if(d.shape==="box") g.rect(Math.min(d.x,d.x2),Math.min(d.y,d.y2),Math.abs(d.x2-d.x),Math.abs(d.y2-d.y)); else { g.moveTo(d.x,d.y); g.lineTo(d.x2,d.y2); }
+  g.stroke(); }
+// eraser: removes the mark under the Pencil / finger (pen, highlight, box, line, tick, added text)
+function _peHit(op,q,tol){ const p=[q.x,q.y]; const dseg=(a,b)=>{ const vx=b[0]-a[0], vy=b[1]-a[1], L=vx*vx+vy*vy; let t=L?((p[0]-a[0])*vx+(p[1]-a[1])*vy)/L:0; t=Math.max(0,Math.min(1,t)); return Math.hypot(p[0]-a[0]-t*vx,p[1]-a[1]-t*vy); };
+  if(op.pts){ const w=(op.t==="hl"?op.w:_pePW(op,1))/2+tol; if(op.pts.length===1) return Math.hypot(p[0]-op.pts[0][0],p[1]-op.pts[0][1])<=w; for(let i=1;i<op.pts.length;i++) if(dseg(op.pts[i-1],op.pts[i])<=w) return true; return false; }
+  if(op.t==="line") return dseg([op.x1,op.y1],[op.x2,op.y2])<=op.w/2+tol;
+  if(op.t==="box"){ const r=op.rect, x2=r.x+r.w, y2=r.y+r.h, c=[[r.x,r.y],[x2,r.y],[x2,y2],[r.x,y2]]; for(let i=0;i<4;i++) if(dseg(c[i],c[(i+1)%4])<=op.w/2+tol) return true; return false; }
+  if(op.t==="tick") return Math.abs(q.x-op.x)<=op.s/2+tol&&Math.abs(q.y-op.y)<=op.s/2+tol;
+  if(op.t==="text"){ const w=_peMeasure(op.str,op.size,op.bold); return q.x>=op.x-tol&&q.x<=op.x+w+tol&&q.y>=op.y-op.size-tol&&q.y<=op.y+op.size*0.3+tol; }
+  return false; }
+function _peEraseAt(P,q){ const tol=7/P.s; for(let ix=_pe.ops.length-1;ix>=0;ix--){ const op=_pe.ops[ix]; if(op.k!==P.k) continue;
+    if(_peHit(op,q,tol)){ _pe.ops.splice(ix,1); _pe.undo.push({del:ix,op}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peDrawOps(null,P.k); _peBtns(); return true; } } return false; }
+const _PE_DRAWT=["pen","hl","box","line","erase"];
+function _peWire(P){
+  const el=P.wrap; let drag=null;
+  const pt=(e,r)=>{ r=r||el.getBoundingClientRect(); return {x:(e.clientX-r.left)/P.s, y:(e.clientY-r.top)/P.s}; };
+  const press=e=>e.pointerType==="pen"?(e.pressure||0.5):0.5;
+  P.abort=()=>{ if(!drag) return; if(drag.raf) cancelAnimationFrame(drag.raf); drag=null; if(P.ink){ P.ink.c.width=0; P.ink.c.remove(); P.ink=null; } _peDrawOps(null,P.k); };
+  const paint=()=>{ if(!drag||drag.raf) return; drag.raf=requestAnimationFrame(()=>{ if(!drag) return; drag.raf=0; _peInkDraw(P,drag); }); };
+  el.addEventListener("pointerdown",e=>{ if(!_pe) return; _pe.lastPT=e.pointerType; if(_pe.pinching||e.target.closest(".pe-in,.pe-x")) return; const t=_pe.tool;
+    if(_PE_DRAWT.indexOf(t)>=0){
+      if(e.pointerType==="touch"&&!_pe.finger) return;            // a finger scrolls (the browser does it)
+      if(e.button>0) return; e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(_){}
+      const r=el.getBoundingClientRect(), q=pt(e,r);
+      if(t==="erase"){ drag={erase:true,r}; _peEraseAt(P,q); return; }
+      if(t==="pen"||t==="hl"){ drag={ink:t,r,pts:[[q.x,q.y,press(e)]],c:t==="hl"?_pe.hlc:_pe.color,w:_pe.width,drawn:0}; _peInkDraw(P,drag); return; }
+      drag={shape:t,r,x:q.x,y:q.y,c:_pe.color,w:_pe.width}; return; }
+    const q=pt(e);
+    if(t==="white"){ drag={x:q.x,y:q.y}; try{ el.setPointerCapture(e.pointerId); }catch(_){} return; }
+    if(t==="select"){ const op=e.target.closest("[data-op]"); if(op){ _pe.sel=+op.dataset.op; const o=_pe.ops[_pe.sel]; if(o.t!=="replace"&&o.t!=="num"){ drag={mv:true,x:q.x,y:q.y,ox:o.rect?o.rect.x:(o.x||0),oy:o.rect?o.rect.y:(o.y||0),moved:false,prev:JSON.parse(JSON.stringify(o))}; try{ el.setPointerCapture(e.pointerId); }catch(_){} } _peDrawOps(); } else if(_pe.sel!=null){ _pe.sel=null; _peDrawOps(); } return; }
+    if(["text","add","tick","truecopy","num"].indexOf(t)>=0) drag={tap:t,q,cx:e.clientX,cy:e.clientY};   // acts on lift, so a scroll never adds anything
+  });
+  const tap=(t,q)=>{
+    if(t==="text"){ const sg=_peSegAt(P,q); if(sg) _peEditSeg(P,sg); return; }
+    if(t==="add"){ _peAddAt(P,q); return; }
+    if(t==="tick"){ _pePush({k:P.k,t:"tick",x:q.x,y:q.y,s:10}); return; }
+    if(t==="truecopy"){ _pePush({k:P.k,t:"truecopy",x:Math.min(q.x,P.w-160),y:q.y}); return; }
+    if(t==="num"){ const def=_pe.ctx.labelOf[P.i]||""; const v=prompt("Page number to write at the top of this page",def); if(v&&v.trim()) _pePush({k:P.k,t:"num",str:v.trim()}); return; } };
+  el.addEventListener("pointermove",e=>{ if(!drag) return; if(drag.tap){ if(Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy)>8) drag=null; return; } if(_pe&&_pe.pinching){ P.abort(); return; }
+    if(drag.erase){ e.preventDefault(); const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e]; evs.forEach(ev=>_peEraseAt(P,pt(ev,drag.r))); return; }
+    if(drag.ink){ e.preventDefault(); const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+      evs.forEach(ev=>{ const p=pt(ev,drag.r), l=drag.pts[drag.pts.length-1]; if(Math.hypot(p.x-l[0],p.y-l[1])>0.3) drag.pts.push([p.x,p.y,press(ev)]); }); paint(); return; }
+    const q=pt(e,drag.r);
+    if(drag.shape){ e.preventDefault(); drag.x2=q.x; drag.y2=q.y; paint(); return; }
+    if(drag.mv){ const o=_pe.ops[_pe.sel]; if(!o) return; const dx=q.x-drag.x, dy=q.y-drag.y; if(Math.abs(dx)+Math.abs(dy)>1) drag.moved=true;
+      if(o.pts) o.pts=drag.prev.pts.map(p=>[p[0]+dx,p[1]+dy,p[2]]);
+      else if(o.t==="line"){ o.x1=drag.prev.x1+dx; o.y1=drag.prev.y1+dy; o.x2=drag.prev.x2+dx; o.y2=drag.prev.y2+dy; }
+      else if(o.rect){ o.rect.x=drag.ox+dx; o.rect.y=drag.oy+dy; } else { o.x=drag.ox+dx; o.y=drag.oy+dy; }
+      if(!drag.raf) drag.raf=requestAnimationFrame(()=>{ if(drag) drag.raf=0; _peDrawOps(null,P.k); }); return; }
+    drag.x2=q.x; drag.y2=q.y; if(!drag.raf) drag.raf=requestAnimationFrame(()=>{ if(!drag) return; drag.raf=0; _peDrawOps({k:P.k,rect:{x:Math.min(drag.x,drag.x2),y:Math.min(drag.y,drag.y2),w:Math.abs(drag.x2-drag.x),h:Math.abs(drag.y2-drag.y)}}); }); });
+  el.addEventListener("pointercancel",()=>{ if(drag&&drag.tap){ drag=null; return; } if(drag) P.abort(); });
+  el.addEventListener("pointerup",e=>{ if(!drag) return; const d=drag; drag=null; if(d.raf) cancelAnimationFrame(d.raf);
+    if(d.tap){ if(_pe&&!_pe.pinching&&_pe.tool===d.tap) tap(d.tap,d.q); return; }
+    if(d.erase) return;
+    if(d.ink){ const op=d.ink==="pen"?{k:P.k,t:"ink",pts:d.pts,c:d.c,w:d.w}:{k:P.k,t:"hl",pts:d.pts.length>1?d.pts:[d.pts[0],[d.pts[0][0]+1,d.pts[0][1],0.5]],c:d.c,w:14};
+      _pePush(op); _peInkClear(P); return; }
+    if(d.shape){ _peInkClear(P); if(d.x2==null||Math.abs(d.x2-d.x)+Math.abs(d.y2-d.y)<4) return;
+      _pePush(d.shape==="box"?{k:P.k,t:"box",rect:{x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)},c:d.c,w:d.w}:{k:P.k,t:"line",x1:d.x,y1:d.y,x2:d.x2,y2:d.y2,c:d.c,w:d.w}); return; }
+    if(d.mv){ if(d.moved){ _pe.dirty=true; _pe.undo.push({set:_pe.sel,prev:d.prev}); _pe.redo=[]; _peBtns(); } _peDrawOps(null,P.k); return; }
+    if(d.x2==null) return; const r={x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)}; if(r.w<3||r.h<3){ _peDrawOps(null,P.k); return; }
+    _pePush({k:P.k,t:"white",rect:r}); });
+}
+// scrolling, pinch-zoom and page-zoom guards for the editor (set up once per opening)
+function _peGestures(){
+  const ov=document.getElementById("peOverlay"), main=document.getElementById("peMain"); if(!ov||!main) return; const off=_pe._off=[];
+  const on=(t,ev,fn,o)=>{ t.addEventListener(ev,fn,o); off.push(()=>t.removeEventListener(ev,fn,o)); };
+  on(main,"scroll",_peSync,{passive:true});
+  let pz=null;
+  on(main,"touchstart",e=>{ if(!_pe) return;
+    if(e.touches.length>=2){ if(e.cancelable) e.preventDefault(); _pe.pinching=true; (_pe.pages||[]).forEach(P=>P.abort&&P.abort());
+      const a=e.touches[0], b=e.touches[1], mx=(a.clientX+b.clientX)/2, my=(a.clientY+b.clientY)/2, zm=main.querySelector(".pe-zoomer"); if(!zm) return; const zr=zm.getBoundingClientRect();
+      pz={d0:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1,mx,my,lx:mx,ly:my,z0:_pe.zoom,zm,r:1,tx:0,ty:0,f:_peFocus(mx,my)};
+      zm.style.transformOrigin=(mx-zr.left)+"px "+(my-zr.top)+"px"; zm.style.willChange="transform"; return; }
+    const tg=e.target; if(!tg.closest||!tg.closest(".pe-pg")||tg.closest("button,input,.pe-in,.pe-x")) return;
+    const t=e.touches[0], stylus=t.touchType==="stylus"||_pe.lastPT==="pen", tool=_pe.tool;
+    if((_PE_DRAWT.indexOf(tool)>=0&&(stylus||_pe.finger))||tool==="white"||(tool==="select"&&tg.closest("[data-op]"))) e.preventDefault();   // draw, don't scroll
+  },{passive:false});
+  on(main,"touchmove",e=>{ if(!pz||e.touches.length<2) return; if(e.cancelable) e.preventDefault(); const a=e.touches[0], b=e.touches[1];
+    const mx=(a.clientX+b.clientX)/2, my=(a.clientY+b.clientY)/2, z=Math.max(0.5,Math.min(4,pz.z0*Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/pz.d0));
+    pz.r=z/pz.z0; pz.tx=mx-pz.mx; pz.ty=my-pz.my; pz.lx=mx; pz.ly=my; pz.zm.style.transform=`translate(${pz.tx}px,${pz.ty}px) scale(${pz.r})`; },{passive:false});
+  const end=e=>{ if(!pz||e.touches.length>=2) return; const p=pz; pz=null; p.zm.style.transform=""; p.zm.style.willChange=""; setTimeout(()=>{ if(_pe) _pe.pinching=false; },60);
+    if(Math.abs(p.r-1)<0.03){ main.scrollLeft-=p.tx; main.scrollTop-=p.ty; return; }
+    _pe.zoom=+(p.z0*p.r).toFixed(3); _peLayout(); _peRefocus(p.f,p.lx,p.ly); _peSyncSoon(); };
+  on(main,"touchend",end); on(main,"touchcancel",end);
+  // trackpad pinch / ctrl+wheel on a computer
+  on(main,"wheel",e=>{ if(!e.ctrlKey||!_pe) return; e.preventDefault(); _peZoomTo(_pe.zoom*Math.exp(-e.deltaY*0.01),e.clientX,e.clientY); },{passive:false});
+  // Safari: never zoom the whole app while the editor is open
+  ["gesturestart","gesturechange"].forEach(ev=>on(ov,ev,e=>e.preventDefault(),{passive:false}));
+  let rt=0; on(window,"resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(_pe){ _peLayout(); _peSync(); } },150); });
+  if(window.visualViewport){ let vt=0; on(window.visualViewport,"resize",()=>{ clearTimeout(vt); vt=setTimeout(_peUnzoomPage,250); }); }
+}
+// undo an accidental zoom of the whole app (iPad): Safari snaps back when the page may not be zoomed
+function _peUnzoomPage(){ try{ const vv=window.visualViewport; if(vv&&vv.scale<=1.01) return; const m=document.querySelector('meta[name="viewport"]'); if(!m) return;
+  const o=m.getAttribute("content"); m.setAttribute("content","width=device-width, initial-scale=1.0, maximum-scale=1.0"); setTimeout(()=>m.setAttribute("content",o),600); }catch(e){} }
 // vector marks: pen (pressure), highlight, box, line — in page units; drawn the same way on save
 function _peStrokePath(pts){ if(!pts.length) return ""; let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
   if(pts.length===1) return d+` l0.1 0`;
@@ -23974,49 +24135,8 @@ function _peSegs(tc,v0,pg){
   segs.forEach(sg=>sg.s=sg.s.replace(/\s+/g," ").trim());
   return segs.filter(sg=>sg.s);
 }
-function _peWire(P){
-  const el=P.wrap; let drag=null;
-  const pt=e=>{ const r=el.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:(c.clientX-r.left)/P.s, y:(c.clientY-r.top)/P.s}; };
-  const press=e=>e.pointerType==="pen"?(e.pressure||0.5):0.5;
-  let tmp=null; const tmpSvg=()=>{ if(tmp) return tmp; P.lay.insertAdjacentHTML("beforeend",`<svg class="pe-svg pe-tmp" width="${P.w*P.s}" height="${P.h*P.s}" viewBox="0 0 ${P.w} ${P.h}"></svg>`); tmp=P.lay.lastElementChild; return tmp; };
-  el.addEventListener("pointerdown",e=>{ if(!_pe||e.target.closest(".pe-in,.pe-x")) return; const q=pt(e); const t=_pe.tool;
-    if(["pen","hl","box","line"].indexOf(t)>=0){
-      if(e.pointerType==="touch"&&!_pe.finger){ const m=document.getElementById("peMain"); drag={pan:true,cx:e.clientX,cy:e.clientY,st:m.scrollTop,sl:m.scrollLeft}; try{ el.setPointerCapture(e.pointerId); }catch(_){} return; }
-      e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(_){}
-      if(t==="pen"||t==="hl"){ drag={ink:t,pts:[[q.x,q.y,press(e)]]}; tmp=null; return; }
-      drag={shape:t,x:q.x,y:q.y}; tmp=null; return; }
-    if(t==="white"){ drag={x:q.x,y:q.y}; el.setPointerCapture(e.pointerId); return; }
-    if(t==="select"){ const op=e.target.closest("[data-op]"); if(op){ _pe.sel=+op.dataset.op; const o=_pe.ops[_pe.sel]; if(o.t!=="replace"&&o.t!=="num"){ drag={mv:true,x:q.x,y:q.y,ox:o.rect?o.rect.x:(o.x||0),oy:o.rect?o.rect.y:(o.y||0),moved:false,prev:JSON.parse(JSON.stringify(o))}; el.setPointerCapture(e.pointerId); } _peDrawOps(); } else { _pe.sel=null; _peDrawOps(); } return; }
-    if(t==="text"){ const sg=_peSegAt(P,q); if(sg) _peEditSeg(P,sg); return; }
-    if(t==="add"){ _peAddAt(P,q); return; }
-    if(t==="tick"){ _pePush({k:P.k,t:"tick",x:q.x,y:q.y,s:10}); return; }
-    if(t==="truecopy"){ _pePush({k:P.k,t:"truecopy",x:Math.min(q.x,P.w-160),y:q.y}); return; }
-    if(t==="num"){ const def=_pe.ctx.labelOf[P.i]||""; const v=prompt("Page number to write at the top of this page",def); if(v&&v.trim()) _pePush({k:P.k,t:"num",str:v.trim()}); return; } });
-  el.addEventListener("pointermove",e=>{ if(!drag) return; const q=pt(e);
-    if(drag.pan){ const m=document.getElementById("peMain"); m.scrollTop=drag.st-(e.clientY-drag.cy); m.scrollLeft=drag.sl-(e.clientX-drag.cx); return; }
-    if(drag.ink){ e.preventDefault(); const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
-      evs.forEach(ev=>{ const p=pt(ev), l=drag.pts[drag.pts.length-1]; if(Math.hypot(p.x-l[0],p.y-l[1])>0.35) drag.pts.push([p.x,p.y,press(ev)]); });
-      const op=drag.ink==="pen"?{t:"ink",pts:drag.pts,c:_pe.color,w:_pe.width}:{t:"hl",pts:drag.pts,c:_pe.hlc,w:14}; tmpSvg().innerHTML=_peVecSvg(op,null,P.s); return; }
-    if(drag.shape){ e.preventDefault(); drag.x2=q.x; drag.y2=q.y;
-      const op=drag.shape==="box"?{t:"box",rect:{x:Math.min(drag.x,q.x),y:Math.min(drag.y,q.y),w:Math.abs(q.x-drag.x),h:Math.abs(q.y-drag.y)},c:_pe.color,w:_pe.width}:{t:"line",x1:drag.x,y1:drag.y,x2:q.x,y2:q.y,c:_pe.color,w:_pe.width};
-      tmpSvg().innerHTML=_peVecSvg(op,null,P.s); return; }
-    if(drag.mv){ const o=_pe.ops[_pe.sel]; if(!o) return; const dx=q.x-drag.x, dy=q.y-drag.y; if(Math.abs(dx)+Math.abs(dy)>1) drag.moved=true;
-      if(o.pts) o.pts=drag.prev.pts.map(p=>[p[0]+dx,p[1]+dy,p[2]]);
-      else if(o.t==="line"){ o.x1=drag.prev.x1+dx; o.y1=drag.prev.y1+dy; o.x2=drag.prev.x2+dx; o.y2=drag.prev.y2+dy; }
-      else if(o.rect){ o.rect.x=drag.ox+dx; o.rect.y=drag.oy+dy; } else { o.x=drag.ox+dx; o.y=drag.oy+dy; } _peDrawOps(); return; }
-    drag.x2=q.x; drag.y2=q.y; _peDrawOps({k:P.k,rect:{x:Math.min(drag.x,q.x),y:Math.min(drag.y,q.y),w:Math.abs(q.x-drag.x),h:Math.abs(q.y-drag.y)}}); });
-  el.addEventListener("pointercancel",()=>{ drag=null; if(tmp){ tmp.remove(); tmp=null; } });
-  el.addEventListener("pointerup",e=>{ if(!drag) return; const d=drag; drag=null;
-    if(d.pan) return;
-    if(d.ink){ if(tmp){ tmp.remove(); tmp=null; } _pePush(d.ink==="pen"?{k:P.k,t:"ink",pts:d.pts,c:_pe.color,w:_pe.width}:{k:P.k,t:"hl",pts:d.pts.length>1?d.pts:[d.pts[0],[d.pts[0][0]+1,d.pts[0][1],0.5]],c:_pe.hlc,w:14}); return; }
-    if(d.shape){ if(tmp){ tmp.remove(); tmp=null; } if(d.x2==null||Math.abs(d.x2-d.x)+Math.abs(d.y2-d.y)<4) return;
-      _pePush(d.shape==="box"?{k:P.k,t:"box",rect:{x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)},c:_pe.color,w:_pe.width}:{k:P.k,t:"line",x1:d.x,y1:d.y,x2:d.x2,y2:d.y2,c:_pe.color,w:_pe.width}); return; }
-    if(d.mv){ if(d.moved){ _pe.dirty=true; _pe.undo.push({set:_pe.sel,prev:d.prev}); _pe.redo=[]; _peBtns(); } _peDrawOps(); return; }
-    if(d.x2==null) return; const r={x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)}; if(r.w<3||r.h<3){ _peDrawOps(); return; }
-    _pePush({k:P.k,t:"white",rect:r}); });
-}
-function _peSegAt(P,q){ return P.segs.find(sg=>q.x>=sg.x0-2&&q.x<=sg.x1+2&&q.y>=sg.y-sg.z*0.95&&q.y<=sg.y+sg.z*0.35); }
-function _peAvail(P,x,y,z){ const nxt=P.segs.filter(sg=>Math.abs(sg.y-y)<=2&&sg.x0>x+2).sort((a,b)=>a.x0-b.x0)[0]; return (nxt?nxt.x0-4:P.w-36)-x; }
+function _peSegAt(P,q){ return (P.segs||[]).find(sg=>q.x>=sg.x0-2&&q.x<=sg.x1+2&&q.y>=sg.y-sg.z*0.95&&q.y<=sg.y+sg.z*0.35); }
+function _peAvail(P,x,y,z){ const nxt=(P.segs||[]).filter(sg=>Math.abs(sg.y-y)<=2&&sg.x0>x+2).sort((a,b)=>a.x0-b.x0)[0]; return (nxt?nxt.x0-4:P.w-36)-x; }
 const _PE_CANVAS=document.createElement("canvas");
 function _peMeasure(str,size,bold){ const g=_PE_CANVAS.getContext("2d"); g.font=`${bold?"bold ":""}${size}px "Times New Roman", Times, serif`; return g.measureText(str).width; }
 /* tap a line → edit its words in place */
@@ -24026,7 +24146,7 @@ function _peEditSeg(P,sg){
   const cur=ex>=0?_pe.ops[ex]:null; const avail=_peAvail(P,sg.x0,sg.y,sg.z);
   _peInput(P,{x:sg.x0,y:sg.y,size:cur?cur.size:sg.z,bold:cur?cur.bold:sg.bold,str:cur?cur.str:sg.s,orig:sg.s,avail,seg:sg,ex});
 }
-function _peAddAt(P,q){ _peCommitInput(); const near=P.segs.slice().sort((a,b)=>Math.abs(a.y-q.y)-Math.abs(b.y-q.y))[0]; const z=near?Math.round(near.z*10)/10:12;
+function _peAddAt(P,q){ _peCommitInput(); const near=(P.segs||[]).slice().sort((a,b)=>Math.abs(a.y-q.y)-Math.abs(b.y-q.y))[0]; const z=near?Math.round(near.z*10)/10:12;
   _peInput(P,{x:q.x,y:q.y+z*0.35,size:z,bold:false,str:"",orig:null,avail:P.w-36-q.x,add:true}); }
 function _peInput(P,o){
   const box=document.createElement("div"); box.className="pe-in"; box.style.left=(o.x*P.s)+"px"; box.style.top=((o.y-o.size*0.95)*P.s)+"px";
@@ -24058,7 +24178,7 @@ function _peCommitInput(){
 function _peTogglePage(k){ if(!_pe) return; _peCommitInput(); const ix=_pe.ops.findIndex(o=>o.k===k&&o.t==="del");
   if(ix>=0){ const op=_pe.ops.splice(ix,1)[0]; _pe.undo.push({del:ix,op}); _pe.redo=[]; _pe.dirty=true; _peRender(); _peBtns(); }
   else { if(_pe.idx.length-_pe.ops.filter(o=>o.t==="del").length<=1){ toast("At least one page must stay.",true); return; } _pePush({k,t:"del"}); _peRender(); } }
-function _pePush(op){ _pe.ops.push(op); _pe.undo.push({add:_pe.ops.length-1}); _pe.redo=[]; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+function _pePush(op){ _pe.ops.push(op); _pe.undo.push({add:_pe.ops.length-1}); _pe.redo=[]; _pe.dirty=true; _peDrawOps(null,op.k); _peBtns(); }
 /* rearrange pages: the order of the pages AND the edits made on them move together */
 function _peReorder(perm){ if(!_pe) return; _peCommitInput(); const prev={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))};
   _pe.idx=perm.map(k=>prev.idx[k]); _pe.ops.forEach(o=>{ if(o.k!=null) o.k=perm.indexOf(o.k); });
@@ -24068,22 +24188,25 @@ function _peMove(k,d){ if(!_pe) return; const j=k+d; if(j<0||j>=_pe.idx.length) 
 function _peMoveTo(from,to){ if(!_pe||from===to||from+1===to) return; const perm=_pe.idx.map((_,i)=>i); const [x]=perm.splice(from,1); perm.splice(to>from?to-1:to,0,x); _peReorder(perm); }
 function _peUndo(){ if(!_pe) return; _peCommitInput(); const u=_pe.undo.pop(); if(!u) return;
   if(u.reorder){ const now={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))}; _pe.idx=u.reorder.idx; _pe.ops=u.reorder.ops; _pe.redo.push({reorder:now}); _pe.sel=null; _pe.dirty=true; _peRender(); _peBtns(); return; }
-  if(u.add!=null){ const op=_pe.ops.splice(u.add,1)[0]; _pe.redo.push({op}); }
-  else if(u.set!=null){ const now=_pe.ops[u.set]; _pe.ops[u.set]=u.prev; _pe.redo.push({set:u.set,prev:now}); }
-  else if(u.del!=null){ _pe.ops.splice(u.del,0,u.op); _pe.redo.push({redel:u.del}); }
-  _pe.sel=null; _pe.dirty=true; if(u.op&&u.op.t==="del"||(u.add!=null)) _peRender(); else _peDrawOps(); _peBtns(); }
+  let op=null;
+  if(u.add!=null){ op=_pe.ops.splice(u.add,1)[0]; _pe.redo.push({op}); }
+  else if(u.set!=null){ const now=_pe.ops[u.set]; _pe.ops[u.set]=u.prev; _pe.redo.push({set:u.set,prev:now}); op=u.prev; }
+  else if(u.del!=null){ _pe.ops.splice(u.del,0,u.op); _pe.redo.push({redel:u.del}); op=u.op; }
+  _pe.sel=null; _pe.dirty=true; _peAfter(op); _peBtns(); }
+function _peAfter(op){ if(op&&op.t==="del") _peRender(); else _peDrawOps(null,op&&op.k!=null?op.k:null); }
 function _peRedo(){ if(!_pe) return; const r=_pe.redo.pop(); if(!r) return;
   if(r.reorder){ const now={idx:_pe.idx.slice(),ops:JSON.parse(JSON.stringify(_pe.ops))}; _pe.idx=r.reorder.idx; _pe.ops=r.reorder.ops; _pe.undo.push({reorder:now}); _pe.dirty=true; _peRender(); _peBtns(); return; }
-  if(r.op){ _pe.ops.push(r.op); _pe.undo.push({add:_pe.ops.length-1}); }
-  else if(r.set!=null){ const now=_pe.ops[r.set]; _pe.ops[r.set]=r.prev; _pe.undo.push({set:r.set,prev:now}); }
-  else if(r.redel!=null){ const op=_pe.ops.splice(r.redel,1)[0]; _pe.undo.push({del:r.redel,op}); }
-  _pe.dirty=true; _peRender(); _peBtns(); }
-function _peDelSel(){ if(!_pe||_pe.sel==null) return; const op=_pe.ops.splice(_pe.sel,1)[0]; _pe.undo.push({del:_pe.sel,op}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peDrawOps(); _peBtns(); }
+  let op=null;
+  if(r.op){ op=r.op; _pe.ops.push(r.op); _pe.undo.push({add:_pe.ops.length-1}); }
+  else if(r.set!=null){ const now=_pe.ops[r.set]; _pe.ops[r.set]=r.prev; _pe.undo.push({set:r.set,prev:now}); op=r.prev; }
+  else if(r.redel!=null){ op=_pe.ops.splice(r.redel,1)[0]; _pe.undo.push({del:r.redel,op}); }
+  _pe.sel=null; _pe.dirty=true; _peAfter(op); _peBtns(); }
+function _peDelSel(){ if(!_pe||_pe.sel==null) return; const op=_pe.ops.splice(_pe.sel,1)[0]; _pe.undo.push({del:_pe.sel,op}); _pe.redo=[]; _pe.sel=null; _pe.dirty=true; _peDrawOps(null,op.k); _peBtns(); }
 function _peBtns(){ const u=document.getElementById("peUndo"), r=document.getElementById("peRedo"); if(u) u.disabled=!_pe.undo.length; if(r) r.disabled=!_pe.redo.length; }
 // show the operations over the pages (the saved PDF is drawn the same way by pdf-lib)
-function _peDrawOps(temp){
-  if(!_pe) return;
-  _pe.pages.forEach(P=>{ const L=P.lay; L.innerHTML=""; const s=P.s;
+function _peDrawOps(temp,onlyK){
+  if(!_pe) return; if(temp) onlyK=temp.k;
+  _pe.pages.forEach(P=>{ if(onlyK!=null&&P.k!==onlyK) return; const L=P.lay; L.innerHTML=""; const s=P.s;
     const add=(op,ix)=>{ const sel=ix===_pe.sel?" sel":"", da=ix!=null?` data-op="${ix}"`:"";
       if(op.t==="white"||op.t==="replace"){ L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-w${sel}"${da} style="left:${op.rect.x*s}px;top:${op.rect.y*s}px;width:${op.rect.w*s}px;height:${op.rect.h*s}px"></div>`); }
       if(op.t==="replace"||op.t==="text") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-tx${sel}"${da} style="left:${op.x*s}px;top:${(op.y-op.size*0.86)*s}px;font-size:${op.size*s}px;${op.bold?"font-weight:700;":""}">${esc(op.str)}</div>`);
@@ -24095,7 +24218,7 @@ function _peDrawOps(temp){
     const vec=_pe.ops.map((op,ix)=>op.k===P.k?_peVecSvg(op,ix,s):"").join("");
     if(vec) L.insertAdjacentHTML("beforeend",`<svg class="pe-svg" width="${P.w*s}" height="${P.h*s}" viewBox="0 0 ${P.w} ${P.h}">${vec}</svg>`);
     if(temp&&temp.k===P.k) L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-w pe-drag" style="left:${temp.rect.x*s}px;top:${temp.rect.y*s}px;width:${temp.rect.w*s}px;height:${temp.rect.h*s}px"></div>`);
-    if(_pe.tool==="text") P.segs.forEach(sg=>L.insertAdjacentHTML("beforeend",`<div class="pe-hl" style="left:${(sg.x0-1)*s}px;top:${(sg.y-sg.z*0.95)*s}px;width:${(sg.x1-sg.x0+2)*s}px;height:${sg.z*1.25*s}px"></div>`));
+    if(_pe.tool==="text") (P.segs||[]).forEach(sg=>L.insertAdjacentHTML("beforeend",`<div class="pe-hl" style="left:${(sg.x0-1)*s}px;top:${(sg.y-sg.z*0.95)*s}px;width:${(sg.x1-sg.x0+2)*s}px;height:${sg.z*1.25*s}px"></div>`));
     if(_pe.sel!=null&&_pe.ops[_pe.sel]&&_pe.ops[_pe.sel].k===P.k){ const op=_pe.ops[_pe.sel]; const bb=_peBox(op); const x=bb?bb.x+bb.w:op.rect?op.rect.x+op.rect.w:(op.x||0)+40, y=bb?bb.y:op.rect?op.rect.y:(op.y||36)-20;
       if(bb) L.insertAdjacentHTML("beforeend",`<div class="pe-selbox" style="left:${(bb.x-3)*s}px;top:${(bb.y-3)*s}px;width:${(bb.w+6)*s}px;height:${(bb.h+6)*s}px"></div>`);
       L.insertAdjacentHTML("beforeend",`<button class="pe-x" style="left:${x*s+4}px;top:${y*s-4}px" onclick="_peDelSel()" title="Delete">✕</button>`); }
@@ -24195,7 +24318,7 @@ async function _peSaveCase(){
 try{ Object.assign(window,{_peOptsDraw,_peSetC,_peSetW,_peStrokePath,_pePW,_peVecSvg,_peBox,_peHex,_peDrawVec,_peRebuild,_peRotate,_peBlank,_peOpenPaper,_peSaveCase}); }catch(e){}
 function _peClose(force){ if(!_pe) return; _peCommitInput();
   if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes to these pages will be lost.")) return;
-  document.removeEventListener("keydown",_peKey); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
+  document.removeEventListener("keydown",_peKey); (_pe._off||[]).forEach(f=>{ try{ f(); }catch(e){} }); if(_pe.tio) _pe.tio.disconnect(); (_pe.pages||[]).forEach(P=>{ P.dead=true; _peDrop(P); }); _peUnzoomPage(); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
 /* edit a stored PDF of this filing — the collated defect pages or the final copy (owner, Oct 2026):
    every page, the same tools, plus Delete page. Saved back under the SAME name (revisions stay in the same
    document): the new version is uploaded, the old one moved to _to_delete, then the new one takes the name. */
@@ -27978,7 +28101,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.15-1500";
+  window.APP_VERSION = "2026.10.15-1600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
