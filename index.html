@@ -2805,6 +2805,7 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
         ${mode==="loading"?_loadingCard:_formCard}
       </div>`;
     ov._mode = mode;
+    if(mode==="loading") _gateWatch();
     if(!FB){ setMsg("err","Cloud not reachable right now. Check your connection and reload."); }
     try{ if(sessionStorage.getItem("asd_autologout")==="1"){ sessionStorage.removeItem("asd_autologout"); setMsg("ok","You were signed out after a period of inactivity. Please sign in again."); } }catch(e){}
   }
@@ -2822,6 +2823,35 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
     });
   }
   function hideCloudLogin(){ const o=document.getElementById("cloudGate"); if(o) o.style.display="none"; }
+  // If the loading screen is still up after 15 s, say which step it is on and offer a way out,
+  // instead of a spinner that never ends.
+  var _gateWD=null;
+  function _gateWatch(){
+    clearTimeout(_gateWD);
+    _gateWD=setTimeout(function(){
+      var ov=document.getElementById("cloudGate");
+      if(!ov||ov.style.display==="none"||ov._mode!=="loading"||document.getElementById("cgFix")) return;
+      var st=document.getElementById("cgStatus"), stage=st?st.textContent:"";
+      var d=document.createElement("div"); d.id="cgFix";
+      d.style.cssText="margin-top:16px;padding-top:14px;border-top:1px solid var(--line,#e5dfd2);font-size:13px;line-height:1.5;color:var(--ink,#241f1a)";
+      d.innerHTML='<div style="margin-bottom:10px">This is taking longer than it should'+(stage?' (stuck at: <i>'+String(stage).replace(/</g,"&lt;")+'</i>)':'')+'.</div>'+
+        '<button onclick="location.reload()" style="width:100%;padding:12px;border:none;border-radius:11px;background:var(--seal,#6b1f1f);color:#f6efe0;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer">Try again</button>'+
+        '<button onclick="window._gateRepair()" style="width:100%;padding:11px;border:1px solid var(--line,#e5dfd2);border-radius:11px;background:transparent;color:var(--seal,#6b1f1f);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:8px">Repair this device</button>'+
+        '<div style="font-size:12px;color:var(--muted,#6d675e);margin-top:8px">Repair clears this device\'s offline copy and signs it out. Your records are safe in the cloud; sign in again after it reloads.</div>';
+      var card=st&&st.parentNode; if(card) card.appendChild(d);
+    }, 15000);
+  }
+  window._gateRepair=function(){
+    try{ localStorage.setItem("asdc_repair", String(Date.now())); }catch(e){}
+    try{ Object.keys(localStorage).forEach(function(k){ if(/^firebase:/.test(k)) localStorage.removeItem(k); }); }catch(e){}
+    var go=function(){ location.reload(); };
+    try{
+      var jobs=[];
+      if(window.caches&&caches.keys) jobs.push(caches.keys().then(function(ns){ return Promise.all(ns.filter(function(n){ return n.indexOf("asdc-papers")<0; }).map(function(n){ return caches.delete(n); })); }));
+      if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations) jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }));
+      Promise.all(jobs).then(go,go); setTimeout(go,2000);
+    }catch(e){ go(); }
+  };
   function showAccessDenied(locked){
     hideCloudLogin();
     let ov=document.getElementById("accessGate");
@@ -3238,7 +3268,12 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
   }
 
   // ---------- BOOT ----------
+  // Firebase can report the sign-in state BEFORE start() below has run (the page is large, and
+  // the answer comes quickly when nobody is signed in). Ignore it until start() has taken over:
+  // start() reads FB.user itself. (This race left a signed-out iPad on "Loading your chamber"
+  // for ever: the sign-in form was drawn, then start() covered it with the loading card.)
   window.onFirebaseAuth = function(user){
+    if(!FB) return;
     if(user){ onSignedIn(); }
     else { _cloudReady=false; if(FB) FB.stopListeners(); showCloudLogin("login"); }
   };
@@ -3255,7 +3290,8 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
       // yet — FB.user is null until the persisted session restores. Show a loading screen;
       // onFirebaseAuth shows the form only if the user is genuinely signed out.
       if(FB.user){ onSignedIn(); }
-      else { showCloudLogin("loading"); }
+      else if(FB.user===null){ showCloudLogin("login"); }   // already known: signed out
+      else { showCloudLogin("loading"); }                   // not known yet: onFirebaseAuth decides
     });
   }
 
@@ -27578,7 +27614,7 @@ try{ window.showGate=showGate;
    ============================================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import {
-  getAuth, setPersistence, browserLocalPersistence,
+  getAuth, initializeAuth, setPersistence, browserLocalPersistence,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
@@ -27597,12 +27633,24 @@ const firebaseConfig = {
   appId: "1:1074489355364:web:e0afc1377db7815fce0371"
 };
 
+// "Repair this device" (loading-screen button) sets this flag and reloads: this start-up then
+// drops the offline Firestore cache on this device and runs without it, so a stuck browser
+// database (seen on iPad Safari) cannot hold the app on "Loading your chamber".
+let _repairBoot=false;
+try{ _repairBoot=!!localStorage.getItem("asdc_repair"); if(_repairBoot) localStorage.removeItem("asdc_repair"); }catch(e){}
+if(_repairBoot && window.indexedDB){
+  ["firestore/[DEFAULT]/asd-chamber/main","firebaseLocalStorageDb"].forEach(n=>{ try{ indexedDB.deleteDatabase(n); }catch(e){} });
+}
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Sign-in is kept in plain local storage only. The default also opens a browser database
+// (IndexedDB) at every start, and when Safari leaves that database stuck, the sign-in check
+// never answers and the app waits on the loading screen for ever.
+let auth;
+try{ auth = initializeAuth(app, { persistence: browserLocalPersistence }); }catch(e){ auth = getAuth(app); }
 // offline cache so the app works without internet and syncs when back
 let db;
 try{
-  db = initializeFirestore(app, {
+  db = _repairBoot ? initializeFirestore(app, {}) : initializeFirestore(app, {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
   });
 }catch(e){
@@ -27616,7 +27664,7 @@ setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
 const FB = {
   ready: true,
-  user: null,
+  user: undefined,   // undefined = sign-in state not known yet; null = signed out
   _authCbs: [],
   onAuth(cb){ this._authCbs.push(cb); if(this.user!==undefined) cb(this.user); },
   async login(email, pw){ return signInWithEmailAndPassword(auth, email, pw); },
@@ -27930,7 +27978,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.15-1400";
+  window.APP_VERSION = "2026.10.15-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
