@@ -2069,6 +2069,13 @@
   .pe-main{flex:1;min-width:0;overflow:auto;padding:12px 16px 80px;display:flex;flex-direction:column;align-items:center}
   .pe-cap{font-size:11.5px;color:var(--muted);margin:10px 0 4px} .pe-pg{position:relative;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;touch-action:pan-x pan-y}
   .pe-pg[data-tool="white"]{cursor:crosshair;touch-action:none} .pe-pg[data-tool="add"],.pe-pg[data-tool="tick"],.pe-pg[data-tool="truecopy"],.pe-pg[data-tool="num"]{cursor:copy} .pe-pg[data-tool="text"]{cursor:text}
+  .pe-svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible} .pe-pg[data-tool="select"] .pe-svg .pe-v{pointer-events:visiblePainted;cursor:move}
+  .pe-pg[data-tool="pen"],.pe-pg[data-tool="hl"],.pe-pg[data-tool="box"],.pe-pg[data-tool="line"]{touch-action:none;cursor:crosshair}
+  .pe-selbox{position:absolute;outline:1.5px dashed var(--seal);pointer-events:none}
+  .pe-opts{display:flex;align-items:center;gap:6px;padding-left:8px;margin-left:4px;border-left:1px solid var(--line)} .pe-opts:empty{display:none}
+  .pe-dot{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;flex:none} .pe-dot.on{box-shadow:0 0 0 2px var(--seal)}
+  .pe-wd{width:26px;height:24px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0 4px;flex:none} .pe-wd i{display:block;width:100%;background:currentColor;border-radius:2px} .pe-wd.on{border-color:var(--seal);box-shadow:0 0 0 1px var(--seal)}
+  .pe-fg{border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);font:inherit;font-size:12px;padding:3px 7px;cursor:pointer;white-space:nowrap;flex:none} .pe-fg.on{border-color:var(--seal);color:var(--seal);font-weight:600}
   .pe-lay{position:absolute;inset:0} .pe-o{position:absolute} .pe-w{background:#fff} .pe-drag{outline:1.5px dashed var(--seal);background:rgba(255,255,255,.85)}
   .pe-tx{font-family:"Times New Roman",Times,serif;line-height:1;white-space:nowrap;color:#000} .pe-tk{color:#000} .pe-tk svg{width:100%;height:100%}
   .pe-tc{font-family:Helvetica,Arial,sans-serif;font-weight:700;text-align:center;color:#000} .pe-tcl{border-top:1px solid #000}
@@ -23795,7 +23802,8 @@ try{ Object.assign(window,{_canRemove,_gkTrash,_paperRemoveAsk,_paperRemoveGo,_p
    Edits are kept as a list of operations, so "Edit again" reopens them; Save draws them with pdf-lib into
    "5.N Corrected - <part>.pdf" and attaches it to the defect. The filing copy itself is never changed. */
 var _pe=null;
-const _PE_TOOLS=[["select","Select","M4 3l7 17 2-7 7-2z"],["text","Edit text","M4 7V4h16v3M9 20h6M12 4v16"],["add","Add text","M12 5v14M5 12h14"],
+const _PE_TOOLS=[["select","Select","M4 3l7 17 2-7 7-2z"],["pen","Pen / sign","M3 21l3.5-1L19 7.5 16.5 5 4 17.5zM14.5 7l2.5 2.5"],["hl","Highlight","M5 19h14M8 15l3-9h2l3 9M9.5 11h5"],
+  ["text","Edit text","M4 7V4h16v3M9 20h6M12 4v16"],["add","Add text","M12 5v14M5 12h14"],["box","Box","M4 6h16v12H4z"],["line","Line","M5 19L19 5"],
   ["white","White-out","M3 5h18v14H3z"],["tick","Tick","M4 12l5 5L20 6"],["truecopy","TRUE COPY","M4 18h16M7 14h10"],["num","Page no.","M10 4L8 20M16 4l-2 16M4 9h17M3 15h17"]];
 function _peIcon(d){ return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`; }
 /* 1 · choose the pages (the defect's own pages are ticked) */
@@ -23829,22 +23837,34 @@ async function _peOpenGo(did,pid){
 /* 2 · the editor */
 function _peStart(o){
   const prevOps=(o.prev&&JSON.stringify(o.prev.pages)===JSON.stringify(o.idx))?(o.prev.ops||[]):[];
-  _pe={did:o.did,pid:o.pid,file:o.file||"",kind:o.kind||"",ctx:o.ctx,idx:o.idx,label:o.label,ops:prevOps.map(x=>Object.assign({},x)),undo:[],redo:[],tool:"text",zoom:1,sel:null,dirty:false,pages:[]};
+  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",ctx:o.ctx,idx:o.idx,label:o.label,ops:prevOps.map(x=>Object.assign({},x)),undo:[],redo:[],tool:"text",zoom:1,sel:null,dirty:false,pages:[],
+    color:"#111111",width:2,hlc:"#ffe14d",finger:false};
   let ov=document.getElementById("peOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="peOverlay"; document.body.appendChild(ov); }
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_peClose()" title="Close (Esc)">✕</button><div class="pe-ttl"><b>${esc(o.label)}</b><span>${o.idx.map(i=>o.ctx.labelOf[i]||("p"+(i+1))).join(", ")}</span></div>
       <button class="pe-ib" id="peUndo" onclick="_peUndo()" title="Undo (⌘Z)">↶</button><button class="pe-ib" id="peRedo" onclick="_peRedo()" title="Redo (⇧⌘Z)">↷</button>
       <span class="pe-zm"><button class="pe-ib" onclick="_peZoom(-1)" title="Zoom out">−</button><span id="peZv">100%</span><button class="pe-ib" onclick="_peZoom(1)" title="Zoom in">+</button></span>
       <button class="btn seal sm pe-save" onclick="_peSave()">Save</button></div>
-    <div class="pe-tools">${_PE_TOOLS.map(([k,l,d])=>`<button class="pe-t" data-t="${k}" onclick="_peTool('${k}')" title="${l}">${_peIcon(d)}<span>${l}</span></button>`).join("")}<span class="pe-hint" id="peHint"></span></div>
+    <div class="pe-tools">${_PE_TOOLS.map(([k,l,d])=>`<button class="pe-t" data-t="${k}" onclick="_peTool('${k}')" title="${l}">${_peIcon(d)}<span>${l}</span></button>`).join("")}<span class="pe-opts" id="peOpts"></span><span class="pe-hint" id="peHint"></span></div>
     <div class="pe-body"><div class="pe-thumbs" id="peThumbs"></div><div class="pe-main" id="peMain"></div></div>`;
   ov.classList.add("show"); document.body.style.overflow="hidden";
   document.addEventListener("keydown",_peKey);
-  _peTool("text"); _peRender();
+  _peTool(o.kind==="case"?"pen":"text"); _peRender();
 }
-const _PE_HINT={select:"Tap something you added to move or delete it",text:"Tap a line to change its words",add:"Tap where the text should go",white:"Drag over what should be hidden",tick:"Tap a box to tick it",truecopy:"Tap where the TRUE COPY line goes (you sign above it)",num:"Tap a page to write its page number at the top"};
+// pen / highlight / box / line options: colour, thickness, finger drawing
+function _peOptsDraw(){ const el=document.getElementById("peOpts"); if(!el||!_pe) return; const t=_pe.tool;
+  if(["pen","box","line","hl"].indexOf(t)<0){ el.innerHTML=""; return; }
+  const cols=t==="hl"?[["#ffe14d","Yellow"],["#8fe28f","Green"],["#ff9ccf","Pink"]]:[["#111111","Black"],["#1d3f9a","Blue"],["#c0392b","Red"]];
+  const cur=t==="hl"?_pe.hlc:_pe.color;
+  el.innerHTML=cols.map(([c,l])=>`<button class="pe-dot${c===cur?" on":""}" style="background:${c}" title="${l}" onclick="_peSetC('${c}')"></button>`).join("")
+    +(t==="hl"?"":[[1.2,"Thin"],[2,"Medium"],[3.6,"Thick"]].map(([w,l])=>`<button class="pe-wd${w===_pe.width?" on":""}" title="${l}" onclick="_peSetW(${w})"><i style="height:${Math.max(1,w)}px"></i></button>`).join(""))
+    +((t==="pen"||t==="hl")?`<button class="pe-fg${_pe.finger?" on":""}" title="Draw with a finger too (otherwise a finger scrolls)" onclick="_pe.finger=!_pe.finger;_peOptsDraw()">✋ Finger</button>`:"");
+}
+function _peSetC(c){ if(!_pe) return; if(_pe.tool==="hl") _pe.hlc=c; else _pe.color=c; _peOptsDraw(); }
+function _peSetW(w){ if(!_pe) return; _pe.width=w; _peOptsDraw(); }
+const _PE_HINT={pen:"Write or sign with the Apple Pencil (or mouse) — your finger scrolls",hl:"Drag over the words to highlight",box:"Drag to draw a box",line:"Drag to draw a line",select:"Tap something you added to move or delete it",text:"Tap a line to change its words",add:"Tap where the text should go",white:"Drag over what should be hidden",tick:"Tap a box to tick it",truecopy:"Tap where the TRUE COPY line goes (you sign above it)",num:"Tap a page to write its page number at the top"};
 function _peTool(t){ if(!_pe) return; _peCommitInput(); _pe.tool=t; _pe.sel=null;
   document.querySelectorAll(".pe-t").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); const h=document.getElementById("peHint"); if(h) h.textContent=_PE_HINT[t]||"";
-  document.querySelectorAll(".pe-pg").forEach(el=>el.dataset.tool=t); _peDrawOps(); }
+  document.querySelectorAll(".pe-pg").forEach(el=>el.dataset.tool=t); _peOptsDraw(); _peDrawOps(); }
 function _peZoom(d){ if(!_pe) return; _peCommitInput(); _pe.zoom=Math.max(0.5,Math.min(2.5,+(_pe.zoom+(d*0.25)).toFixed(2))); _peRender(); }
 async function _peRender(){
   const main=document.getElementById("peMain"), th=document.getElementById("peThumbs"); if(!main) return;
@@ -23857,7 +23877,7 @@ async function _peRender(){
     const c=document.createElement("canvas"); c.width=Math.round(vp.width*(window.devicePixelRatio||1)); c.height=Math.round(vp.height*(window.devicePixelRatio||1)); c.style.width=vp.width+"px"; c.style.height=vp.height+"px";
     wrap.appendChild(c); const lay=document.createElement("div"); lay.className="pe-lay"; wrap.appendChild(lay);
     const del=_pe.ops.some(o=>o.k===k&&o.t==="del");
-    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span>${_pe.idx.length>1?`<button class="pe-capb" title="Move this page up" ${k===0?"disabled":""} onclick="_peMove(${k},-1)">↑</button><button class="pe-capb" title="Move this page down" ${k===_pe.idx.length-1?"disabled":""} onclick="_peMove(${k},1)">↓</button>`:""}<button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
+    const cap=document.createElement("div"); cap.className="pe-cap"; cap.innerHTML=`<span>Page ${esc(_pe.ctx.labelOf[i]||("PDF "+(i+1)))}${del?" — <b>will be left out</b>":""}</span>${_pe.idx.length>1?`<button class="pe-capb" title="Move this page up" ${k===0?"disabled":""} onclick="_peMove(${k},-1)">↑</button><button class="pe-capb" title="Move this page down" ${k===_pe.idx.length-1?"disabled":""} onclick="_peMove(${k},1)">↓</button>`:""}<button class="pe-capb" onclick="_peTogglePage(${k})">${del?"Restore page":"Delete"}</button>${del?"":`<button class="pe-capb" title="Turn this page 90°" onclick="_peRotate(${k})">⟳ Rotate</button><button class="pe-capb" onclick="_peStructAsk('rep',${k})">Replace</button><button class="pe-capb" onclick="_peStructAsk('ins',${k})">Add pages after</button><button class="pe-capb" onclick="_peBlank(${k})">＋ Blank page</button>${k===0?`<button class="pe-capb" onclick="_peStructAsk('ins',-1)">Add pages before</button>`:""}`}`;
     if(del) wrap.classList.add("pe-deleted"); main.appendChild(cap); main.appendChild(wrap);
     await pg.render({canvasContext:c.getContext("2d"),viewport:pg.getViewport({scale:s*(window.devicePixelRatio||1)}),intent:"print"}).promise;
     const tc=await pg.getTextContent(); const segs=_peSegs(tc,v0,pg);
@@ -23875,6 +23895,38 @@ async function _peRender(){
   }
   _peDrawOps(); _peBtns();
 }
+// vector marks: pen (pressure), highlight, box, line — in page units; drawn the same way on save
+function _peStrokePath(pts){ if(!pts.length) return ""; let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  if(pts.length===1) return d+` l0.1 0`;
+  for(let i=1;i<pts.length-1;i++){ const a=pts[i], b=pts[i+1]; d+=` Q${a[0].toFixed(1)} ${a[1].toFixed(1)} ${((a[0]+b[0])/2).toFixed(1)} ${((a[1]+b[1])/2).toFixed(1)}`; }
+  const l=pts[pts.length-1]; return d+` L${l[0].toFixed(1)} ${l[1].toFixed(1)}`; }
+function _pePW(op,p){ return op.w*(0.45+(p==null?0.5:p)*1.1); }   // pen width from Pencil pressure
+function _peVecSvg(op,ix,s){ const da=ix!=null?` data-op="${ix}"`:"", cls=` class="pe-v"`;
+  if(op.t==="ink"){ // pressure: short runs of similar pressure share a width
+    let out="", run=[op.pts[0]];
+    for(let i=1;i<op.pts.length;i++){ run.push(op.pts[i]); if(run.length>=6||i===op.pts.length-1){ const pr=run.reduce((a,p)=>a+(p[2]==null?0.5:p[2]),0)/run.length;
+      out+=`<path d="${_peStrokePath(run)}" stroke="${op.c}" stroke-width="${_pePW(op,pr).toFixed(2)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`; run=[op.pts[i]]; } }
+    if(op.pts.length===1) out=`<circle cx="${op.pts[0][0]}" cy="${op.pts[0][1]}" r="${(_pePW(op,op.pts[0][2])/2).toFixed(2)}" fill="${op.c}"/>`;
+    return `<g${cls}${da}>${out}<path d="${_peStrokePath(op.pts)}" stroke="transparent" stroke-width="10" fill="none"/></g>`; }
+  if(op.t==="hl") return `<path${cls}${da} d="${_peStrokePath(op.pts)}" stroke="${op.c}" stroke-opacity=".38" stroke-width="${op.w}" fill="none" stroke-linecap="round" stroke-linejoin="round" style="mix-blend-mode:multiply"/>`;
+  if(op.t==="box") return `<rect${cls}${da} x="${op.rect.x}" y="${op.rect.y}" width="${op.rect.w}" height="${op.rect.h}" stroke="${op.c}" stroke-width="${op.w}" fill="none"/>`;
+  if(op.t==="line") return `<g${cls}${da}><line x1="${op.x1}" y1="${op.y1}" x2="${op.x2}" y2="${op.y2}" stroke="${op.c}" stroke-width="${op.w}" stroke-linecap="round"/><line x1="${op.x1}" y1="${op.y1}" x2="${op.x2}" y2="${op.y2}" stroke="transparent" stroke-width="10"/></g>`;
+  return ""; }
+function _peBox(op){ if(op.pts){ const xs=op.pts.map(p=>p[0]), ys=op.pts.map(p=>p[1]); const x=Math.min(...xs), y=Math.min(...ys); return {x,y,w:Math.max(...xs)-x,h:Math.max(...ys)-y}; }
+  if(op.t==="line") return {x:Math.min(op.x1,op.x2),y:Math.min(op.y1,op.y2),w:Math.abs(op.x2-op.x1),h:Math.abs(op.y2-op.y1)};
+  if(op.t==="box") return op.rect; return null; }
+function _peHex(rgb,h){ const n=parseInt(String(h||"#111111").slice(1),16); return rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255); }
+// the same marks onto the saved PDF page (pdf-lib, y measured from the bottom)
+function _peDrawVec(pg,ops,rgb){ const H=pg.getSize().height; const round=(window.PDFLib&&PDFLib.LineCapStyle)?PDFLib.LineCapStyle.Round:undefined;
+  ops.forEach(o=>{
+    if(o.t==="ink"){ const col=_peHex(rgb,o.c);
+      if(o.pts.length===1){ pg.drawCircle({x:o.pts[0][0],y:H-o.pts[0][1],size:_pePW(o,o.pts[0][2])/2,color:col}); return; }
+      for(let i=1;i<o.pts.length;i++){ const a=o.pts[i-1], b=o.pts[i]; pg.drawLine({start:{x:a[0],y:H-a[1]},end:{x:b[0],y:H-b[1]},thickness:_pePW(o,((a[2]==null?0.5:a[2])+(b[2]==null?0.5:b[2]))/2),color:col,lineCap:round}); } }
+    if(o.t==="hl"&&o.pts.length>1){ try{ pg.drawSvgPath(_peStrokePath(o.pts),{x:0,y:H,borderColor:_peHex(rgb,o.c),borderWidth:o.w,borderOpacity:0.38,borderLineCap:round}); }
+      catch(e){ for(let i=1;i<o.pts.length;i++){ const a=o.pts[i-1], b=o.pts[i]; pg.drawLine({start:{x:a[0],y:H-a[1]},end:{x:b[0],y:H-b[1]},thickness:o.w,color:_peHex(rgb,o.c),opacity:0.3,lineCap:round}); } } }
+    if(o.t==="box") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,borderColor:_peHex(rgb,o.c),borderWidth:o.w});
+    if(o.t==="line") pg.drawLine({start:{x:o.x1,y:H-o.y1},end:{x:o.x2,y:H-o.y2},thickness:o.w,color:_peHex(rgb,o.c),lineCap:round});
+  }); }
 // the page's text as line pieces (a table row's cells stay separate)
 function _peSegs(tc,v0,pg){
   const its=tc.items.filter(it=>it.str&&it.str.trim()).map(it=>{ const z=Math.hypot(it.transform[2],it.transform[3])||Math.abs(it.transform[0])||11;
@@ -23889,18 +23941,40 @@ function _peSegs(tc,v0,pg){
 function _peWire(P){
   const el=P.wrap; let drag=null;
   const pt=e=>{ const r=el.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:(c.clientX-r.left)/P.s, y:(c.clientY-r.top)/P.s}; };
+  const press=e=>e.pointerType==="pen"?(e.pressure||0.5):0.5;
+  let tmp=null; const tmpSvg=()=>{ if(tmp) return tmp; P.lay.insertAdjacentHTML("beforeend",`<svg class="pe-svg pe-tmp" width="${P.w*P.s}" height="${P.h*P.s}" viewBox="0 0 ${P.w} ${P.h}"></svg>`); tmp=P.lay.lastElementChild; return tmp; };
   el.addEventListener("pointerdown",e=>{ if(!_pe||e.target.closest(".pe-in,.pe-x")) return; const q=pt(e); const t=_pe.tool;
+    if(["pen","hl","box","line"].indexOf(t)>=0){
+      if(e.pointerType==="touch"&&!_pe.finger){ const m=document.getElementById("peMain"); drag={pan:true,cx:e.clientX,cy:e.clientY,st:m.scrollTop,sl:m.scrollLeft}; try{ el.setPointerCapture(e.pointerId); }catch(_){} return; }
+      e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(_){}
+      if(t==="pen"||t==="hl"){ drag={ink:t,pts:[[q.x,q.y,press(e)]]}; tmp=null; return; }
+      drag={shape:t,x:q.x,y:q.y}; tmp=null; return; }
     if(t==="white"){ drag={x:q.x,y:q.y}; el.setPointerCapture(e.pointerId); return; }
-    if(t==="select"){ const op=e.target.closest("[data-op]"); if(op){ _pe.sel=+op.dataset.op; const o=_pe.ops[_pe.sel]; if(o.t!=="replace"&&o.t!=="num"){ drag={mv:true,x:q.x,y:q.y,ox:o.rect?o.rect.x:o.x,oy:o.rect?o.rect.y:o.y,moved:false,prev:JSON.parse(JSON.stringify(o))}; el.setPointerCapture(e.pointerId); } _peDrawOps(); } else { _pe.sel=null; _peDrawOps(); } return; }
+    if(t==="select"){ const op=e.target.closest("[data-op]"); if(op){ _pe.sel=+op.dataset.op; const o=_pe.ops[_pe.sel]; if(o.t!=="replace"&&o.t!=="num"){ drag={mv:true,x:q.x,y:q.y,ox:o.rect?o.rect.x:(o.x||0),oy:o.rect?o.rect.y:(o.y||0),moved:false,prev:JSON.parse(JSON.stringify(o))}; el.setPointerCapture(e.pointerId); } _peDrawOps(); } else { _pe.sel=null; _peDrawOps(); } return; }
     if(t==="text"){ const sg=_peSegAt(P,q); if(sg) _peEditSeg(P,sg); return; }
     if(t==="add"){ _peAddAt(P,q); return; }
     if(t==="tick"){ _pePush({k:P.k,t:"tick",x:q.x,y:q.y,s:10}); return; }
     if(t==="truecopy"){ _pePush({k:P.k,t:"truecopy",x:Math.min(q.x,P.w-160),y:q.y}); return; }
     if(t==="num"){ const def=_pe.ctx.labelOf[P.i]||""; const v=prompt("Page number to write at the top of this page",def); if(v&&v.trim()) _pePush({k:P.k,t:"num",str:v.trim()}); return; } });
   el.addEventListener("pointermove",e=>{ if(!drag) return; const q=pt(e);
-    if(drag.mv){ const o=_pe.ops[_pe.sel]; if(!o) return; const dx=q.x-drag.x, dy=q.y-drag.y; if(Math.abs(dx)+Math.abs(dy)>1) drag.moved=true; if(o.rect){ o.rect.x=drag.ox+dx; o.rect.y=drag.oy+dy; } else { o.x=drag.ox+dx; o.y=drag.oy+dy; } _peDrawOps(); return; }
+    if(drag.pan){ const m=document.getElementById("peMain"); m.scrollTop=drag.st-(e.clientY-drag.cy); m.scrollLeft=drag.sl-(e.clientX-drag.cx); return; }
+    if(drag.ink){ e.preventDefault(); const evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+      evs.forEach(ev=>{ const p=pt(ev), l=drag.pts[drag.pts.length-1]; if(Math.hypot(p.x-l[0],p.y-l[1])>0.35) drag.pts.push([p.x,p.y,press(ev)]); });
+      const op=drag.ink==="pen"?{t:"ink",pts:drag.pts,c:_pe.color,w:_pe.width}:{t:"hl",pts:drag.pts,c:_pe.hlc,w:14}; tmpSvg().innerHTML=_peVecSvg(op,null,P.s); return; }
+    if(drag.shape){ e.preventDefault(); drag.x2=q.x; drag.y2=q.y;
+      const op=drag.shape==="box"?{t:"box",rect:{x:Math.min(drag.x,q.x),y:Math.min(drag.y,q.y),w:Math.abs(q.x-drag.x),h:Math.abs(q.y-drag.y)},c:_pe.color,w:_pe.width}:{t:"line",x1:drag.x,y1:drag.y,x2:q.x,y2:q.y,c:_pe.color,w:_pe.width};
+      tmpSvg().innerHTML=_peVecSvg(op,null,P.s); return; }
+    if(drag.mv){ const o=_pe.ops[_pe.sel]; if(!o) return; const dx=q.x-drag.x, dy=q.y-drag.y; if(Math.abs(dx)+Math.abs(dy)>1) drag.moved=true;
+      if(o.pts) o.pts=drag.prev.pts.map(p=>[p[0]+dx,p[1]+dy,p[2]]);
+      else if(o.t==="line"){ o.x1=drag.prev.x1+dx; o.y1=drag.prev.y1+dy; o.x2=drag.prev.x2+dx; o.y2=drag.prev.y2+dy; }
+      else if(o.rect){ o.rect.x=drag.ox+dx; o.rect.y=drag.oy+dy; } else { o.x=drag.ox+dx; o.y=drag.oy+dy; } _peDrawOps(); return; }
     drag.x2=q.x; drag.y2=q.y; _peDrawOps({k:P.k,rect:{x:Math.min(drag.x,q.x),y:Math.min(drag.y,q.y),w:Math.abs(q.x-drag.x),h:Math.abs(q.y-drag.y)}}); });
+  el.addEventListener("pointercancel",()=>{ drag=null; if(tmp){ tmp.remove(); tmp=null; } });
   el.addEventListener("pointerup",e=>{ if(!drag) return; const d=drag; drag=null;
+    if(d.pan) return;
+    if(d.ink){ if(tmp){ tmp.remove(); tmp=null; } _pePush(d.ink==="pen"?{k:P.k,t:"ink",pts:d.pts,c:_pe.color,w:_pe.width}:{k:P.k,t:"hl",pts:d.pts.length>1?d.pts:[d.pts[0],[d.pts[0][0]+1,d.pts[0][1],0.5]],c:_pe.hlc,w:14}); return; }
+    if(d.shape){ if(tmp){ tmp.remove(); tmp=null; } if(d.x2==null||Math.abs(d.x2-d.x)+Math.abs(d.y2-d.y)<4) return;
+      _pePush(d.shape==="box"?{k:P.k,t:"box",rect:{x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)},c:_pe.color,w:_pe.width}:{k:P.k,t:"line",x1:d.x,y1:d.y,x2:d.x2,y2:d.y2,c:_pe.color,w:_pe.width}); return; }
     if(d.mv){ if(d.moved){ _pe.dirty=true; _pe.undo.push({set:_pe.sel,prev:d.prev}); _pe.redo=[]; _peBtns(); } _peDrawOps(); return; }
     if(d.x2==null) return; const r={x:Math.min(d.x,d.x2),y:Math.min(d.y,d.y2),w:Math.abs(d.x2-d.x),h:Math.abs(d.y2-d.y)}; if(r.w<3||r.h<3){ _peDrawOps(); return; }
     _pePush({k:P.k,t:"white",rect:r}); });
@@ -23982,9 +24056,12 @@ function _peDrawOps(temp){
       if(op.t==="num") L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-nm${sel}"${da} style="top:${(36-12)*s}px;font-size:${12*s}px">${esc(op.str)}</div>`);
     };
     _pe.ops.forEach((op,ix)=>{ if(op.k===P.k) add(op,ix); });
+    const vec=_pe.ops.map((op,ix)=>op.k===P.k?_peVecSvg(op,ix,s):"").join("");
+    if(vec) L.insertAdjacentHTML("beforeend",`<svg class="pe-svg" width="${P.w*s}" height="${P.h*s}" viewBox="0 0 ${P.w} ${P.h}">${vec}</svg>`);
     if(temp&&temp.k===P.k) L.insertAdjacentHTML("beforeend",`<div class="pe-o pe-w pe-drag" style="left:${temp.rect.x*s}px;top:${temp.rect.y*s}px;width:${temp.rect.w*s}px;height:${temp.rect.h*s}px"></div>`);
     if(_pe.tool==="text") P.segs.forEach(sg=>L.insertAdjacentHTML("beforeend",`<div class="pe-hl" style="left:${(sg.x0-1)*s}px;top:${(sg.y-sg.z*0.95)*s}px;width:${(sg.x1-sg.x0+2)*s}px;height:${sg.z*1.25*s}px"></div>`));
-    if(_pe.sel!=null&&_pe.ops[_pe.sel]&&_pe.ops[_pe.sel].k===P.k){ const op=_pe.ops[_pe.sel]; const x=op.rect?op.rect.x+op.rect.w:(op.x||0)+40, y=op.rect?op.rect.y:(op.y||36)-20;
+    if(_pe.sel!=null&&_pe.ops[_pe.sel]&&_pe.ops[_pe.sel].k===P.k){ const op=_pe.ops[_pe.sel]; const bb=_peBox(op); const x=bb?bb.x+bb.w:op.rect?op.rect.x+op.rect.w:(op.x||0)+40, y=bb?bb.y:op.rect?op.rect.y:(op.y||36)-20;
+      if(bb) L.insertAdjacentHTML("beforeend",`<div class="pe-selbox" style="left:${(bb.x-3)*s}px;top:${(bb.y-3)*s}px;width:${(bb.w+6)*s}px;height:${(bb.h+6)*s}px"></div>`);
       L.insertAdjacentHTML("beforeend",`<button class="pe-x" style="left:${x*s+4}px;top:${y*s-4}px" onclick="_peDelSel()" title="Delete">✕</button>`); }
   });
 }
@@ -24026,6 +24103,60 @@ async function _peStructGo(kind,k,n){
     E.ops=[]; E.undo=[]; E.redo=[]; E.sel=null; E.dirty=true; E.struct=true; window.__peStructFile=null;
     closeModal(); await _peRender(); toast(kind==="rep"?"Page replaced. Save when done.":`${want.length} page${want.length===1?"":"s"} added. Save when done.`);
   }catch(e){ closeModal(); toast(e.message,true); } }
+// rotate a page / add a blank page: the document is rebuilt with what is drawn so far kept on the pages
+async function _peRebuild(fn, done){
+  if(!_pe) return; _peCommitInput(); const E=_pe;
+  _progressModal("Working…","Updating the pages…");
+  try{ const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    if(!E.base) E.base={idx:E.idx.slice(),labels:E.idx.map(i=>E.ctx.labelOf[i])};
+    const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const F={fR:await out.embedFont(StandardFonts.TimesRoman),fB:await out.embedFont(StandardFonts.TimesRomanBold),fH:await out.embedFont(StandardFonts.HelveticaBold),rgb};
+    const mine=await out.copyPages(src,E.idx);
+    mine.forEach((pg,j)=>{ if(E.ops.some(o=>o.k===j&&o.t==="del")) return; out.addPage(pg); _peDrawOn(pg,E.ops.filter(o=>o.k===j),F); fn(out,pg,j); });
+    const blob=new Blob([await out.save()],{type:"application/pdf"}); const td=await _pdfTextDoc(blob);
+    E.ctx={blob,doc:td.doc,labelOf:td.pages.map(_pageLabel)}; E.idx=[...Array(td.numPages).keys()];
+    E.ops=[]; E.undo=[]; E.redo=[]; E.sel=null; E.dirty=true; E.struct=true;
+    closeModal(); await _peRender(); toast(done);
+  }catch(e){ closeModal(); toast(e.message,true); } }
+function _peRotate(k){ _peRebuild((out,pg,j)=>{ if(j===k) pg.setRotation(PDFLib.degrees(((pg.getRotation().angle||0)+90)%360)); },"Page turned. Save when done."); }
+function _peBlank(k){ _peRebuild((out,pg,j)=>{ if(j===k){ const s=pg.getSize(); out.addPage([s.width,s.height]); } },"Blank page added. Save when done."); }
+/* EDIT ANY PDF IN A CASE FOLDER (owner, 15 Oct 2026: "like in Apple Preview … sign with my Apple Pencil and it is saved").
+   Same editor: pen with Pencil pressure, highlight, text, boxes, lines, white-out, ticks, page numbers; rotate / delete /
+   add / replace / reorder pages. Save keeps the same name; the earlier version goes to _to_delete (never deleted). */
+async function _peOpenPaper(k){
+  const it=window.__papers[k]; if(!it) return;
+  if(!/\.pdf$/i.test(it.name)){ toast("Only PDFs can be edited here.",true); return; }
+  _progressModal("Opening…","Fetching "+it.name+"…");
+  try{ const blob=await _paperBlob(it,(g,t)=>_progressSet(null,t?g/t:null));
+    _progressSet("Reading the pages…",null); const td=await _pdfTextDoc(blob);
+    closeModal(); _peStart({file:it.name,path:it.path,size:it.size,kind:"case",ctx:{blob,doc:td.doc,labelOf:td.pages.map(_pageLabel)},idx:[...Array(td.numPages).keys()],label:it.label||it.name.replace(/\.pdf$/i,"")});
+  }catch(e){ closeModal(); toast(e.message,true); } }
+async function _peSaveCase(){
+  const E=_pe; const base=E.path.split("/").slice(0,-1).join("/");
+  const keep=E.idx.map((i,k)=>k).filter(k=>!E.ops.some(o=>o.k===k&&o.t==="del"));
+  if(!keep.length){ toast("Every page is set to be left out — restore at least one.",true); return; }
+  if(!E.dirty&&!E.ops.length){ _peClose(true); return; }
+  _progressModal("Saving…","Making the new version…");
+  try{ const {PDFDocument,StandardFonts,rgb}=await _libPdfLib();
+    const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
+    const out=await PDFDocument.create(); const F={fR:await out.embedFont(StandardFonts.TimesRoman),fB:await out.embedFont(StandardFonts.TimesRomanBold),fH:await out.embedFont(StandardFonts.HelveticaBold),rgb};
+    const pages=await out.copyPages(src,keep.map(k=>E.idx[k]));
+    pages.forEach((pg,j)=>{ out.addPage(pg); _peDrawOn(pg,E.ops.filter(o=>o.k===keep[j]),F); });
+    const blob=new Blob([await out.save()],{type:"application/pdf"});
+    _progressSet("Saving in the case folder…",0.4);
+    const tmp=E.file.replace(/\.pdf$/i,"")+" (edited).pdf";
+    const got=await _uploadPaper(base+"/"+tmp,blob,(g,t)=>_progressSet(null,0.4+0.45*g/t));
+    let final=got, kept=false, trashed=false;
+    try{ await _gkTrash(base+"/"+E.file); trashed=true; }catch(e){ kept=true; }
+    if(trashed){
+      try{ const rn=await _gkNew("/api/rename",{path:base+"/"+got,name:E.file}); final=(rn&&rn.name)||E.file; }
+      catch(e){ // an older gatekeeper renames only in filing folders: save once more under the original name, then clear the temporary copy
+        try{ _progressSet("Finishing…",0.9); final=await _uploadPaper(base+"/"+E.file,blob,()=>{}); try{ await _gkTrash(base+"/"+got); }catch(_){} }catch(_){ final=got; } } }
+    closeModal(); _peClose(true);
+    toast(kept?`Saved as “${final}”. The original could not be replaced, so both copies are in the folder.`:`Saved — ${out.getPageCount()} page${out.getPageCount()===1?"":"s"}. The earlier version is in _to_delete.`);
+    _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); } }
+try{ Object.assign(window,{_peOptsDraw,_peSetC,_peSetW,_peStrokePath,_pePW,_peVecSvg,_peBox,_peHex,_peDrawVec,_peRebuild,_peRotate,_peBlank,_peOpenPaper,_peSaveCase}); }catch(e){}
 function _peClose(force){ if(!_pe) return; _peCommitInput();
   if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes to these pages will be lost.")) return;
   document.removeEventListener("keydown",_peKey); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
@@ -24070,7 +24201,7 @@ async function _peSaveFile(){
     closeModal(); _peClose(true); toast(`Saved — ${out.getPageCount()} pages.`+note); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
-function _peDrawOn(pg,ops,F){ const {fR,fB,fH,rgb}=F; const H=pg.getSize().height, W=pg.getSize().width;
+function _peDrawOn(pg,ops,F){ const {fR,fB,fH,rgb}=F; const H=pg.getSize().height, W=pg.getSize().width; _peDrawVec(pg,ops,rgb);
   ops.forEach(o=>{
     if(o.t==="white"||o.t==="replace") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,color:rgb(1,1,1)});
     if((o.t==="replace"||o.t==="text")&&o.str){ const f=o.bold?fB:fR; const clean=String(o.str).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-");
@@ -24082,6 +24213,7 @@ function _peDrawOn(pg,ops,F){ const {fR,fB,fH,rgb}=F; const H=pg.getSize().heigh
 /* 3 · save: copies of the pages + the operations, drawn with pdf-lib; attached to the defect */
 async function _peSave(){
   if(!_pe) return; _peCommitInput(); const E=_pe;
+  if(E.kind==="case") return _peSaveCase();
   if(E.file) return _peSaveFile();
   if(!E.ops.length&&!confirm("Nothing has been changed. Save these pages as they are?")) return;
   const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
@@ -24091,7 +24223,7 @@ async function _peSave(){
     const src=await PDFDocument.load(new Uint8Array(await E.ctx.blob.arrayBuffer()),{ignoreEncryption:true});
     const out=await PDFDocument.create(); const fR=await out.embedFont(StandardFonts.TimesRoman), fB=await out.embedFont(StandardFonts.TimesRomanBold), fH=await out.embedFont(StandardFonts.HelveticaBold);
     const pages=await out.copyPages(src,E.idx);
-    pages.forEach((pg,k)=>{ if(E.ops.some(o=>o.k===k&&o.t==="del")) return; out.addPage(pg); const H=pg.getSize().height, W=pg.getSize().width;
+    pages.forEach((pg,k)=>{ if(E.ops.some(o=>o.k===k&&o.t==="del")) return; out.addPage(pg); const H=pg.getSize().height, W=pg.getSize().width; _peDrawVec(pg,E.ops.filter(o=>o.k===k),rgb);
       E.ops.filter(o=>o.k===k).forEach(o=>{
         if(o.t==="white"||o.t==="replace") pg.drawRectangle({x:o.rect.x,y:H-o.rect.y-o.rect.h,width:o.rect.w,height:o.rect.h,color:rgb(1,1,1)});
         if((o.t==="replace"||o.t==="text")&&o.str){ const f=o.bold?fB:fR; let sz=o.size; const clean=String(o.str).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-");
@@ -24157,7 +24289,8 @@ function _fvMenu(btn, items){
   m.style.left=Math.max(8,Math.min(window.innerWidth-mw-8,r.right-mw))+"px"; m.style.top=(r.bottom+mh+8>window.innerHeight?Math.max(8,r.top-mh-4):r.bottom+4)+"px";
   setTimeout(()=>document.addEventListener("pointerdown",_fvMenuOut,true),0);
 }
-function _fvFileMenu(btn,k,path,word,canRm){ _fvMenu(btn,[
+function _fvFileMenu(btn,k,path,word,canRm){ const pdf=/\.pdf$/i.test(path); _fvMenu(btn,[
+  pdf&&canRm?{l:"✍︎ Edit PDF — sign, write, highlight…",on:`_peOpenPaper(${k})`}:null,
   {l:"Download",on:`_paperDownload(${k})`},{l:"Share",on:`_paperShare(${k})`}, word?{l:"Edit in Word",on:`_paperEdit(${k})`}:null,
   canRm?"-":null, canRm?{l:"Rename…",on:`_paperRenameAsk(${_fvQuote(path)})`}:null, canRm?{l:"Replace with a new copy…",on:`_paperReplaceAsk(${_fvQuote(path)})`}:null, canRm?{l:"Remove…",on:`_paperRemoveAsk(${_fvQuote(path)})`,danger:true}:null]); }
 function _fvDirMenu(btn,path,isFiling){ _fvMenu(btn,[{l:"Open",on:`_filesSub(${_fvQuote(path.split("/").pop())})`},
@@ -27797,7 +27930,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.14-1100";
+  window.APP_VERSION = "2026.10.15-1400";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
