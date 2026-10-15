@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T20:30:22.155910Z",
+  "generated_at": "2026-10-15T23:10:47.880633Z",
   "window": [
     "2026-10-16",
     "2026-10-19",
@@ -70,6 +70,185 @@
         }
       ]
     },
+    "2026-10-26": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 8,
+      "matches": [
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "250",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 23920/2026",
+          "petitioner": "UNMESH TRIMBAK NARAVANE AND ANR.",
+          "respondent": "SMT. SUNANDA RAMESH UTTURKAR AND ORS.",
+          "text": "250 SLP(C) No. 23920/2026 UNMESH TRIMBAK NARAVANE AND ANR. Versus SMT. SUNANDA RAMESH UTTURKAR AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "902",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 18185/2023",
+          "petitioner": "MADHAB CHANDRA NAYAK",
+          "respondent": "APARNA SAHOO AND ORS.",
+          "text": "902 SLP(C) No. 18185/2023 MADHAB CHANDRA NAYAK Versus APARNA SAHOO AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1170",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 13792-13799/2025",
+          "petitioner": "AVINASH DHAVJI NAIK AND ANR.",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
+          "text": "1170 SLP(C) No. 13792-13799/2025 AVINASH DHAVJI NAIK AND ANR. Versus THE STATE OF MAHARASHTRA AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1359",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 32702/2025",
+          "petitioner": "PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS.",
+          "respondent": "COMPUTER TEACHERS WELFARE SOCIETY AND ORS.",
+          "text": "1359 SLP(C) No. 32702/2025 PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS. Versus COMPUTER TEACHERS WELFARE SOCIETY AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1359",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 16160-16164/2026",
+          "petitioner": "PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS.",
+          "respondent": "HARCHARAN SINGH AND ORS.",
+          "text": "1359 SLP(C) No. 16160-16164/2026 PUNJAB INFORMATION AND COMMUNICATION TECHNOLOGY EDUCATION SOCIETY (PICTES) AND ORS. Versus HARCHARAN SINGH AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1365",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 29231-29232/2025",
+          "petitioner": "SOCIETY FOR WELFARE OF THE HANDICAPPED PERSONS AND ANR.",
+          "respondent": "RESERVE BANK OF INDIA AND ORS.",
+          "text": "1365 SLP(C) No. 29231-29232/2025 SOCIETY FOR WELFARE OF THE HANDICAPPED PERSONS AND ANR. Versus RESERVE BANK OF INDIA AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1381",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 5265/2026",
+          "petitioner": "MANOHAR VISHWANATH AGRAWAL",
+          "respondent": "MADHAV AND ORS.",
+          "text": "1381 SLP(C) No. 5265/2026 MANOHAR VISHWANATH AGRAWAL Versus MADHAV AND ORS."
+        },
+        {
+          "for_date": "2026-10-26",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1916",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "Diary No. 30889-2026",
+          "petitioner": "SK. IBRAHIM AND ANR.",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
+          "text": "1916 Diary No. 30889-2026 SK. IBRAHIM AND ANR. Versus THE STATE OF MAHARASHTRA AND ORS."
+        }
+      ]
+    },
     "2026-10-27": {
       "lists_found": [
         "Miscellaneous - Advance"
@@ -102,6 +281,6 @@
       ]
     }
   },
-  "match_count": 3,
+  "match_count": 11,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
