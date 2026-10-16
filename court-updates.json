@@ -1,75 +1,16 @@
 {
-  "generated_at": "2026-10-16T16:11:14.893456Z",
+  "generated_at": "2026-10-16T19:37:14.144678Z",
   "window": [
-    "2026-10-16",
     "2026-10-19",
     "2026-10-20",
     "2026-10-21",
     "2026-10-22",
     "2026-10-23",
     "2026-10-26",
-    "2026-10-27"
+    "2026-10-27",
+    "2026-10-28"
   ],
   "by_date": {
-    "2026-10-16": {
-      "lists_found": [
-        "Miscellaneous - Main",
-        "Miscellaneous - Supplementary",
-        "Registrar - Main",
-        "Registrar - Supplementary",
-        "Miscellaneous - Advance"
-      ],
-      "has_supplementary": true,
-      "has_advance": true,
-      "has_main": true,
-      "match_count": 2,
-      "matches": [
-        {
-          "for_date": "2026-10-16",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "4",
-          "item": "11",
-          "coram": "HON'BLE MR. JUSTICE PAMIDIGHANTAM SRI NARASIMHA; HON'BLE MR. JUSTICE ALOK ARADHE",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate",
-            "aor",
-            "number"
-          ],
-          "confidence": "high",
-          "case_no": "Diary No. 56578-2026",
-          "petitioner": "M/S. INDU BUILDING SYSTEMPVT.LTD AND ORS.",
-          "respondent": "PEGASUS ASSETS RECONSTRUCTIONS PVT. LTD AND ORS.",
-          "text": "11 Diary No. 56578-2026 M/S. INDU BUILDING SYSTEMPVT.LTD AND ORS. Versus PEGASUS ASSETS RECONSTRUCTIONS PVT. LTD AND ORS."
-        },
-        {
-          "for_date": "2026-10-16",
-          "list": "Miscellaneous - Main",
-          "kind": "main",
-          "family": "MJ",
-          "is_supplementary": false,
-          "court": "12",
-          "item": "23",
-          "coram": "HON'BLE MR. JUSTICE K.V. VISWANATHAN; HON'BLE MR. JUSTICE ARUN PALLI",
-          "court_total": "",
-          "court_fresh": "",
-          "matched_on": [
-            "advocate",
-            "aor",
-            "number"
-          ],
-          "confidence": "high",
-          "case_no": "MA 3061/2026 in SLP(C) No. 3574/2026",
-          "petitioner": "SANJEEV KUMAR",
-          "respondent": "NATRAJ COMMERCIAL COMPLEX PVT. LTD AND ANR.",
-          "text": "23 MA 3061/2026 in SLP(C) No. 3574/2026 SANJEEV KUMAR Versus NATRAJ COMMERCIAL COMPLEX PVT. LTD AND ANR."
-        }
-      ]
-    },
     "2026-10-26": {
       "lists_found": [
         "Registrar - Main",
@@ -280,8 +221,39 @@
           "text": "368 SLP(C) No. 17986/2022 MUNICIPAL CORPORATION OF GREATER MUMBAI AND ORS. Versus M/S SWEET ANGEL HOME BUILDERS AND ORS."
         }
       ]
+    },
+    "2026-10-28": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 1,
+      "matches": [
+        {
+          "for_date": "2026-10-28",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "62.2",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "Diary No. 4762-2020",
+          "petitioner": "CHIEF ENGINEER/HRD PUNJAB STATE POWER CORPORATION LTD.",
+          "respondent": "GURWINDER SINGH AND ORS.",
+          "text": "62.2 Diary No. 4762-2020 CHIEF ENGINEER/HRD PUNJAB STATE POWER CORPORATION LTD. Versus GURWINDER SINGH AND ORS."
+        }
+      ]
     }
   },
-  "match_count": 11,
+  "match_count": 10,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
