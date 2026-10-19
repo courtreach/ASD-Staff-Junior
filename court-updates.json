@@ -1,16 +1,26 @@
 {
-  "generated_at": "2026-10-19T14:54:00.944714Z",
+  "generated_at": "2026-10-19T20:25:45.688858Z",
   "window": [
-    "2026-10-19",
     "2026-10-20",
     "2026-10-21",
     "2026-10-22",
     "2026-10-23",
     "2026-10-26",
     "2026-10-27",
-    "2026-10-28"
+    "2026-10-28",
+    "2026-10-29"
   ],
   "by_date": {
+    "2026-10-21": {
+      "lists_found": [
+        "Miscellaneous - Main"
+      ],
+      "has_supplementary": false,
+      "has_advance": false,
+      "has_main": true,
+      "match_count": 0,
+      "matches": []
+    },
     "2026-10-26": {
       "lists_found": [
         "Registrar - Main",
@@ -253,6 +263,16 @@
           "text": "62.2 Diary No. 4762-2020 CHIEF ENGINEER/HRD PUNJAB STATE POWER CORPORATION LTD. Versus GURWINDER SINGH AND ORS."
         }
       ]
+    },
+    "2026-10-29": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 0,
+      "matches": []
     }
   },
   "match_count": 10,
