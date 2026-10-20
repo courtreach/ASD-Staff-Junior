@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-20T17:35:42.577897Z",
+  "generated_at": "2026-10-20T20:57:15.490435Z",
   "window": [
-    "2026-10-20",
     "2026-10-21",
     "2026-10-22",
     "2026-10-23",
     "2026-10-26",
     "2026-10-27",
     "2026-10-28",
-    "2026-10-29"
+    "2026-10-29",
+    "2026-10-30"
   ],
   "by_date": {
     "2026-10-21": {
@@ -273,8 +273,105 @@
       "has_main": false,
       "match_count": 0,
       "matches": []
+    },
+    "2026-10-30": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 4,
+      "matches": [
+        {
+          "for_date": "2026-10-30",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1376",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 27751/2025",
+          "petitioner": "SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS.",
+          "respondent": "SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS.",
+          "text": "1376 SLP(C) No. 27751/2025 SHAIKH PASHU S/O SHAIKH RAHEEM AND ORS. Versus SHAIKH RAFIK S/O SHAIKH MAHEBOOB AND ORS."
+        },
+        {
+          "for_date": "2026-10-30",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1528",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(Crl) No. 15497/2026",
+          "petitioner": "MANOJ",
+          "respondent": "STATE OF KERALA",
+          "text": "1528 SLP(Crl) No. 15497/2026 MANOJ Versus STATE OF KERALA"
+        },
+        {
+          "for_date": "2026-10-30",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "1927",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 25706-25707/2019",
+          "petitioner": "GOPAL KRISHNA MOHAN (D) THR. LRS. AND ORS.",
+          "respondent": "MEERA VISHWANATHAN AND ORS.",
+          "text": "1927 SLP(C) No. 25706-25707/2019 GOPAL KRISHNA MOHAN (D) THR. LRS. AND ORS. Versus MEERA VISHWANATHAN AND ORS."
+        },
+        {
+          "for_date": "2026-10-30",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "2363",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "advocate",
+            "aor",
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 38281/2025",
+          "petitioner": "WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
+          "text": "2363 SLP(C) No. 38281/2025 WEST KHANDESH DALIT SHIKSHAN PRASARAK MANDAL, DHULE Versus THE STATE OF MAHARASHTRA AND ORS."
+        }
+      ]
     }
   },
-  "match_count": 10,
+  "match_count": 14,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
