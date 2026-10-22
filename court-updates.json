@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-22T17:58:52.862389Z",
+  "generated_at": "2026-10-22T21:15:43.082975Z",
   "window": [
-    "2026-10-22",
     "2026-10-23",
     "2026-10-26",
     "2026-10-27",
     "2026-10-28",
     "2026-10-29",
     "2026-10-30",
-    "2026-11-02"
+    "2026-11-02",
+    "2026-11-03"
   ],
   "by_date": {
     "2026-10-26": {
@@ -378,8 +378,59 @@
           "text": "2099 SLP(C) No. 23852/2025 PRIMAL THOMAS Versus STATE OF KERALA AND ORS."
         }
       ]
+    },
+    "2026-11-03": {
+      "lists_found": [
+        "Miscellaneous - Advance"
+      ],
+      "has_supplementary": false,
+      "has_advance": true,
+      "has_main": false,
+      "match_count": 2,
+      "matches": [
+        {
+          "for_date": "2026-11-03",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "175",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 9741/2025",
+          "petitioner": "ZYDUS LIFESCIENCES LIMITED",
+          "respondent": "ROCHE PRODUCTS (INDIA) PRIVATE LIMITED AND ORS.",
+          "text": "175 SLP(C) No. 9741/2025 ZYDUS LIFESCIENCES LIMITED Versus ROCHE PRODUCTS (INDIA) PRIVATE LIMITED AND ORS."
+        },
+        {
+          "for_date": "2026-11-03",
+          "list": "Miscellaneous - Advance",
+          "kind": "advance",
+          "family": "MJ",
+          "is_supplementary": false,
+          "court": "",
+          "item": "273",
+          "coram": "",
+          "court_total": "",
+          "court_fresh": "",
+          "matched_on": [
+            "number"
+          ],
+          "confidence": "high",
+          "case_no": "SLP(C) No. 24919/2026",
+          "petitioner": "M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED",
+          "respondent": "THE STATE OF MAHARASHTRA AND ORS.",
+          "text": "273 SLP(C) No. 24919/2026 M.I.G. ADARSH NAGAR CO-OPERATIVE HOUSING SOCIETY LIMITED Versus THE STATE OF MAHARASHTRA AND ORS."
+        }
+      ]
     }
   },
-  "match_count": 14,
+  "match_count": 16,
   "note": "Drafting aid only. The court's published lists are authoritative. Advance lists publish days ahead; main a few days ahead; supplementary the evening before (sometimes late) - refreshed several times a day."
 }
