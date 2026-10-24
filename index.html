@@ -25153,18 +25153,24 @@ async function _advLocate(ctx,i,c){ const im=await _advPageImg(ctx,i,1000,true);
     if(!(v.json&&v.json.match)) return {x:0,y:0,w:im.w,h:im.h,how:"page"}; }catch(e){ b.how="ai?"; }
   return b; }
 function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the page: before (red box) and after (made with white-out + text)
+  const pw=full.width/sc, ph=full.height/sc;
+  // "add" next to found text: the new words go after it (or below / above, as "where" says) — never on top of it (24 Oct, Anupriya test)
+  let tb=box; if(c.what==="add"&&c.find&&c.to){ const tw0=_peMeasure(c.to,box.h*0.82,false,"T"), wh=String(c.where||"");
+    let pos=/below|under|beneath|new line|next line/i.test(wh)?"below":/above/i.test(wh)?"above":"after"; if(pos==="after"&&box.x+box.w+4+tw0>pw) pos="below";
+    tb=pos==="below"?{x:box.x,y:box.y+box.h+2,w:tw0,h:box.h}:pos==="above"?{x:box.x,y:Math.max(0,box.y-box.h-2),w:tw0,h:box.h}:{x:box.x+box.w+4,y:box.y,w:tw0,h:box.h}; }
+  const ub={x:Math.min(box.x,tb.x),y:Math.min(box.y,tb.y)}; ub.w=Math.max(box.x+box.w,tb.x+tb.w)-ub.x; ub.h=Math.max(box.y+box.h,tb.y+tb.h)-ub.y;
   // a close-up around the place: wide enough to see where it is, tight enough to read it
-  const pw=full.width/sc, ph=full.height/sc, cw=Math.min(pw,Math.max(150,box.w*5,(c.to?_peMeasure(c.to,box.h,false,"T"):0)*2.2)), chh=Math.min(ph,Math.max(56,box.h*4.2));
-  const cx0=Math.max(0,Math.min(pw-cw,box.x+box.w/2-cw/2)), cy0=Math.max(0,Math.min(ph-chh,box.y+box.h/2-chh/2));
+  const cw=Math.min(pw,Math.max(150,ub.w*3,box.w*5,(c.to?_peMeasure(c.to,box.h,false,"T"):0)*2.2)), chh=Math.min(ph,Math.max(56,ub.h*2.6,box.h*4.2));
+  const cx0=Math.max(0,Math.min(pw-cw,ub.x+ub.w/2-cw/2)), cy0=Math.max(0,Math.min(ph-chh,ub.y+ub.h/2-chh/2));
   const bx0=Math.round(cx0*sc), by0=Math.round(cy0*sc), W=Math.round(cw*sc), H=Math.round(chh*sc);
   const out=(after)=>{ const k=Math.min(2,640/W), c2=document.createElement("canvas"); c2.width=Math.round(W*k); c2.height=Math.round(H*k); const g=c2.getContext("2d");
     g.drawImage(full,bx0,by0,W,H,0,0,c2.width,c2.height); const X=v=>(v*sc-bx0)*k, Y=v=>(v*sc-by0)*k;
     const bx=X(box.x)-3, byy=Y(box.y)-3, bw=box.w*sc*k+6, bh=box.h*sc*k+6;
     if(!after){ g.strokeStyle="#d11a1a"; g.lineWidth=3; g.strokeRect(bx,byy,bw,bh); }
     else{ if(c.what!=="add"){ g.fillStyle="#fff"; g.fillRect(X(box.x)-1,Y(box.y)-1,box.w*sc*k+2,box.h*sc*k+2); }
-      let tw=0, fs=0; if(c.to){ fs=Math.max(8,box.h*sc*k*0.82); g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; const maxW=Math.max(box.w*sc*k*1.6,60); if(tw>maxW){ fs=fs*maxW/tw; g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; }
-        g.fillStyle="#000"; g.textBaseline="alphabetic"; g.fillText(c.to,X(box.x),Y(box.y)+box.h*sc*k*0.82); }
-      g.strokeStyle="#1e7d32"; g.lineWidth=3; g.strokeRect(bx,byy,Math.max(bw,tw+6),bh); }
+      let tw=0, fs=0; if(c.to){ fs=Math.max(8,tb.h*sc*k*0.82); g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; const maxW=tb!==box?c2.width-X(tb.x)-4:Math.max(box.w*sc*k*1.6,60); if(tw>maxW&&maxW>20){ fs=fs*maxW/tw; g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; }
+        g.fillStyle="#000"; g.textBaseline="alphabetic"; g.fillText(c.to,X(tb.x),Y(tb.y)+tb.h*sc*k*0.82); }
+      g.strokeStyle="#1e7d32"; g.lineWidth=3; if(tb!==box) g.strokeRect(X(tb.x)-3,Y(tb.y)-3,Math.max(tb.w*sc*k,tw)+6,tb.h*sc*k+6); else g.strokeRect(bx,byy,Math.max(bw,tw+6),bh); }
     return c2.toDataURL("image/jpeg",0.8); };
   return {b:out(false),a:out(true)}; }
 async function _advPictures(rel,ids){ try{
@@ -29034,7 +29040,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2000";
+  window.APP_VERSION = "2026.10.24-2100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
