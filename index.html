@@ -25201,7 +25201,7 @@ async function _advPictures(rel,ids){ try{
 }catch(e){ console.warn("advice pictures",e); } }
 /* 3 · the Advice page — for staff and the Head of Chamber */
 function _advOpen(focusId){ let ov=document.getElementById("advOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="advOverlay"; document.body.appendChild(ov); }
-  window.__advFocus=focusId||null; window.__advLang="en"; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
+  window.__advFocus=focusId||null; window.__advLang="en"; window.__advTrErr=null; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
 // back on the Advice page after the editor / scanner / a stamp: show the new state, same place on the page
 function _advRefresh(){ const ov=document.getElementById("advOverlay"); if(!ov||!ov.classList.contains("show")) return;
   const b=ov.querySelector(".rv-body"), y=b?b.scrollTop:0; document.body.style.overflow="hidden"; _advRender(); _advUsage(); const b2=ov.querySelector(".rv-body"); if(b2) b2.scrollTop=y; }
@@ -25222,7 +25222,7 @@ function _advHash(s){ let h=0; s=String(s); for(let i=0;i<s.length;i++) h=(h*31+
 function _advTrKey(d){ const a=d.adv||{}; return _advHash(JSON.stringify([d.text,a.means,a.why,a.steps,(a.changes||[]).map(c=>c.where||""),d.advNote||""])); }
 function _advTr(d,lang){ const a=d.adv; if(!a||!a.tr||lang==="en") return null; const t=a.tr[lang]; return t&&t.h===_advTrKey(d)?t:null; }
 function _advLang(){ return _ADV_LANGS[window.__advLang]?window.__advLang:"en"; }
-async function _advLangGo(lang){ window.__advLang=_ADV_LANGS[lang]?lang:"en"; window.__advTrFail=null; if(lang==="en"||window.__advTrBusy){ _advRefresh(); return; }
+async function _advLangGo(lang){ window.__advLang=_ADV_LANGS[lang]?lang:"en"; window.__advTrFail=null; window.__advTrErr=null; if(lang==="en"||window.__advTrBusy){ _advRefresh(); return; }
   const rec=_flRec(); const need=(rec.defects||[]).filter(d=>d.adv&&!_advTr(d,lang)); if(!need.length){ _advRefresh(); return; }
   window.__advTrBusy=lang; _advRefresh();
   try{ for(let k=0;k<need.length;k+=8){ const part=need.slice(k,k+8);
@@ -25233,7 +25233,9 @@ async function _advLangGo(lang){ window.__advLang=_ADV_LANGS[lang]?lang:"en"; wi
         d.adv.tr=Object.assign({},d.adv.tr||{},{[lang]:{h:_advTrKey(d),rem:x.remark||"",means:x.means||"",why:x.why||"",steps:x.steps||[],wheres:x.wheres||[],note:x.note||""}}); });
       _filingTouch(R); }
     if((_flRec().defects||[]).some(d=>d.adv&&!_advTr(d,lang))) window.__advTrFail=lang; }   // something came back short: no automatic retry (a tap tries again)
-  catch(e){ window.__advTrFail=lang; window.__advLang="en"; toast(/Unknown AI task/i.test(e.message)?"Hindi and Marathi need the updated gatekeeper — the Head of Chamber must paste the new worker code.":e.message,true); }
+  catch(e){ window.__advTrFail=lang; window.__advLang="en";   // the reason stays on the page (a toast is too easy to miss)
+    window.__advTrErr=/Unknown AI task/i.test(e.message)?(isStaffView()?"Hindi and Marathi are not switched on yet — tell the Head of Chamber.":"Hindi and Marathi need the updated gatekeeper: in Cloudflare open the gatekeeper → Edit code → paste the new worker.js → Deploy. Then tap again.")
+      :/not switched on|API key/i.test(e.message)?"Hindi and Marathi need the AI, which is not switched on.":"Could not translate: "+e.message; }
   window.__advTrBusy=null; _advRefresh(); }
 function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) return; const rec=_flRec(); const all=(rec.defects||[]).slice(); const owner=!isStaffView();
   const rounds=[...new Set(all.map(d=>d.round||1))].sort((a,b)=>b-a);
@@ -25268,7 +25270,7 @@ function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) r
       <div class="adv-lang" role="group" aria-label="Language">${Object.entries(_ADV_LANGS).map(([k,v])=>`<button class="${_advLang()===k?"on":""}" lang="${k}" onclick="_advLangGo('${k}')">${v}</button>`).join("")}</div>
       ${owner?`<button class="btn ghost sm" onclick="_aiSettingsAsk()">AI settings</button><button class="btn ghost sm" onclick="_advRulesAsk()">Standing rules</button>`:""}</div>
     <div class="rv-body">
-      ${window.__advTrBusy?`<div class="adv-busy">✨ ${_ADV_L[window.__advTrBusy].busy}</div>`:""}
+      ${window.__advTrBusy?`<div class="adv-busy">✨ ${_ADV_L[window.__advTrBusy].busy}</div>`:window.__advTrErr?`<div class="adv-busy err">${esc(window.__advTrErr)}</div>`:""}
       ${busy?`<div class="adv-busy">✨ Advice for ${st.n||""} new defect${st.n===1?"":"s"} is being prepared — it appears here by itself.</div>`:st.status==="error"?`<div class="adv-busy err">Advice could not be prepared: ${esc(st.err||"")} ${owner?`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`:""}</div>`:""}
       ${rounds.map((r,ri)=>{ const xs=all.filter(d=>(d.round||1)===r).sort((a,b)=>(a.adv?0:1)-(b.adv?0:1)||(+a.no)-(+b.no));
         const inner=xs.map(card).join(""); const lab=`Round ${r}${r===1?" — first defect list":" — after refiling"} · ${xs.length} defect${xs.length===1?"":"s"}`;
@@ -29098,7 +29100,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2300";
+  window.APP_VERSION = "2026.10.24-2310";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
