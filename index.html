@@ -20628,7 +20628,7 @@ function _flNextHTML(rec, st, fc){
   const aiLine=!isStaffView()&&(aiRev||aiQ||aiStaff||aiWait)?`<div class="fn-ai">✨ ${[aiRev?`<b>${aiRev} AI correction${aiRev===1?"":"s"} to approve</b>`:"", aiQ?`<b>${aiQ} question${aiQ===1?"":"s"}</b> from the AI clerk`:"", aiStaff?`${aiStaff} for staff`:"", aiWait?`${aiWait} with the AI clerk`:""].filter(Boolean).join(" · ")} ${_aiRunHTML()} · <button class="link-btn" onclick="openSub('aiclerk')">AI clerk activity</button></div>`:"";
   if(blocking||(!isStaffView()&&(aiRev||aiQ))) return `<div class="fn"><div class="fn-t">2 · Deal with each defect — ${blocking} to go</div>
       <div class="fn-s">Open a defect below and attach the corrected pages, rescan, or stamp TRUE COPY${isStaffView()?", then mark it cured":" — or let the AI clerk correct the pages for you to approve"}. For a translation or an extra better copy choose <b>Add after</b> — it goes after the document as 32A, 32B…</div>${aiLine}
-      <div class="fn-b">${aiFree?btn("_aiQueueAll()","✨ Cure all with AI"):""}${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
+      <div class="fn-b">${aiFree?btn("_aiQueueAll()","✨ Cure all with the Claude app"):""}${btn("_flSet('view','check')","Check filing copy","ghost")}${fc?"":btn("_flLinkFCAsk()","Link filing copy","ghost")}</div></div>`;
   const refs=rec.refilings||[], last=refs[refs.length-1];
   if(!refs.length) return `<div class="fn"><div class="fn-t">3 · Collate the defect pages</div>
       <div class="fn-s">Every defect has its pages. Put them together in paper-book order with the original page numbers${decl?"":" — <b>the defect pages must include a declaration; none has been added yet</b>"}.</div>
@@ -20651,7 +20651,7 @@ function _flNextHTML(rec, st, fc){
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}${btn("_collateAsk()","Collate again","ghost")}</div></div>`;
   if(!fin) return `<div class="fn"><div class="fn-t">4 · File the final defect pages, then compile the final copy</div>
       <div class="fn-s">Final defect pages: <b>${esc(sg.file)}</b>${sg.nosign?" (no signature needed)":` · signed copy uploaded${sg.by?" by "+esc(sg.by):""}`}${sg.at?" on "+esc(fmtDate(_localISO(new Date(sg.at)))):""}${okLine}. Once filed, compile the final filed copy — corrected pages replace the originals and added pages go in after their document.</div>
-      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download final defect pages")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
+      <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download final defect pages")}${btn("_rvOpen()","Review — before &amp; after","ghost")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_collateAsk()","Collate again","ghost")}${btn("_finalAsk()","Make the Final Filed Copy")}</div></div>`;
   return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s">${esc(fin.dl||fin.file)}${fin.pages?" · "+fin.pages+" pages":""}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(last.dl||last.file)})`,"Defect pages","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
@@ -20691,9 +20691,9 @@ function _rfWizardHTML(rec, stg, fc, listDate){
     {k:"cure",l:"Cure defects",done:stg.tot>0&&!blocking&&!(owner&&(aiRev||aiQ)),sub:stg.tot?(blocking?`${blocking} to go`:"all cured"):""},
     {k:"pages",l:"Defect pages",done:!!last&&!blocking,sub:last?(blocking?"collate again after curing":`${last.pages||""} pages`):""},
     {k:"sign",l:"Approve & sign",done:signed||!!fin,sub:last?(signed?"final":last.ok?"approved — to sign":last.back?"sent back":"awaiting approval"):""},
-    {k:"final",l:"Final copy",done:!!fin,sub:fin?"compiled":""},
+    {k:"final",l:"Final & close",done:!!rec.closed,sub:rec.closed?"closed":fin?"Final Filed Copy made":""},
     {k:"files",l:"All files",muted:true,icon:"≡"}];
-  const auto=fin?"final":blocking||(owner&&(aiRev||aiQ))?"cure":signed?"final":last?"sign":stg.tot?"pages":"list";
+  const auto=rec.closed||fin?"final":blocking||(owner&&(aiRev||aiQ))?"cure":signed?"final":last?"sign":stg.tot?"pages":"list";
   const open=steps.some(x=>x.k===st.rstep)?st.rstep:auto;
   const head=(t,sub)=>`<div class="wz-h">${t}</div>${sub?`<div class="wz-sub">${sub}</div>`:""}`;
   let body="";
@@ -20705,7 +20705,7 @@ function _rfWizardHTML(rec, stg, fc, listDate){
   } else if(open==="cure"){
     const aiFree=ds.filter(d=>_aiCan(d)&&(!d.ai||!d.ai.status||d.ai.status==="rejected"||d.ai.status==="error")).length;
     body=head("Cure the defects", !stg.tot?"Read the defect list first.":blocking?`${blocking} still to cure${owner&&(aiRev||aiQ)?` · <b>${aiRev+aiQ} from the AI clerk to look at</b>`:""}`:"Every defect is cured.")+
-      (owner&&aiFree&&stg.tot?`<div class="fn-b" style="margin-bottom:10px">${btn("_aiQueueAll()","✨ Cure all with AI","ghost")} <span class="hint">${_aiRunHTML()}</span></div>`:"")+
+      (owner&&aiFree&&stg.tot?`<div class="fn-b" style="margin-bottom:10px">${btn("_aiQueueAll()","✨ Cure all with the Claude app","ghost")} <span class="hint">${_aiRunHTML()}</span></div>`:"")+
       (stg.tot?`<div class="fv-box">${_defectsHTML(rec)}</div>`:"");
   } else if(open==="pages"){
     const decl=_flStage5(/Declaration/i);
@@ -20717,7 +20717,9 @@ function _rfWizardHTML(rec, stg, fc, listDate){
   } else if(open==="sign"){
     body=head("Approve & sign", !last?"Collate the defect pages first.":"")+(last&&!fin?_rfTailHTML(rec):last?`<div class="hint">The final copy has been compiled.</div>`:"");
   } else if(open==="final"){
-    body=head("Final copy", fin?"":signed?"File the final defect pages, then compile the final filed copy.":"Approve and sign the defect pages first.")+(fin||signed?_rfTailHTML(rec):"");
+    body=rec.closed?head("Defects closed","")+_closedHTML(rec)
+      :head("Final Filed Copy & close", fin?"":signed?"File the final defect pages. When the Registry accepts the matter, close the defects here.":"When the Registry has accepted the refiling, make the Final Filed Copy and close the defects.")+(fin||signed?_rfTailHTML(rec):"")
+        +(owner?`<div class="fn" style="margin-top:12px"><div class="fn-t">Registry accepted?</div><div class="fn-s">Makes the Final Filed Copy — the filing copy with every cured page in its place — and closes the defects of this filing.</div><div class="fn-b">${btn("_closeAsk()","✓ Close the defects")}</div></div>`:"");
   } else if(open==="files"){
     body=head("All files in this filing","")+`<div class="fv-box">${_flPapersHTML(rec, fc)}</div>`;
   }
@@ -20743,8 +20745,8 @@ function _rfTailHTML(rec){
   if(!fin&&!sg) return `<div class="fn"><div class="fn-t">Sign the defect pages</div><div class="fn-s"><b>${esc(last.file)}</b>${pg} ${okLine}</div>${xt}${chg}
       <div class="fn-b">${addB}${btn(`_flDownloadStored(${_fvQuote(last.file)},${_fvQuote(_cleanFileName("Draft Defect Pages for Sign",...base))})`,"⬇ Download for signature")}${btn("_refSignedAsk()","⬆ Upload signed copy")}${btn("_refNoSign()","No signature needed","ghost")}${btn(`_peOpenFile(${_fvQuote(last.file)},'refiling')`,"✏️ Edit","ghost")}</div></div>`;
   if(!fin) return `<div class="fn"><div class="fn-t">Final defect pages</div><div class="fn-s"><b>${esc(sg.file)}</b>${sg.nosign?" · no signature needed":" · signed"} ${okLine}</div>${xt}${chg}
-      <div class="fn-b">${addB}${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_finalAsk()","Compile final copy")}</div></div>`;
-  return `<div class="fn ok"><div class="fn-t">Final copy compiled</div><div class="fn-s"><b>${esc(fin.file)}</b>${fin.pages?" · "+fin.pages+" pages":""}</div>
+      <div class="fn-b">${addB}${btn(`_flDownloadStored(${_fvQuote(sg.file)},${_fvQuote(_cleanFileName("Final Defect Pages",...base))})`,"⬇ Download")}${sg.nosign?"":btn("_refSignedAsk()","Replace signed copy","ghost")}${btn("_finalAsk()","Make the Final Filed Copy")}</div></div>`;
+  return `<div class="fn ok"><div class="fn-t">Final Filed Copy made</div><div class="fn-s"><b>${esc(fin.file)}</b>${fin.pages?" · "+fin.pages+" pages":""}</div>
       <div class="fn-b">${btn(`_flDownloadStored(${_fvQuote(fin.file)},${_fvQuote(fin.dl||fin.file)})`,"⬇ Download final copy")}${btn(`_peOpenFile(${_fvQuote(fin.file)},'final')`,"✏️ Edit","ghost")}${btn("_finalAsk()","Compile again","ghost")}${btn("_defReadAsk()","Read a new defect list","ghost")}</div></div>`;
 }
 function _flPapersHTML(rec, fc){
@@ -20783,7 +20785,7 @@ function _ddOpen(did, focus){ _flState().openD=did; renderFilesPage();
     if(focus){ const t=document.getElementById("aiIn_"+did)||document.getElementById("aiAns_"+did); if(t) t.focus({preventScroll:true}); } },60); }
 function _ddQuick(d){
   const s=_defState(d), b=(on,l,cls)=>`<button class="btn ${cls||"ghost"} sm dd-q" onclick="event.preventDefault();event.stopPropagation();${on}">${l}</button>`;
-  if(s==="open") return d.kind==="new"?b(`_ddOpen('${d.id}')`,"Make"):_aiCan(d)?b(`_ddOpen('${d.id}',true)`,"✨ Cure with AI","seal"):(isStaffView()&&d.kind!=="note"?b(`_ddOpen('${d.id}')`,"Cure","seal"):"");
+  if(s==="open") return d.kind==="new"?b(`_ddOpen('${d.id}')`,"Make"):_aiCan(d)?b(`_ddOpen('${d.id}',true)`,"✨ Cure with the Claude app","seal"):(isStaffView()&&d.kind!=="note"?b(`_ddOpen('${d.id}')`,"Cure","seal"):"");
   if(s==="cured"&&_aiCanCheck(d)&&!(d.ai&&d.ai.status==="checked")) return b(`_ddOpen('${d.id}',true)`,"✨ Check with AI");
   if(s==="approve") return b(`_aiCompare('${d.id}')`,"Review","seal");
   if(s==="question") return b(`_ddOpen('${d.id}',true)`,"Answer","seal");
@@ -20806,7 +20808,8 @@ function _defectsHTML(rec){
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="typed"||p.cure.how==="translated"?` <span class="hint">(${p.cure.how==="typed"?"typed copy":"translation"}, added after the original)</span>${isStaffView()?"":` <button class="link-btn" onclick="_advCheck('${d.id}','${p.id}')">check with Opus</button>`}`:""}${p.cure.how==="edit"?` <button class="link-btn" onclick="_peOpenAsk('${d.id}','${p.id}')">edit again</button>`:""}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      if(p.cure&&p.cure.how==="shared"){ const od=(rec.defects||[]).find(x=>(x.parts||[]).some(q=>q.id===p.cure.of)); acts=`<div class="dp-ok">✓ Cured on the same page as defect ${esc(od?String(od.no):"")} — <button class="link-btn" onclick="_flOpenStored(${_fvQuote(p.cure.file)})">${esc(p.cure.file)}</button> <button class="link-btn" onclick="_defUncure('${d.id}','${p.id}')">undo</button></div>`; }
+      else if(p.cure) acts=`<div class="dp-ok">✓ Cured pages: <button class="link-btn" style="font-weight:600" onclick="_flOpenStored(${_fvQuote(p.cure.file)})">${esc(p.cure.file)}</button>${p.cure.how==="typed"||p.cure.how==="translated"?` <span class="hint">(${p.cure.how==="typed"?"typed copy":"translation"}, added after the original)</span>${isStaffView()?"":` <button class="link-btn" onclick="_advCheck('${d.id}','${p.id}')">check with Opus</button>`}`:""}${p.cure.how==="edit"?` <button class="link-btn" onclick="_peOpenAsk('${d.id}','${p.id}')">edit again</button>`:""}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a dp-two"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button><button class="btn seal sm" onclick="_defAttachAsk('${d.id}','${p.id}')">📎 Add cured document</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole;
@@ -20824,6 +20827,7 @@ function _defectsHTML(rec){
         <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
       <div class="dd-b">
         <div class="dd-reg"><div class="dd-reg-h">Registry's remark</div><div>${esc(_flSentence(d.text))}</div>${d.rule?`<div class="dd-rule">Rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}${d.still?`<div class="dd-rule" style="color:#b23a3a">Still pending after refiling — the Registry was not satisfied with the cure.</div>`:""}</div>
+        ${(d.parts||[]).filter(p=>p.editing&&p.editing.by!==_aiWho()&&Date.now()-new Date(p.editing.at).getTime()<45*60000).map(p=>`<div class="dd-rule" style="color:#9a5b00">✏️ ${esc(p.editing.by)} is curing this now (since ${esc(new Date(p.editing.at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}))}).</div>`).join("")}
         ${d.adv?`<div class="dd-adv"><span class="dd-adv-l">💡 Advice</span> ${esc(d.adv.means||"")} <button class="link-btn" onclick="_advOpen('${d.id}')">How to cure it →</button></div>`:""}
         ${_aiBlockHTML(d)}${parts}${!d.parts.length&&d.kind!=="note"&&d.status!=="na"?`<div class="dp"><div class="dp-l">Cure</div><div class="dp-a dp-two"><button class="btn seal sm" onclick="_defGenPart('${d.id}','edit')">✏️ Edit pages</button><button class="btn seal sm" onclick="_defGenPart('${d.id}','add')">📎 Add cured document</button></div></div>`:""}
         <div class="dd-f">${stBtns}<button class="link-btn" onclick="_defEditAsk('${d.id}')">edit remark / note</button></div></div></details>`;
@@ -20839,7 +20843,7 @@ function _defectsHTML(rec){
   const toCheck=isStaffView()?0:cur.filter(d=>_aiCanCheck(d)&&(d.ai||{}).status!=="checked").length;
   return `${toCheck?`<div class="dg-check">✨ ${toCheck} staff cure${toCheck===1?"":"s"} not yet checked <button class="btn ghost sm" onclick="_aiQueueCheckAll()">Check ${toCheck===1?"it":"all"} with AI</button></div>`:""}<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
       <span><button class="link-btn" onclick="_defAddAsk()">+ add by hand</button> · <button class="link-btn" onclick="_defReadAsk()">read another list</button></span></div>
-    ${_advBarHTML(rec)}<div class="dg-chips">${chips}</div>${mapNote}${body}
+    ${rec.closed?`<div class="adv-bar">✓ Closed on ${esc(fmtDate(_localISO(new Date(rec.closed.at))))} — the Registry accepted the refiling. Final Filed Copy: <b>${esc(rec.closed.file||"")}</b></div>`:_advBarHTML(rec)}<div class="dg-chips">${chips}</div>${mapNote}${body}
     ${old.length?`<details class="dr-wait" style="margin-top:12px"><summary>Earlier defect lists · ${old.length} defect${old.length===1?"":"s"}</summary><div class="dl">${old.sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no).map(row).join("")}</div></details>`:""}`;
 }
 /* ---------- link the filing copy that is already in the case folder ---------- */
@@ -21832,7 +21836,7 @@ async function _defTrueCopyGo(did,pid){
     const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
     if(idx.length<all.idx.length){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=idx.map(i=>ctx.labelOf[i]||("p"+(i+1))).join(", "); }   // only these pages are refiled
     else if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; }
-    p.cure={file:name,pages:"all",how:"stamp"}; _defCheckDone(d); _filingTouch(rec);
+    await _cureAdopt(rec,d,p,{file:name,pages:"all",how:"stamp"});
     closeModal(); _blobReady(blob,name,(idx.length===1?"Sign above TRUE COPY on the page.":"Sign above TRUE COPY on each page.")+" If you sign on paper, scan it back with Rescan; if you sign in a PDF app, keep the same file name.");
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
@@ -22008,7 +22012,7 @@ function _cureModeHTML(d,p){
 }
 function _defModeSet(did,pid,mode){ const {rec,p}=_defFind(did,pid); if(!p||!p.cure) return; p.cure.mode=mode; _filingTouch(rec); renderFilesPage(); }
 function _defAttachAsk(did,pid){
-  const {d,p}=_defFind(did,pid); if(!p) return;
+  const {d,p}=_defFind(did,pid); if(!p||!_cureBusyOK(p)) return;
   const pdfs=_flItems().filter(x=>(x.stage===2||x.stage===5||x.stage===1)&&/\.pdf$/i.test(x.name));
   const dm=p.whole?"replace":_defDefaultMode(d), a=_partAnchor(p);
   openModal("Add cured document — "+p.label, `
@@ -22039,13 +22043,13 @@ async function _defAttachGo(did,pid){
       if(!/\.pdf$/i.test(f[0].name)){ toast("It must be a PDF.",true); return; }
       _progressModal("Saving…","Saving in stage 5…");
       file=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} ${mode==="add"?"Added":"Corrected"} ${_fnSafe(p.label)}.pdf`,f[0],(g,t)=>_progressSet(null,g/t)); }
-    p.cure={file,pages,how:"attach",mode}; _defCheckDone(d); _filingTouch(rec); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
+    await _cureAdopt(rec,d,p,{file,pages,how:"attach",mode}); closeModal(); toast("Attached."); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 function _defRescan(did,pid){
-  const {d,p}=_defFind(did,pid); if(!p) return;
+  const {d,p}=_defFind(did,pid); if(!p||!_cureBusyOK(p)) return;
   const mode=p.whole?"replace":_defDefaultMode(d);
-  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added ":"Better copy ")+_fnSafe(p.label), onDone:name=>{ const x=_defFind(did,pid); if(x.p){ x.p.cure={file:name,pages:"all",how:"scan",mode}; _defCheckDone(x.d); _filingTouch(x.rec); renderFilesPage(); } }});
+  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added ":"Better copy ")+_fnSafe(p.label), onDone:name=>{ const x=_defFind(did,pid); if(x.p){ _cureAdopt(x.rec,x.d,x.p,{file:name,pages:"all",how:"scan",mode}).then(()=>renderFilesPage()); } }});
 }
 function _blobReady(blob,name,note,dlName){
   window.__readyBlob={blob,name,dl:dlName||name};
@@ -22077,17 +22081,29 @@ async function _flDownloadStored(name, dlName){
 }
 /* the cured parts, in paper-book order; replace parts may not overlap */
 async function _curedPieces(rec, ctx){
-  const pieces=[]; const warn=[];
-  (rec.defects||[]).forEach(d=>{ if(d.status==="na"||!(d.kind==="pages"||d.kind==="doc")) return;
-    d.parts.forEach(p=>{ if(!p.cure) return; const r=_resolvePart(p,ctx);
-      if(!r.idx.length){ warn.push(p.label+": its pages are not found in the filing copy — left out"); return; }
+  const pieces=[]; const warn=[]; const seen=new Set();
+  for(const d of (rec.defects||[])){ if(d.status==="na"||!(d.kind==="pages"||d.kind==="doc")) continue;
+    for(const p of d.parts){ if(!p.cure||p.cure.how==="shared") continue; let r=_resolvePart(p,ctx);
+      if(!r.idx.length&&p.cure.mode!=="add"){ const g=await _cureGuessPlace(p,ctx); if(g.length){ r={idx:g}; warn.push(`${p.label}: its pages were found by matching the words (PDF ${_rangeText(g)}) — check them`); } }
+      if(!r.idx.length){ warn.push(p.label+": its pages are not found in the filing copy — left out"); continue; }
+      const key=p.cure.file+"|"+r.idx.join(","); if(seen.has(key)) continue; seen.add(key);
       const mode=(p.cure.mode==="add"&&!p.whole)?"add":"replace";
-      pieces.push({d,p,mode,idx:r.idx,start:r.idx[0],end:r.idx[r.idx.length-1]}); }); });
+      pieces.push({d,p,mode,idx:r.idx,start:r.idx[0],end:r.idx[r.idx.length-1]}); } }
   pieces.sort((a,b)=>(a.mode==="add"?a.end+0.5:a.start)-(b.mode==="add"?b.end+0.5:b.start));
   const reps=pieces.filter(x=>x.mode==="replace");
   for(let i=1;i<reps.length;i++) if(reps[i].start<=reps[i-1].end){ warn.push(reps[i].p.label+" overlaps "+reps[i-1].p.label+" — left out"); pieces.splice(pieces.indexOf(reps[i]),1); reps.splice(i,1); i--; }
   return {pieces,warn};
 }
+// where do a cure's pages belong, when its paper-book pages were never set? each cured page is matched to the filing-copy
+// page with the most words in common (the cure is a corrected copy, so nearly all words are the same)
+async function _cureGuessPlace(p,ctx){ try{ const x=_flItems().find(i=>i.name===p.cure.file); if(!x) return [];
+    const td=await _pdfTextDoc(await _paperBlob({path:_filingFolderRel()+"/"+x.name,name:x.name,size:x.size}),12);
+    const W=s=>new Set(String(s||"").toUpperCase().replace(/[^A-Z0-9 ]+/g," ").split(/\s+/).filter(w=>w.length>2));
+    const fp=ctx.pages.map(pg=>W(pg.text)); const out=[];
+    for(const pg of td.pages){ const A=W(pg.text); if(A.size<15) return []; let best=-1,bs=0;
+      fp.forEach((B,i)=>{ if(!B.size) return; let n=0; A.forEach(w=>{ if(B.has(w)) n++; }); const s=n/Math.max(A.size,B.size); if(s>bs){ bs=s; best=i; } });
+      if(bs<0.6) return []; out.push(best); }
+    return out.every((v,k)=>k===0||v===out[k-1]+1)?out:[]; }catch(e){ return []; } }
 // cured PDF → pdf-lib doc + the page label each of its pages already shows (to avoid double numbering)
 async function _loadCure(PDFDocument, p, cache){
   const name=p.cure.file;
@@ -22250,13 +22266,15 @@ async function _collateGo(){
     if(!out.getPageCount()) throw new Error("Nothing to collate yet.");
     _progressSet("Saving…",0.92);
     const blob=new Blob([await out.save()],{type:"application/pdf"});
-    const rnd=(rec.refilings||[]).length+1;
+    const prevR=(rec.refilings||[]).slice(-1)[0], round=Math.max(1,...(rec.defects||[]).map(d=>+d.round||1));
+    const sameDraft=prevR&&!prevR.signed&&(+prevR.round||1)===round&&_flItems().some(i=>i.name===prevR.file);   // collating again: the same draft, revised
+    const rnd=(rec.refilings||[]).length+(sameDraft?0:1);
     const nm=`5.${_stageNext(5,_currentNames())} Draft Defect Pages for Sign ${_fnDiary(rec)}${rnd>1?" Round "+rnd:""}.pdf`;
-    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage 5 — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
+    const name=sameDraft?(_progressSet("Revising the draft in stage 5…",0.94), await _refReviseFile(prevR.file,blob))
+      :await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet("Saving in stage 5 — "+Math.round(g*100/t)+"%",0.92+0.08*g/t));
     const dl=_cleanFileName("Draft Defect Pages for Sign",..._flCleanBase(rec));
-    const prevR=(rec.refilings||[]).slice(-1)[0];
-    const entry={at:new Date().toISOString(),file:name,dl,pages:out.getPageCount(),by:_aiWho(),round:Math.max(1,...(rec.defects||[]).map(d=>+d.round||1))};
-    rec.refilings=(rec.refilings||[]).concat([entry]); _filingTouch(rec);
+    const entry={at:new Date().toISOString(),file:name,dl,pages:out.getPageCount(),by:_aiWho(),round};
+    rec.refilings=sameDraft?(rec.refilings||[]).slice(0,-1).concat([entry]):(rec.refilings||[]).concat([entry]); _filingTouch(rec);
     if(prevR&&(prevR.extras||[]).length){ _progressSet("Putting back the documents added earlier…",0.97); try{ const n=await _refExtrasReapply(rec,prevR,entry); if(n) warn.push(`${n} document${n===1?"":"s"} added after the earlier collation put back in`); _filingTouch(rec); }catch(e){ warn.push("Documents added earlier could not be put back — add them again"); } }
     if(isStaffView()){ closeModal(); toast(`Defect pages collated (${out.getPageCount()} page${out.getPageCount()===1?"":"s"}) — sent to the Head of Chamber for approval.`+(warn.length?" Check: "+warn.join(" · "):"")); _fv.live=true; _filesLoad(); return; }
     closeModal(); _blobReady(blob,name,`${out.getPageCount()} pages${decl?", declaration "+(declFirst?"first":"last"):", no declaration"}. Saved in stage 5.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
@@ -22271,8 +22289,8 @@ function _finalAsk(){
     <label class="co-opt"><input type="checkbox" id="fnNum" checked> Write the page number on each new page that doesn't already show it</label>
     <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_finalGo()">Compile &amp; download</button></div>`);
 }
-async function _finalGo(){
-  const numOn=!!(document.getElementById("fnNum")||{}).checked; const rec=_flRec();
+async function _finalGo(numArg,closing){
+  const numOn=numArg!=null?!!numArg:!!(document.getElementById("fnNum")||{}).checked; const rec=_flRec();
   _progressModal("Compiling…","Fetching the filing copy…");
   try{
     const ctx=await _flLoadCtx(); const {pieces,warn}=await _curedPieces(rec,ctx);
@@ -22296,11 +22314,15 @@ async function _finalGo(){
     _progressSet("Saving…",0.9);
     let blob=new Blob([await out.save()],{type:"application/pdf"}); let pagesOut=out.getPageCount();
     if((rec.refilings||[]).some(r=>(r.extras||[]).length)){ _progressSet("Putting in the documents added after compiling…",0.91); const ex=await _finalApplyExtras(rec,blob,warn); if(ex.changed){ blob=ex.blob; pagesOut=ex.pages; } }
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Copy ${_fnDiary(rec)}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
-    const dl=_cleanFileName("Final Copy",..._flCleanBase(rec));
-    rec.finals=(rec.finals||[]).concat([{at:new Date().toISOString(),file:name,dl,pages:pagesOut}]); _filingTouch(rec);
-    closeModal(); _blobReady(blob,name,`${pagesOut} pages (filing copy had ${total}). Saved in stage 6.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
-    _fv.live=true; _filesLoad();
+    // one Final Filed Copy: making it again revises the same file; earlier "Final Copy" files go to _to_delete
+    const lastF=(rec.finals||[]).slice(-1)[0], keepF=lastF&&/Final Filed Copy/i.test(lastF.file)&&_flItems().some(i=>i.name===lastF.file);
+    const name=keepF?(_progressSet("Revising the Final Filed Copy…",0.95), await _refReviseFile(lastF.file,blob))
+      :await _uploadPaper(_filingFolderRel()+"/"+`6.${_stageNext(6,_currentNames())} Final Filed Copy ${_fnDiary(rec)}.pdf`,blob,(g,t)=>_progressSet("Saving in stage 6 — "+Math.round(g*100/t)+"%",0.93+0.07*g/t));
+    if(!keepF) for(const f of (rec.finals||[])){ if(f.file!==name&&_flItems().some(i=>i.name===f.file)){ try{ await _gkTrash(_filingFolderRel()+"/"+f.file); }catch(e){} } }
+    const dl=_cleanFileName("Final Filed Copy",..._flCleanBase(rec));
+    rec.finals=[{at:new Date().toISOString(),file:name,dl,pages:pagesOut}]; _filingTouch(rec);
+    closeModal(); _blobReady(blob,name,`${pagesOut} pages (filing copy had ${total}). Saved in stage 6 as the Final Filed Copy.`+(warn.length?" Check: "+warn.join(" · "):""),dl);
+    _fv.live=true; _filesLoad(); return name;
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 /* Documents added to the defect pages after compiling (a new cover, a new index, an application for condonation of
@@ -23964,12 +23986,14 @@ function _peSm(d){ return `<svg viewBox="0 0 24 24" width="15" height="15" fill=
 function _peId(){ return "o"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 /* 1 · choose the pages (the defect's own pages are ticked) */
 async function _peOpenAsk(did,pid){
-  const {p}=_defFind(did,pid); if(!p) return;
+  const {p}=_defFind(did,pid); if(!p||!_cureBusyOK(p)) return;
   // an earlier edit that can't be replayed (signed / pictures / pages added) — open the saved corrected copy itself
   if(p.cure&&p.cure.how==="edit"&&p.cure.file&&!(p.cure.edit&&p.cure.edit.pages)){ return _peOpenCure(did,pid); }
   _progressModal("Opening…","Fetching the filing copy…");
   let ctx; try{ ctx=await _flLoadCtx(); }catch(e){ closeModal(); toast(e.message,true); return; }
   const res=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},ctx);
+  if(!p.cure&&res.idx.length){ const ov=_cureOverlap(_flRec(),did,pid,res.idx,ctx);
+    if(ov){ closeModal(); if(confirm(`Page${res.idx.length>1?"s":""} ${_rangeText(res.idx.map(i=>i))} ${res.idx.length>1?"are":"is"} already cured under defect ${ov.d.no} (${ov.p.cure.file}).\n\nMake this correction on that same cured file, so there is only ONE copy of the page?`)) return _peOpenCure(ov.d.id,ov.p.id,{did,pid}); _progressModal("Opening…","…"); } }
   const prev=p.cure&&p.cure.edit&&p.cure.edit.pages?p.cure.edit:null;
   if(!res.idx.length&&!prev){ closeModal();
     openModal("Not in the filing copy", `<div class="hint">“${esc(p.label)}” has no pages in the filing copy to edit${p.pages?` (pages ${esc(p.pages)} were not found)`:""}. Bring the cured document in from outside with <b>Add cured document</b>, or set its pages first.</div>
@@ -23993,12 +24017,12 @@ async function _peOpenGo(did,pid){
   closeModal(); _peStart({did,pid,ctx,idx,prev:p.cure&&p.cure.edit,label:p.label});
 }
 // the saved corrected copy of a defect, opened as it is (its earlier marks are part of the page now)
-async function _peOpenCure(did,pid){
+async function _peOpenCure(did,pid,also){
   const {p}=_defFind(did,pid); if(!p||!p.cure) return;
   _progressModal("Opening…","Fetching "+p.cure.file+"…");
   try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file},(g,t)=>_progressSet(null,t?g/t:null));
     const doc=await _peLoadDoc(blob); closeModal();
-    _peStart({did,pid,kind:"cure",file:p.cure.file,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:p.label+" — corrected copy"});
+    _peStart({did,pid,kind:"cure",file:p.cure.file,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:p.label+" — corrected copy",also});
   }catch(e){ closeModal(); toast(e.message,true); } }
 // open a PDF quickly: the page labels are read later, page by page, as the pages are shown
 async function _peLoadDoc(blob){ const lib=await _qlPdfLib(); return lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; }
@@ -24009,7 +24033,8 @@ function _peNorm(op){ op=Object.assign({},op); if(!op.id) op.id=_peId();
 function _peStart(o){
   if(_pe) _peClose(true);
   let n=0; const pl=o.idx.map(i=>({id:"p"+(++n),d:0,i,rot:0}));
-  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",label:o.label,ctx:o.ctx,adv:o.adv||null,
+  if(o.did&&o.pid) _cureMark(o.did,o.pid,true);
+  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",label:o.label,ctx:o.ctx,adv:o.adv||null,also:o.also||null,
     docs:[{blob:o.ctx.blob,doc:o.ctx.doc,labelOf:(o.ctx.labelOf||[]).slice(),sz:{},segs:{},lab:{}}],pl,base0:o.idx.slice(),_n:n,
     ops:[],imgs:{},undo:[],redo:[],tool:"select",sel:new Set(),zoom:1,dirty:false,pages:[],finger:false,cur:0,
     sty:{c:"#111111",w:2,f:"",o:1,hlc:"#ffe14d",mk:"hl",shape:"rect",stamp:"truecopy",font:"T",size:12,b:false,i:false,al:"l",tc:"#111111",stc:"#1d3f9a",stampTxt:""}};
@@ -24892,27 +24917,22 @@ async function _peSaveDefect(){ const E=_pe;
   _progressModal("Saving…","Making the corrected pages…");
   try{ const {blob}=await _peBuild(null,(j,t)=>_progressSet(null,0.6*j/t));
     _progressSet("Saving in stage 5…",0.6);
-    const old=p.cure&&p.cure.how==="edit"?p.cure.file:"";
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
     const all=_resolvePart({key:p.key,pages:p.pagesOrig||p.pages},E.ctx).idx;
     if(E.base0.length<all.length||E.base0.some(i=>!all.includes(i))){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=E.base0.map(i=>E.ctx.labelOf[i]||("p"+(i+1))).join(", "); }
     const who={by:_aiWho(),at:new Date().toISOString()};
     let edit=Object.assign({struct:true},who);
     if(_peReplayable(E)){ const ops=E.ops.map(o=>{ const c=Object.assign({},o); const e=E.pl.find(x=>x.id===o.p); c.k=E.base0.indexOf(e.i); delete c.p; return c; });
       E.base0.forEach((i,k)=>{ if(!E.pl.some(e=>e.i===i)) ops.push({t:"del",k}); }); edit=Object.assign({pages:E.base0.slice(),ops},who); }
-    p.cure={file:name,pages:"all",how:"edit",mode:"replace",edit};
-    _defCheckDone(d); _filingTouch(rec);
-    if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }
+    const name=await _cureSave(rec,d,p,blob,"Corrected",{pages:"all",how:"edit",mode:"replace",edit},(g,t)=>_progressSet(null,0.6+0.4*g/t));
     closeModal(); _peClose(true); toast("Saved — the corrected pages are attached to this defect."); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
 async function _peSaveCure(){ const E=_pe; const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
   if(!E.dirty){ _peClose(true); return; }
   _progressModal("Saving…","Making the corrected pages…");
-  try{ const {blob}=await _peBuild(null,(j,t)=>_progressSet(null,0.6*j/t)); const old=p.cure&&p.cure.file;
-    const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} Corrected ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.6+0.4*g/t));
-    p.cure=Object.assign({},p.cure,{file:name,how:"edit",edit:{struct:true,by:_aiWho(),at:new Date().toISOString()}});
-    _defCheckDone(d); _filingTouch(rec); if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }
-    closeModal(); _peClose(true); toast("Saved — the corrected pages are attached to this defect."); _fv.live=true; _filesLoad();
+  try{ const {blob}=await _peBuild(null,(j,t)=>_progressSet(null,0.6*j/t));
+    const name=await _cureSave(rec,d,p,blob,"Corrected",{pages:(p.cure&&p.cure.pages)||"all",mode:(p.cure&&p.cure.mode)||"replace",how:"edit",edit:{struct:true,by:_aiWho(),at:new Date().toISOString()}});
+    if(E.also){ const y=_defFind(E.also.did,E.also.pid); if(y.p&&!y.p.cure){ y.p.cure={file:name,pages:"all",how:"shared",of:p.id,mode:"replace",by:_aiWho(),at:new Date().toISOString()}; delete y.p.editing; if(!y.p.pages) y.p.pages=p.pages; _defCheckDone(y.d); _filingTouch(y.rec); } }
+    closeModal(); _peClose(true); toast(E.also?"Saved — both defects now use this one cured page.":"Saved — the corrected pages are attached to this defect."); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
 /* EDIT ANY PDF IN A CASE FOLDER (owner, 15 Oct 2026: "like in Apple Preview … sign with my Apple Pencil and it is saved").
    Save keeps the same name; the earlier version goes to _to_delete (never deleted). */
@@ -24933,6 +24953,7 @@ async function _peOpenFile(name, kind){
   }catch(e){ closeModal(); toast(e.message,true); } }
 function _peClose(force){ if(!_pe) return; _peTextDone(); _peCommitInput();
   if(!force&&_pe.dirty&&!confirm("Close without saving? Your changes will be lost.")) return;
+  if(_pe.did&&_pe.pid) _cureMark(_pe.did,_pe.pid,false);
   _peMenuClose(); document.removeEventListener("keydown",_peKey); (_pe._off||[]).forEach(f=>{ try{ f(); }catch(e){} }); if(_pe.tio) _pe.tio.disconnect(); if(_pe.gio) _pe.gio.disconnect();
   (_pe.pages||[]).forEach(P=>{ P.dead=true; _peDrop(P); }); Object.values(_pe.imgs||{}).forEach(im=>{ try{ URL.revokeObjectURL(im.url); }catch(e){} });
   window.__peSig=null; _peUnzoomPage(); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show","pe-org"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
@@ -24941,6 +24962,86 @@ function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
 try{ Object.assign(window,{_defGenPart,_peArrowHead,_peAspect,_peAvail,_peAvailW,_peBB,_peBegin,_peBtns,_peBuild,_peCancelInput,_peCapText,_peChange,_peClose,_peCommitInput,_peCopyCanvas,_peDelSel,_peDim,_peDownload,_peDrawOps,_peDrawPage,_peDrawPdf,_peDrawUI,_peDrop,_peDup,_peEditSeg,_peEditSelText,_peEnd,_peEraseAt,_peFindAll,_peFindClose,_peFindGo,_peFindMarkAll,_peFindOpen,_peFindReset,_peFocus,_peFocusApply,_peGAll,_peGDel,_peGDup,_peGExtract,_peGKs,_peGRot,_peGestures,_peGoto,_peGridDrag,_peGridDraw,_peHitAt,_peHitOp,_peIcon,_peId,_peImgBytes,_peImgToPdf,_peInk,_peInkClear,_peInkPath,_peInkSvg,_peInnerTf,_peInput,_peInv,_peKey,_peLabel,_peLayout,_peLines,_peLive,_peLoadDoc,_peMarkRects,_peMeasure,_peMenu,_peMenuAway,_peMenuClose,_peMoreMenu,_peMove,_peMoveTo,_peMul,_peNative,_peNavShow,_peNewPid,_peNorm,_peNumAt,_peNumberAsk,_peNumberGo,_peOpById,_peOpenAsk,_peOpenCure,_peOpenFile,_peOpenGo,_peOpenPaper,_peOpsOf,_peOptsDraw,_peOrder,_peOrgDone,_peOrganize,_pePR,_pePW,_pePageBlank,_pePageDel,_pePageDup,_pePageInsertAsk,_pePageInsertGo,_pePageList,_pePageMenu,_pePageRot,_pePaste,_pePickImage,_pePlaceStamp,_pePt,_pePump,_pePushOp,_peRedo,_peRefocus,_peRefocusTa,_peRefresh,_peRender,_peReorderIds,_peReplayable,_peRestore,_peRotAll,_peSave,_peSaveAsNew,_peSaveCase,_peSaveCure,_peSaveDefect,_peSaveFile,_peSegAt,_peSegs,_peSegsOf,_peSelOps,_peSet,_peSetAl,_peSetBI,_peSetC,_peSetF,_peSetHl,_peSetMk,_peSetO,_peSetShape,_peSetStamp,_peSetStc,_peSetTc,_peSetW,_peSigClear,_peSigInk,_peSigPts,_peSigUse,_peSignPad,_peSizeP,_peSm,_peSnap,_peStart,_peStrokePath,_peSvg,_peSync,_peSyncNow,_peSyncSoon,_peTextDone,_peTextEdit,_peTextW,_peThKey,_peThumb,_peThumbCanvas,_peThumbsLazy,_peToday,_peTool,_peTxtSafe,_peTxtSvg,_peUndo,_peUnzoomPage,_peViewCenter,_peWire,_peXf,_peZoom,_peZoomLabel,_peZoomMenu,_peZoomTo}); }catch(e){}
+/* ---------- one cured file per defect (owner, 24 Oct 2026: "only the final ones to be saved") ----------
+   A defect keeps ONE cured file. Curing it again revises that same file (same name; the earlier version goes to _to_delete).
+   While someone is curing a defect, others are told. Two defects on the same page share one cured page. */
+function _fileUsedElsewhere(rec,name,p){ if(!name) return false; let used=false;
+  (rec.defects||[]).forEach(d=>(d.parts||[]).forEach(q=>{ if(q!==p&&q.cure&&q.cure.file===name&&q.cure.how!=="shared") used=true; }));
+  (rec.refilings||[]).forEach(r=>{ if(r.file===name||(r.signed&&r.signed.file===name)||(r.extras||[]).some(e=>e.file===name)) used=true; });
+  (rec.finals||[]).forEach(f=>{ if(f.file===name) used=true; });
+  if(rec.fs&&rec.fs.slots) Object.values(rec.fs.slots).forEach(l=>(l||[]).forEach(x=>{ if(x&&x.file===name) used=true; }));
+  if(/Declaration|Check ?list|Defect List/i.test(name)) used=true;
+  return used; }
+function _cureShareSync(rec,p){ (rec.defects||[]).forEach(d=>(d.parts||[]).forEach(q=>{ if(q!==p&&q.cure&&q.cure.how==="shared"&&q.cure.of===p.id){ q.cure.file=p.cure.file; _defCheckDone(d); } })); }
+// an edited / typed cure: revise the defect's own cured file in place when it has one of the same kind; else a new file
+async function _cureSave(rec,d,p,blob,word,cure,onProg){ const base=_filingFolderRel(), old=p.cure&&p.cure.file, oldHow=p.cure&&p.cure.how;
+  const fam=h=>(h==="typed"||h==="translated")?h:"pages";
+  const own=old&&_flItems().some(i=>i.name===old)&&!_fileUsedElsewhere(rec,old,p)&&p.cure.how!=="shared";
+  let name;
+  if(own&&fam(oldHow)===fam(cure.how)) name=await _refReviseFile(old,blob);
+  else { name=await _uploadPaper(base+"/"+`5.${_stageNext(5,_currentNames())} ${word} ${_fnSafe(p.label)}.pdf`,blob,onProg||(()=>{}));
+    if(own){ try{ await _gkTrash(base+"/"+old); }catch(e){} } }
+  const x=_defFind(d.id,p.id), R=x.rec||rec, P=x.p||p, D=x.d||d;
+  P.cure=Object.assign({by:_aiWho(),at:new Date().toISOString()},cure,{file:name}); delete P.editing; _cureShareSync(R,P); _defCheckDone(D); _filingTouch(R); return name; }
+// a cure that arrives as a new file (attached, scanned, stamped, the AI's copy): the defect's earlier own file goes to _to_delete
+async function _cureAdopt(rec,d,p,cure){ const old=p.cure&&p.cure.file, wasShared=p.cure&&p.cure.how==="shared";
+  p.cure=Object.assign({by:_aiWho(),at:new Date().toISOString()},cure); delete p.editing; _cureShareSync(rec,p); _defCheckDone(d); _filingTouch(rec);
+  if(old&&old!==cure.file&&!wasShared&&_flItems().some(i=>i.name===old)&&!_fileUsedElsewhere(rec,old,p)){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} } }
+// someone else is curing this defect right now?
+function _cureBusyOK(p){ const e=p&&p.editing; if(!e||e.by===_aiWho()) return true; const age=Date.now()-new Date(e.at).getTime(); if(age>45*60000) return true;
+  return confirm(`${e.by} is curing this defect right now (since ${new Date(e.at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}). Open it anyway?`); }
+function _cureMark(did,pid,on){ try{ const {rec,p}=_defFind(did,pid); if(!p) return; if(on){ p.editing={by:_aiWho(),at:new Date().toISOString()}; } else if(p.editing&&p.editing.by===_aiWho()){ delete p.editing; } else return; _filingTouch(rec); }catch(e){} }
+// another defect's cure already covers one of these pages?
+function _cureOverlap(rec,did,pid,idx,ctx){ if(!idx||!idx.length) return null; let hit=null;
+  (rec.defects||[]).forEach(d=>{ if(hit||d.id===did||d.status==="na") return; (d.parts||[]).forEach(q=>{ if(hit||!q.cure||q.cure.how==="shared"||q.cure.mode==="add") return;
+    try{ const r=_resolvePart(q,ctx).idx; if(r.some(i=>idx.indexOf(i)>=0)) hit={d,p:q}; }catch(e){} }); });
+  return hit; }
+/* ---------- close the defects: Final Filed Copy (owner, 24 Oct 2026) ----------
+   When the Registry has accepted the refiling: the filing copy with every cured page in its place is compiled as the
+   "Final Filed Copy", the defects are closed (read only), and drafts / AI copies nobody uses go to _to_delete. */
+function _flUnused(rec){ return _flItems().filter(x=>(x.stage===5||x.stage===6)&&/\.pdf$/i.test(x.name)&&!_fileUsedElsewhere(rec,x.name,null)
+  &&!(rec.defects||[]).some(d=>(d.parts||[]).some(p=>p.cure&&p.cure.file===x.name))); }
+function _closeAsk(){ if(isStaffView()) return; const rec=_flRec(); const ds=rec.defects||[];
+  const open=ds.filter(d=>d.status==="open"&&d.kind!=="note");
+  const lr=(rec.refilings||[]).slice(-1)[0]; const unused=_flUnused(rec);
+  openModal("Registry accepted — close the defects",`<div class="hint" style="margin-bottom:10px">This makes the <b>Final Filed Copy</b>: the filing copy with every cured page put in its place (replaced pages take the place of the originals; typed copies and translations go after their documents). Then the defects of this filing are closed.</div>
+    ${open.length?`<div class="co-warn" style="margin-bottom:10px">${open.length} defect${open.length===1?" is":"s are"} still open (${open.map(d=>d.no).join(", ")}). Close anyway only if the Registry has accepted the matter.</div>`:""}
+    ${!lr?`<div class="co-warn" style="margin-bottom:10px">The defect pages were never collated here — the final copy is made from the cures directly.</div>`:""}
+    <label class="co-opt"><input type="checkbox" id="clNum" checked> Write the page number on each new page that doesn't already show it</label>
+    ${unused.length?`<label class="co-opt"><input type="checkbox" id="clTidy" checked> Move ${unused.length} paper${unused.length===1?"":"s"} nobody uses any more to _to_delete <span class="hint">(${unused.map(x=>esc(x.name)).slice(0,6).join(" · ")}${unused.length>6?" …":""})</span></label>`:""}
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_closeGo()">Make the Final Filed Copy &amp; close</button></div>`); }
+async function _closeGo(){ const tidy=!!(document.getElementById("clTidy")||{}).checked; const numOn=!!(document.getElementById("clNum")||{}).checked;
+  const name=await _finalGo(numOn,true); if(!name) return; const rec=_flRec();
+  rec.closed={at:new Date().toISOString(),by:_aiWho(),file:name}; _filingTouch(rec);
+  if(tidy){ let n=0; for(const x of _flUnused(rec)){ try{ await _gkTrash(_filingFolderRel()+"/"+x.name); n++; }catch(e){} } if(n) toast(`${n} paper${n===1?"":"s"} moved to _to_delete.`); }
+  _fv.live=true; _filesLoad(); }
+function _closeReopen(){ const rec=_flRec(); if(!rec.closed||!confirm("Reopen the defects of this filing?")) return; rec.reopened={at:new Date().toISOString(),by:_aiWho(),was:rec.closed}; delete rec.closed; _filingTouch(rec); renderFilesPage(); }
+function _closedHTML(rec){ const c=rec.closed, ds=rec.defects||[], R=Math.max(1,...ds.map(d=>+d.round||1)), btn=(on,l,cls)=>`<button class="btn ${cls||"seal"} sm" onclick="${on}">${l}</button>`;
+  return `<div class="fn ok"><div class="fn-t">✓ Defects closed — the Registry accepted the refiling</div>
+    <div class="fn-s">Closed on ${esc(fmtDate(_localISO(new Date(c.at))))} by ${esc(c.by||"")} · ${ds.length} defect${ds.length===1?"":"s"} over ${R} defect list${R===1?"":"s"}</div>
+    <div class="fn-s" style="margin-top:6px">Final Filed Copy: <b>${esc(c.file)}</b></div>
+    <div class="fn-b">${btn(`_flOpenStored(${_fvQuote(c.file)})`,"Open")}${btn(`_flDownloadStored(${_fvQuote(c.file)},${_fvQuote(c.file)})`,"⬇ Download","ghost")}${btn("_rfGo('files')","All files","ghost")}${isStaffView()?"":btn("_closeReopen()","Reopen","ghost")}</div></div>`; }
+// the Head of Chamber's AI settings: how much of the $30 staff may use, and who prepares defect advice
+async function _aiSettingsAsk(){ if(isStaffView()) return; let u=null, cfg=null; try{ u=await _gk("/api/aiusage",{}); }catch(e){} try{ cfg=await FB.getMeta("aiCfg"); }catch(e){}
+  const L=(u&&u.limits)||{total:30,staff:10,pagesDay:40}, via=(cfg&&cfg.advVia)||"mac";
+  openModal("AI settings",`${u&&u.on?`<div class="hint" style="margin-bottom:10px">This month: <b>$${(u.total||0).toFixed(2)}</b> of $${L.total} used · staff $${(u.staff||0).toFixed(2)}.</div>`:`<div class="co-warn" style="margin-bottom:10px">AI credits are not switched on yet (gatekeeper key).</div>`}
+    <label class="fld">How much of the $${L.total} staff may use this month</label>
+    <div style="display:flex;gap:8px;align-items:center"><span>$</span><input class="in" id="aiStaffL" inputmode="decimal" value="${L.staff}" style="max-width:110px"><span class="hint">0 to ${L.total}. You can always use the Claude app on your Mac yourself.</span></div>
+    <label class="fld" style="margin-top:10px">Pages a staff member may type / translate in a day</label><input class="in" id="aiStaffP" inputmode="numeric" value="${L.pagesDay}" style="max-width:110px">
+    <label class="fld" style="margin-top:12px">Advice on new defects is prepared by</label>
+    <label class="co-opt"><input type="radio" name="aiVia" value="mac" ${via==="mac"?"checked":""}> The Claude app on your Mac when it is on (free — your Claude plan); AI credits only when the Mac is off</label>
+    <label class="co-opt"><input type="radio" name="aiVia" value="api" ${via==="api"?"checked":""}> Always AI credits (quicker; uses the $${L.total})</label>
+    <div class="btn-row" style="margin-top:14px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_aiSettingsSave()">Save</button></div>`); }
+async function _aiSettingsSave(){ const staff=parseFloat((document.getElementById("aiStaffL")||{}).value), pagesDay=parseInt((document.getElementById("aiStaffP")||{}).value,10), via=((document.querySelector('input[name="aiVia"]:checked')||{}).value)||"mac";
+  try{ await FB.putChamberMeta("aiCfg",{advVia:via}); }catch(e){ toast(e.message,true); return; }
+  try{ await _gk("/api/aiset",{staff:isNaN(staff)?undefined:staff,pagesDay:isNaN(pagesDay)?undefined:pagesDay}); }catch(e){ if(!/Unknown request|not switched/i.test(e.message)){ toast(e.message,true); return; } }
+  closeModal(); toast("Saved."); }
+// ask the Claude app on the Mac (free) for advice on one or more defects
+async function _advMac(ids){ const rec=_flRec(); ids=[].concat(ids); const cur=rec.adv&&rec.adv.via==="mac"&&/queued|working/.test(rec.adv.status)?(rec.adv.ids||[]):[];
+  ids.forEach(id=>{ const d=(rec.defects||[]).find(x=>x.id===id); if(d){ delete d.adv; d.still=false; } });
+  rec.adv={status:"queued",via:"mac",ids:[...new Set(cur.concat(ids))],at:new Date().toISOString(),by:_aiWho(),n:ids.length}; _filingTouch(rec);
+  toast("Asked the Claude app on your Mac — the advice appears here by itself (no AI credits)."); if(document.getElementById("advOverlay")&&document.getElementById("advOverlay").classList.contains("show")) _advRender(); renderFilesPage(); }
+try{ Object.assign(window,{_advMac,_aiSettingsAsk,_aiSettingsSave,_closeAsk,_closeGo,_closeReopen,_closedHTML,_cureAdopt,_cureBusyOK,_cureMark,_cureOverlap,_cureSave,_cureShareSync,_fileUsedElsewhere,_flUnused}); }catch(e){}
 /* ===================== DEFECT ADVICE (owner's plan, 24 Oct 2026) =====================
    When a defect list is read, the NEW defects (never ones already advised, nor "defect 2 still remaining" notes) get advice
    from the AI in the background: what it means, why, how to cure it step by step, one-tap helpers (type out / translate /
@@ -24991,11 +25092,15 @@ function _advPageOf(str,ctx){ const s=String(str||""); let m=/PDF\s*(\d+)/i.exec
 /* 1 · which defects need advice: this round's new ones, not yet advised */
 function _advTodo(rec){ const all=rec.defects||[]; if(!all.length) return []; const maxR=Math.max(...all.map(d=>d.round||1));
   return all.filter(d=>(d.round||1)===maxR&&!d.adv&&!d.still&&d.kind!=="note"&&d.status!=="na"); }
-async function _advAuto(rel,force){ try{
+async function _advAuto(rel,force,opt){ try{
   const rec=_filingRec(rel); if(!rec) return; const todo=force?force.map(id=>(rec.defects||[]).find(d=>d.id===id)).filter(Boolean):_advTodo(rec); if(!todo.length) return;
   if(rec.adv&&rec.adv.status==="working"&&Date.now()-new Date(rec.adv.at).getTime()<10*60000&&!force) return;   // another device is on it
   if(rec.adv&&rec.adv.status==="off"&&Date.now()-new Date(rec.adv.at).getTime()<30*60000&&!force) return;     // AI not switched on yet — don't keep asking
   if(!_gkUrl()) return;
+  if(rec.adv&&rec.adv.via==="mac"&&/queued|working/.test(rec.adv.status)&&!force&&!(opt&&opt.api)){ const q=new Set(rec.adv.ids||[]); if(todo.every(d=>q.has(d.id))&&Date.now()-new Date(rec.adv.at).getTime()<20*60000) return; }
+  if(!(opt&&opt.api)){ let mac=false; try{ const cfg=await FB.getMeta("aiCfg"); if(((cfg&&cfg.advVia)||"mac")==="mac"){ const hb=await FB.getMeta("aiClerk"); mac=!!(hb&&hb.heartbeat&&hb.ready!==false&&Date.now()-new Date(hb.heartbeat).getTime()<12*60000); } }catch(e){}
+    if(mac){ rec.adv={status:"queued",via:"mac",ids:todo.map(d=>d.id),at:new Date().toISOString(),by:_aiWho(),n:todo.length}; _filingTouch(rec); if(_inFiling()) renderFilesPage();
+      toast(`Advice for ${todo.length} new defect${todo.length===1?"":"s"} asked from the Claude app on the Mac (no AI credits).`); return; } }
   rec.adv={status:"working",at:new Date().toISOString(),by:_aiWho(),n:todo.length}; _filingTouch(rec); if(_inFiling()) renderFilesPage();
   toast(`Preparing advice for ${todo.length} new defect${todo.length===1?"":"s"}… (you can carry on working)`);
   const ctx=await _flLoadCtx(); const R=()=>_filingRec(rel);
@@ -25081,12 +25186,12 @@ function _advOpen(focusId){ let ov=document.getElementById("advOverlay"); if(!ov
 function _advClose(){ const ov=document.getElementById("advOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; }
 function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) return; const rec=_flRec(); const all=(rec.defects||[]).slice(); const owner=!isStaffView();
   const rounds=[...new Set(all.map(d=>d.round||1))].sort((a,b)=>b-a);
-  const st=rec.adv||{}; const busy=st.status==="working";
+  const st=rec.adv||{}; const busy=st.status==="working"||st.status==="queued";
   const card=d=>{ const a=d.adv, s=_defState(d);
     const head=`<div class="adv-h"><span class="adv-no">${esc(d.no)}</span><span class="adv-rem">${esc(_flSentence(d.text))}</span></div>
       <div class="adv-tags">${a&&a.cat?`<i>${esc(_ADV_CAT[a.cat]||a.cat)}</i>`:""}${d.still?`<i class="warn">Still pending after refiling</i>`:""}<i class="st s-${s}">${esc(_DS_LAB[s]||s)}</i></div>`;
     if(!a) return `<div class="adv-c" id="adv_${d.id}">${head}<div class="adv-none">${d.kind==="note"?"For information only — nothing to cure.":d.still?"Advice was given in an earlier round (see below).":busy?"Advice is being prepared…":"No advice yet."}
-      ${owner&&d.kind!=="note"&&!busy?` <button class="link-btn" onclick="_advAgain('${d.id}')">${d.still?"Advise again (costs a little)":"Get advice"}</button>`:""}</div></div>`;
+      ${owner&&d.kind!=="note"&&!busy?` <button class="link-btn" onclick="_advMac('${d.id}')">Ask the Claude app (free)</button> · <button class="link-btn" onclick="_advAgain('${d.id}')">${d.still?"Advise again with AI credits":"Get advice"}</button>`:""}</div></div>`;
     const acts=(a.actions||[]).map((x,j)=>`<button class="btn seal sm" onclick="_advAct('${d.id}',${j})">${esc(_advActLabel(x))}</button>`).join("");
     const ch=(a.changes||[]).map((c,n)=>{ const pic=c.img?`<div class="adv-pair" data-img="${esc(c.img)}"><figure><figcaption>Before</figcaption><img alt="before" data-k="b"></figure><figure><figcaption>After</figcaption><img alt="after" data-k="a"></figure></div>`
         :c.box&&c.box.how==="page"?`<div class="hint">The change is on ${esc(c.page)}${c.where?`, ${esc(c.where)}`:""} — the exact spot could not be marked; look there.</div>`:c.box?``:`<div class="hint">Picture being made…</div>`;
@@ -25102,10 +25207,10 @@ function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) r
       ${ex.length?`<div class="adv-sec"><div class="adv-l">Example from this chamber</div><div class="adv-ex">${ex.map(e=>`<figure data-img="${esc(e.prev)}"><img alt="example" data-k="a"><figcaption>${esc(e.title)}</figcaption></figure>`).join("")}</div></div>`:""}
       ${acts?`<div class="adv-acts">${acts}</div>`:""}
       ${d.advNote?`<div class="adv-note">Head of Chamber: ${esc(d.advNote)}</div>`:""}
-      ${owner?`<div class="adv-own"><button class="link-btn" onclick="_advCorrect('${d.id}')">✎ Correct this advice</button>${d.status==="cured"&&(d.parts||[]).some(p=>p.cure)?` · <button class="link-btn" onclick="_advExampleSave('${d.id}')">⭐ Save this cure as an example</button>`:""} · <button class="link-btn" onclick="_advAgain('${d.id}')">Advise again</button></div>`:""}
+      ${owner?`<div class="adv-own"><button class="link-btn" onclick="_advMac('${d.id}')">Ask the Claude app again (free)</button> · <button class="link-btn" onclick="_advCorrect('${d.id}')">✎ Correct this advice</button>${d.status==="cured"&&(d.parts||[]).some(p=>p.cure)?` · <button class="link-btn" onclick="_advExampleSave('${d.id}')">⭐ Save this cure as an example</button>`:""} · <button class="link-btn" onclick="_advAgain('${d.id}')">Advise again</button></div>`:""}
     </div>`; };
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_advClose()" title="Close">✕</button><div class="pe-ttl"><b>Defect advice</b><span>${esc((rec.folder||"").split("/").pop())}${rec.diaryNo?` · Diary ${esc(rec.diaryNo)}/${esc(rec.diaryYear||"")}`:""}</span></div>
-      ${owner?`<button class="btn ghost sm" onclick="_advRulesAsk()">Standing rules</button>`:""}</div>
+      ${owner?`<button class="btn ghost sm" onclick="_aiSettingsAsk()">AI settings</button><button class="btn ghost sm" onclick="_advRulesAsk()">Standing rules</button>`:""}</div>
     <div class="rv-body">
       ${busy?`<div class="adv-busy">✨ Advice for ${st.n||""} new defect${st.n===1?"":"s"} is being prepared — it appears here by itself.</div>`:st.status==="error"?`<div class="adv-busy err">Advice could not be prepared: ${esc(st.err||"")} ${owner?`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`:""}</div>`:""}
       ${rounds.map((r,ri)=>{ const xs=all.filter(d=>(d.round||1)===r).sort((a,b)=>(a.adv?0:1)-(b.adv?0:1)||(+a.no)-(+b.no));
@@ -25170,11 +25275,8 @@ async function _advTypedPdf(heading,sub,pages){ const L=await _libPdfLib(), {PDF
 // save of a typed copy / translation: it is attached to the defect as pages ADDED after the original
 async function _peSaveAdv(){ const E=_pe; const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
   _progressModal("Saving…","Making the pages…");
-  try{ const {blob}=await _peBuild(null); const nm=`5.${_stageNext(5,_currentNames())} ${E.adv.tr?"Translation":"Typed copy"} ${_fnSafe(E.adv.label)}.pdf`;
-    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet(null,0.5+0.5*g/t));
-    const old=p.cure&&p.cure.file&&/^(typed|translated)$/.test(p.cure.how)?p.cure.file:"";
-    p.cure={file:name,pages:"all",how:E.adv.tr?"translated":"typed",mode:"add",src:E.adv.src,by:_aiWho(),at:new Date().toISOString()};
-    _defCheckDone(d); _filingTouch(rec); if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }
+  try{ const {blob}=await _peBuild(null);
+    await _cureSave(rec,d,p,blob,E.adv.tr?"Translation":"Typed copy",{pages:"all",how:E.adv.tr?"translated":"typed",mode:"add",src:E.adv.src},(g,t)=>_progressSet(null,0.5+0.5*g/t));
     closeModal(); _peClose(true); toast(`Saved and attached to defect ${d.no} — it goes after the original pages.`); _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
 /* the Head of Chamber's check (Opus) of a typed copy / translation against the original pages */
@@ -25210,9 +25312,11 @@ async function _advExampleSave(did){ const {d}=_defFind(did); if(!d||!d.adv) ret
     const m=(await FB.getMeta("advExamples"))||{}; const items=(m.items||[]).concat([{id:key,prev:key,cat:d.adv.cat,title,at:new Date().toISOString()}]).slice(-60);
     await FB.putChamberMeta("advExamples",{items}); window.__advEx=items; closeModal(); toast("Saved as an example — it will show on similar defects."); _advRender(); }
   catch(e){ closeModal(); toast(e.message,true); } }
-function _advAgain(did){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); if(!d) return; if(d.adv&&!confirm("Ask the AI again for this defect? (It costs a little.)")) return;
-  delete d.adv; d.still=false; _filingTouch(rec); _advAuto(_filingFolderRel(),[did]); _advRender(); }
+function _advAgain(did){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); if(!d) return; if(d.adv&&!confirm("Ask for new advice on this defect with AI credits? (It costs a little — the Claude app on the Mac is free.)")) return;
+  delete d.adv; d.still=false; _filingTouch(rec); _advAuto(_filingFolderRel(),[did],{api:true}); _advRender(); }
 function _advBarHTML(rec){ const st=rec.adv||{}; const n=(rec.defects||[]).filter(d=>d.adv).length;
+  if(st.via==="mac"&&(st.status==="queued"||st.status==="working")){ const age=Date.now()-new Date(st.at).getTime();
+    return `<div class="adv-bar busy">✨ ${st.status==="working"?"The Claude app on the Mac is writing advice":"Advice asked from the Claude app on the Mac"} for ${st.n||""} defect${st.n===1?"":"s"}… <span class="hint">no AI credits</span>${st.status==="queued"&&age>15*60000?` <button class="link-btn" onclick="_advAuto(_filingFolderRel(),(_flRec().adv||{}).ids||null,{api:true})">The Mac hasn't picked it up — use AI credits instead</button>`:""}</div>`; }
   if(st.status==="working") return `<div class="adv-bar busy">✨ Preparing advice for ${st.n||""} new defect${st.n===1?"":"s"}… <span class="hint">you can carry on</span></div>`;
   if(st.status==="off") return isStaffView()?"":`<div class="adv-bar">💡 AI advice on these defects will appear here once AI is switched on (gatekeeper update + API key). <button class="link-btn" onclick="_flRec().adv=null;_advAuto(_filingFolderRel())">Check again</button></div>`;
   if(st.status==="error") return `<div class="adv-bar err">Advice could not be prepared: ${esc(st.err||"")} ${isStaffView()?"":`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`}</div>`;
@@ -25449,7 +25553,7 @@ function _aiBlockHTML(d){
     return `<div class="ai-b ${st==="error"?"error":""}"><div class="ai-h">✨ AI clerk${st==="error"?" — could not do it last time":st==="rejected"?" — last attempt rejected":""}</div>
       ${st==="error"&&a.msg?`<div class="ai-s">${esc(a.msg)}</div>`:""}
       ${box("Your instructions (the AI follows these first)")}
-      <div class="dp-a">${btn(`_aiQueueInline('${d.id}')`,"✨ Cure with AI","seal")}${st==="error"?btn(`_aiCancel('${d.id}')`,"Clear"):""}<span class="ai-run-w">${_aiRunHTML()}</span></div>
+      <div class="dp-a">${btn(`_aiQueueInline('${d.id}')`,"✨ Cure with the Claude app","seal")}${st==="error"?btn(`_aiCancel('${d.id}')`,"Clear"):""}<span class="ai-run-w">${_aiRunHTML()}</span></div>
       <div class="ai-s" style="margin-top:6px">Claude corrects exact copies of the filed pages — only what is wrong — and sends them back here for approval.</div></div>`;
   }
   const head=`<div class="ai-h">✨ ${esc(_AI_LAB[st]||st)}${a.at?` <span class="hint">· ${esc(_aiWhen(a.at))}</span>`:""}</div>`;
@@ -25603,7 +25707,7 @@ function _aiApprove(did){
     let p=it.partId&&d.parts.find(x=>x.id===it.partId);
     if(!p){ p={id:uid(), key:"ai", label:it.label||"Corrected pages", pages:it.replaces||"", cure:null, whole:false}; d.parts.push(p); }
     else if(it.replaces&&it.mode!=="add"&&it.replaces!==p.pages){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=it.replaces; }      // only the corrected pages are refiled
-    p.cure={file:it.file, pages:"all", how:"ai", mode:it.mode==="add"?"add":"replace"};
+    _cureAdopt(rec,d,p,{file:it.file, pages:"all", how:"ai", mode:it.mode==="add"?"add":"replace"});
   });
   if(d.kind==="general") d.kind="pages";
   d.ai=Object.assign({},d.ai,{status:"approved", at:new Date().toISOString(), by:_aiWho()}, d.ai.mode==="check"?{verdict:"ai_used"}:{});
@@ -27310,7 +27414,8 @@ function _filingStage(r){
   const ds=all.filter(d=>d.status!=="na");
   const open=ds.filter(d=>d.status==="open").length, tot=all.length, done=tot-open;
   const blocking=ds.filter(d=>d.status==="open"&&/^(pages|doc|new)$/.test(d.kind)).length;
-  if((r.finals||[]).length) return {k:5,l:"Final copy compiled",open,tot};
+  if(r.closed) return {k:5,l:"Defects closed",open,tot};
+  if((r.finals||[]).length) return {k:5,l:"Final Filed Copy made",open,tot};
   const lr=(r.refilings||[]).slice(-1)[0];
   if(lr) return {k:4,l:(lr.ok?"Defect pages approved":lr.back?"Defect pages sent back":"Defect pages — awaiting Head of Chamber's approval")+(open?` · ${open} still open`:""),open,tot};
   if(!blocking) return {k:3,l:"Ready to collate"+(open?` · ${open} general open`:""),open,tot};
@@ -28929,7 +29034,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-1800";
+  window.APP_VERSION = "2026.10.24-2000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
