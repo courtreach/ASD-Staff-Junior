@@ -24074,7 +24074,7 @@ function _peFocusApply(f){ if(!_pe) return; if(f.number){ setTimeout(_peNumberAs
   const c=f.apply; if(c&&f.box){ const b=f.box, ids=[];
     _peChange(()=>{ if(c.what!=="add"){ const w={id:_peId(),p:P.e.id,t:"white",rect:{x:b.x-0.5,y:b.y-0.5,w:b.w+1,h:b.h+1}}; _pe.ops.push(w); ids.push(w.id); }
       if(c.to){ const size=Math.max(7,Math.min(16,+(b.h*0.86).toFixed(1))); const sp=c.what==="add"?_advAddSpot(b,c,_peDim(P).W,size):{x:b.x,y:b.y,b:false};
-        const tx={id:_peId(),p:P.e.id,t:"text",x:sp.x,y:sp.y+b.h*0.8,size,font:"T",b:!!sp.b,i:false,c:"#000000",al:"l",w:null,str:c.to}; tx.lines=_peLines(tx); _pe.ops.push(tx); ids.push(tx.id); } });
+        const tx={id:_peId(),p:P.e.id,t:"text",x:sp.x,y:sp.y+(sp.h||b.h)*0.8,size,font:"T",b:!!sp.b,i:false,c:"#000000",al:"l",w:null,str:c.to}; tx.lines=_peLines(tx); _pe.ops.push(tx); ids.push(tx.id); } });
     _peTool("select"); _pe.sel=new Set(ids); _peDrawOps(); _peOptsDraw(); toast("The change is in — check it, move it if needed, then Save."); }
   else if(f.box) _peTool(P.segs&&P.segs.length?"edit":"white"); }
 /* ---- pages on screen: drawn only when near the screen, dropped when far (iPad canvas memory) ---- */
@@ -25135,12 +25135,14 @@ async function _advAuto(rel,force,opt){ try{
 }catch(e){ console.warn("advice",e); } }
 /* 2 · before-and-after pictures for changes on a page: the place is found in the page's own text when it has text, otherwise
    the AI looks at the page (and a second quick look checks the cut-out before a box is shown). Pictures are drawn by the app. */
-function _advFindText(ctx,i,find){ const pg=ctx.pages[i]; if(!pg||!find) return null; const want=String(find).replace(/\s+/g," ").trim().toLowerCase(); if(want.length<1) return null;
+function _advFindText(ctx,i,find,nth){ const pg=ctx.pages[i]; if(!pg||!find) return null; const want=String(find).replace(/\s+/g," ").trim().toLowerCase(); if(want.length<1) return null;
   const chars=[]; (pg.rows||[]).forEach((row,ri)=>{ if(chars.length) chars.push({c:" ",row:ri,x:null}); let end=null;
     row.forEach(it=>{ const s=String(it.s); if(end!=null&&it.x-end>1.6) chars.push({c:" ",row:ri,x:null}); const cw=(it.w||s.length*5)/Math.max(1,s.length);
       for(let k=0;k<s.length;k++) chars.push({c:s[k],row:ri,x:it.x+k*cw,x2:it.x+(k+1)*cw,y:it.y,h:Math.max(7,cw*1.9)}); end=it.x+(it.w||s.length*5); }); });
   let str="", map=[]; chars.forEach((ch,ix)=>{ const c=/\s/.test(ch.c)?" ":ch.c.toLowerCase(); if(c===" "&&str.endsWith(" ")) return; str+=c; map.push(ix); });
-  let at=str.indexOf(want); if(at<0) at=str.replace(/[^a-z0-9 ]/g,"?").indexOf(want.replace(/[^a-z0-9 ]/g,"?")); if(at<0) return null;
+  // the nth time the words are on the page (the same "N.A." twice: the second change goes to the second one)
+  const findAt=(hay,ndl)=>{ let a=-1; for(let k=0;k<=(nth||0);k++){ const b=hay.indexOf(ndl,a+1); if(b<0) return k?a:-1; a=b; } return a; };
+  let at=findAt(str,want); if(at<0) at=findAt(str.replace(/[^a-z0-9 ]/g,"?"),want.replace(/[^a-z0-9 ]/g,"?")); if(at<0) return null;
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; for(let k=at;k<at+want.length;k++){ const ch=chars[map[k]]; if(!ch||ch.x==null) continue; x0=Math.min(x0,ch.x); x1=Math.max(x1,ch.x2); y0=Math.min(y0,ch.y-ch.h*0.78); y1=Math.max(y1,ch.y+ch.h*0.22); }
   return x1>x0?{x:x0,y:y0,w:x1-x0,h:y1-y0,how:"text"}:null; }
 async function _advLocate(ctx,i,c){ const im=await _advPageImg(ctx,i,1000,true);
@@ -25159,13 +25161,14 @@ async function _advLocate(ctx,i,c){ const im=await _advPageImg(ctx,i,1000,true);
 function _advAddSpot(box,c,pw,size){ const wh=String(c.where||""), b=/\bbold\b/i.test(wh), mid=/cent(er|re)|middle/i.test(wh), tw=_peMeasure(c.to||"",size,b,"T");
   let pos=!c.find?"in":/below|under|beneath|new line|next line/i.test(wh)?"below":/above/i.test(wh)?"above":"after";
   if(pos==="after"&&(mid||box.x+box.w+4+tw>pw)) pos="below";
-  const y=pos==="below"?box.y+box.h+2:pos==="above"?Math.max(0,box.y-box.h-2):box.y;
-  const x=mid?Math.max(0,(pw-tw)/2):pos==="after"?box.x+box.w+4:box.x;
-  return {x,y,w:tw,h:box.h,b}; }
+  const lh=pos==="in"?Math.min(box.h,16):box.h, tw2=lh!==box.h?_peMeasure(c.to||"",lh*0.82,b,"T"):tw;   // an empty spot can be tall: normal-size words
+  const y=pos==="below"?box.y+box.h+2:pos==="above"?Math.max(0,box.y-box.h-2):pos==="in"?box.y+(box.h-lh)/2:box.y;
+  const x=mid?Math.max(0,(pw-tw2)/2):pos==="after"?box.x+box.w+4:box.x;
+  return {x,y,w:tw2,h:lh,b}; }
 function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the page: before (red box) and after (made with white-out + text)
   const pw=full.width/sc, ph=full.height/sc;
   // "add" next to found text: the new words go after it (or below / above, as "where" says) — never on top of it (24 Oct, Anupriya test)
-  let tb=box; if(c.what==="add"&&c.to){ const sp=_advAddSpot(box,c,pw,box.h*0.82); if(sp.x!==box.x||sp.y!==box.y||sp.b) tb=sp; }
+  let tb=box; if(c.what==="add"&&c.to){ const sp=_advAddSpot(box,c,pw,box.h*0.82); if(sp.x!==box.x||sp.y!==box.y||sp.b||sp.h!==box.h) tb=sp; }
   const ub={x:Math.min(box.x,tb.x),y:Math.min(box.y,tb.y)}; ub.w=Math.max(box.x+box.w,tb.x+tb.w)-ub.x; ub.h=Math.max(box.y+box.h,tb.y+tb.h)-ub.y;
   // a close-up around the place: wide enough to see where it is, tight enough to read it
   const cw=Math.min(pw,Math.max(150,ub.w*3,box.w*5,(c.to?_peMeasure(c.to,box.h,false,"T"):0)*2.2)), chh=Math.min(ph,Math.max(56,ub.h*2.6,box.h*4.2));
@@ -25183,9 +25186,11 @@ function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the pa
   return {b:out(false),a:out(true)}; }
 async function _advPictures(rel,ids){ try{
   const ctx=await _flLoadCtx(); const R=()=>_filingRec(rel); let rec=R(); if(!rec) return; const sd=rec.chamber==="SD", fid=_advFid(rec);
+  const seen={};   // page + words -> how many changes already used them
   for(const id of ids){ const d=(R().defects||[]).find(x=>x.id===id); if(!d||!d.adv) continue;
-    for(let n=0;n<(d.adv.changes||[]).length;n++){ const c=d.adv.changes[n]; if(c.img||c.i<0||c.i==null) continue;
-      try{ let box=c.find?_advFindText(ctx,c.i,c.find):null; if(!box) box=await _advLocate(ctx,c.i,c);
+    for(let n=0;n<(d.adv.changes||[]).length;n++){ const c=d.adv.changes[n]; const sk=c.find?c.i+"|"+String(c.find).toLowerCase():"", nth=sk?(seen[sk]||0):0; if(sk) seen[sk]=nth+1;
+      if(c.img||c.i<0||c.i==null) continue;
+      try{ let box=c.find?_advFindText(ctx,c.i,c.find,nth):null; if(!box) box=await _advLocate(ctx,c.i,c);
         if(!box){ c.box={how:"none"}; continue; }
         c.box=box; if(box.how==="page") continue;
         const im=await _advPageImg(ctx,c.i,1300,false); const pair=_advDrawPair(im.canvas,im.sc,box,c); im.canvas.width=0;
@@ -29057,7 +29062,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2320";
+  window.APP_VERSION = "2026.10.24-2330";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
