@@ -2121,6 +2121,26 @@
   .pe-gt.lift{z-index:5;opacity:.85;transition:none} .pe-gt.dropA .pe-gim{box-shadow:-4px 0 0 var(--seal)} .pe-gt.dropB .pe-gim{box-shadow:4px 0 0 var(--seal)}
   .pe-org .pe-tools,.pe-org .pe-opts,.pe-org .pe-thumbs{display:none}
   .pe-sigc{display:block;border:1px solid var(--line);border-radius:8px;background:#fff;background-image:linear-gradient(transparent calc(100% - 34px),#d8d2c4 calc(100% - 34px),#d8d2c4 calc(100% - 33px),transparent calc(100% - 33px));touch-action:none;max-width:100%}
+  #advOverlay{position:fixed;inset:0;z-index:2000;background:#f4f2ee;display:none;flex-direction:column} #advOverlay.show{display:flex} #advOverlay .pe-top{gap:8px}
+  .adv-round{max-width:880px;margin:0 auto 18px} .adv-rh{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:6px 2px 10px;cursor:default} details.adv-round>summary{cursor:pointer;list-style:none}
+  .adv-c{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px 18px;margin-bottom:14px;border:2px solid transparent} .adv-c.focus{border-color:var(--seal)}
+  .adv-h{display:flex;gap:10px;align-items:flex-start} .adv-no{flex:none;min-width:30px;height:30px;border-radius:15px;background:var(--seal);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .adv-rem{font-size:18px;font-weight:800;line-height:1.35;color:#1f1b18}
+  .adv-tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px 40px} .adv-tags i{font-style:normal;font-size:11.5px;padding:2px 8px;border-radius:10px;background:var(--line2);color:var(--ink)} .adv-tags i.warn{background:#fbe0e0;color:#a11}
+  .adv-sec{margin:12px 0 0 40px} .adv-l{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .adv-p{font-size:15px;line-height:1.5} .adv-steps{margin:0;padding-left:20px;font-size:15px;line-height:1.55} .adv-steps li{margin-bottom:4px}
+  .adv-person{text-transform:none;letter-spacing:0;font-weight:600;color:#9a5b00;background:#fff4d6;border-radius:8px;padding:1px 7px;margin-left:6px}
+  .adv-ch{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:#fcfbf8} .adv-cht{font-size:14px;margin-bottom:8px}
+  .adv-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px} .adv-pair figure,.adv-ex figure{margin:0} .adv-pair img,.adv-ex img{width:100%;display:block;border:1px solid #ccc;border-radius:4px;background:#fafafa;min-height:40px}
+  .adv-pair figcaption,.adv-ex figcaption{font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:3px} .adv-pair figure:last-child figcaption{color:#1e7d32} .adv-pair figure:first-child figcaption{color:#b23a3a}
+  .adv-ex{display:flex;gap:10px;flex-wrap:wrap} .adv-ex figure{width:200px} .adv-ex figcaption{margin:3px 0 0}
+  .adv-chb,.adv-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px} .adv-acts{margin:14px 0 0 40px}
+  .adv-note{margin:12px 0 0 40px;font-size:13.5px;background:#eef4ff;border-radius:8px;padding:8px 10px} .adv-own{margin:12px 0 0 40px;font-size:12.5px;color:var(--muted)}
+  .adv-none{margin:8px 0 0 40px;font-size:13.5px;color:var(--muted)} .adv-busy{max-width:880px;margin:0 auto 14px;background:#fff4d6;border-radius:10px;padding:10px 14px;font-size:14px} .adv-busy.err{background:#fbe0e0}
+  .adv-foot{max-width:880px;margin:10px auto 0;font-size:12px;color:var(--muted);text-align:center}
+  .adv-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff8e1;border:1px solid #f1dfa5;border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:13.5px} .adv-bar.busy{background:#f3f0ff;border-color:#d9d0f7} .adv-bar.err{background:#fbe0e0;border-color:#efc2c2}
+  .dd-adv{margin:8px 0;padding:8px 10px;background:#fff8e1;border-radius:8px;font-size:13.5px;line-height:1.45} .dd-adv-l{font-weight:700}
+  @media (max-width:760px){ .adv-sec,.adv-tags,.adv-acts,.adv-note,.adv-own,.adv-none{margin-left:0} .adv-rem{font-size:16px} .adv-pair{grid-template-columns:1fr} .adv-c{padding:12px} }
   .dp-two{align-items:center} .dd-more{display:inline-block} .dd-more>summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none;padding:4px 8px;border-radius:8px} .dd-more>summary::-webkit-details-marker{display:none} .dd-more[open]{display:block;width:100%}
   @media (max-width:760px){ .pe-thumbs{display:none} .pe-main{padding:6px 6px 120px} .pe-hint{display:none} .pe-nav .pe-pgn{display:none} .pe-hide-s{display:none} .pe-ttl span{display:none} .pe-top{gap:2px;padding:0 4px} .pe-zm .pe-ib{display:none} .pe-top .pe-ib{min-width:30px;padding:0 3px} .pe-pgin{width:38px} .pe-save{margin-left:2px;padding-left:10px;padding-right:10px}
     .pe-tools{position:fixed;left:0;right:0;bottom:0;z-index:3;border-top:1px solid var(--line);border-bottom:0;padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
@@ -2544,6 +2564,12 @@ html[data-theme=dark] .fsb-done{background:#201c18;color:#ded8d4}
 html[data-theme=dark] #peOverlay{background:#2f2b25}
 html[data-theme=dark] .pe-top{background:#201c18}
 html[data-theme=dark] .pe-tools{background:#201c18}
+html[data-theme=dark] #advOverlay{background:#2f2b25}
+html[data-theme=dark] .adv-c{background:#201c18}
+html[data-theme=dark] .adv-rem{color:#ece6da}
+html[data-theme=dark] :is(.adv-ch){background:#2b261c}
+html[data-theme=dark] :is(.adv-bar,.dd-adv,.adv-busy){background:#3a3220;border-color:#5a4a26}
+html[data-theme=dark] .adv-note{background:#22303f}
 html[data-theme=dark] :is(.pe-opts,.pe-gbar){background:#2b261c}
 html[data-theme=dark] .pe-find{background:#3a3220}
 html[data-theme=dark] :is(.pe-menu,.pe-pgin,.pe-zv,.pe-fg,.pe-fb,.pe-seg2,.pe-sel,.pe-wd,.pe-find input){background:#201c18;color:#e6e6e6}
@@ -20780,7 +20806,7 @@ function _defectsHTML(rec){
       const r=res(p);
       const where=d.kind==="new"?"":`<div class="dp-w">${p.pages?`Paper-book pages <b>${esc(p.pages)}</b>${p.pagesOrig?` <span class="hint">(of ${esc(p.pagesOrig)})</span>`:""}`:"<b>Pages not found</b>"}${r&&r.idx.length?` · PDF ${esc(_rangeText(r.idx))}`:""} <button class="link-btn" onclick="_defPagesAsk('${d.id}','${p.id}')">edit</button>${r&&r.idx.length?` <button class="link-btn" onclick="_defPreview('${d.id}','${p.id}')">preview</button>`:""}</div>`;
       let acts;
-      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="edit"?` <button class="link-btn" onclick="_peOpenAsk('${d.id}','${p.id}')">edit again</button>`:""}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
+      if(p.cure) acts=`<div class="dp-ok">✓ ${esc(p.cure.file)}${p.cure.how==="typed"||p.cure.how==="translated"?` <span class="hint">(${p.cure.how==="typed"?"typed copy":"translation"}, added after the original)</span>${isStaffView()?"":` <button class="link-btn" onclick="_advCheck('${d.id}','${p.id}')">check with Opus</button>`}`:""}${p.cure.how==="edit"?` <button class="link-btn" onclick="_peOpenAsk('${d.id}','${p.id}')">edit again</button>`:""}${p.cure.how==="ai"&&!isStaffView()?` <span class="ai-t approved">AI</span>`:""}${p.cure.pages&&p.cure.pages!=="all"?` · pages ${esc(p.cure.pages)}`:""} <button class="link-btn" onclick="_defUncureAsk('${d.id}','${p.id}')">remove</button></div>${d.kind!=="new"&&!p.whole?_cureModeHTML(d,p):""}`;
       else if(d.kind==="new") acts=`<div class="dp-a dp-two"><button class="btn seal sm" onclick="_decChkAsk('${p.key==="chk"?"chk":"decl"}')">Make ${esc(p.label.toLowerCase())}</button><button class="btn seal sm" onclick="_defAttachAsk('${d.id}','${p.id}')">📎 Add cured document</button></div>`;
       else{
         const tc=(p.key==="impugned"||(d.flags&&d.flags.truecopy))&&!p.whole;
@@ -20797,7 +20823,8 @@ function _defectsHTML(rec){
       <summary><span class="dd-no">${d.no}</span><span class="dd-m"><span class="dd-t" title="${esc(d.text)}">${esc(_flSentence(d.text))}</span>${subs||tags.length?`<span class="dd-s">${subs}${subs&&tags.length?" · ":""}${tags.map(t=>`<i>${t}</i>`).join(" ")}</span>`:""}</span>
         <span class="dd-r"><span class="dd-st s-${s}">${_DS_LAB[s]}</span>${_ddQuick(d)}</span></summary>
       <div class="dd-b">
-        <div class="dd-reg"><div class="dd-reg-h">Registry's remark</div><div>${esc(_flSentence(d.text))}</div>${d.rule?`<div class="dd-rule">Rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}</div>
+        <div class="dd-reg"><div class="dd-reg-h">Registry's remark</div><div>${esc(_flSentence(d.text))}</div>${d.rule?`<div class="dd-rule">Rule: ${esc(_flSentence(d.rule))}</div>`:""}${d.note?`<div class="dd-rule">Note: ${esc(d.note)}</div>`:""}${d.still?`<div class="dd-rule" style="color:#b23a3a">Still pending after refiling — the Registry was not satisfied with the cure.</div>`:""}</div>
+        ${d.adv?`<div class="dd-adv"><span class="dd-adv-l">💡 Advice</span> ${esc(d.adv.means||"")} <button class="link-btn" onclick="_advOpen('${d.id}')">How to cure it →</button></div>`:""}
         ${_aiBlockHTML(d)}${parts}${!d.parts.length&&d.kind!=="note"&&d.status!=="na"?`<div class="dp"><div class="dp-l">Cure</div><div class="dp-a dp-two"><button class="btn seal sm" onclick="_defGenPart('${d.id}','edit')">✏️ Edit pages</button><button class="btn seal sm" onclick="_defGenPart('${d.id}','add')">📎 Add cured document</button></div></div>`:""}
         <div class="dd-f">${stBtns}<button class="link-btn" onclick="_defEditAsk('${d.id}')">edit remark / note</button></div></div></details>`;
   };
@@ -20812,7 +20839,7 @@ function _defectsHTML(rec){
   const toCheck=isStaffView()?0:cur.filter(d=>_aiCanCheck(d)&&(d.ai||{}).status!=="checked").length;
   return `${toCheck?`<div class="dg-check">✨ ${toCheck} staff cure${toCheck===1?"":"s"} not yet checked <button class="btn ghost sm" onclick="_aiQueueCheckAll()">Check ${toCheck===1?"it":"all"} with AI</button></div>`:""}<div class="dl-h"><span>${maxR>1?`Defect list ${maxR} · `:""}${cur.length} defect${cur.length===1?"":"s"}${_drListDate(rec)?` · ${esc(_drListDate(rec))}`:""}</span>
       <span><button class="link-btn" onclick="_defAddAsk()">+ add by hand</button> · <button class="link-btn" onclick="_defReadAsk()">read another list</button></span></div>
-    <div class="dg-chips">${chips}</div>${mapNote}${body}
+    ${_advBarHTML(rec)}<div class="dg-chips">${chips}</div>${mapNote}${body}
     ${old.length?`<details class="dr-wait" style="margin-top:12px"><summary>Earlier defect lists · ${old.length} defect${old.length===1?"":"s"}</summary><div class="dl">${old.sort((a,b)=>(a.round||1)-(b.round||1)||a.no-b.no).map(row).join("")}</div></details>`:""}`;
 }
 /* ---------- link the filing copy that is already in the case folder ---------- */
@@ -20896,7 +20923,7 @@ async function _dlStartGo(){
     _progressSet("Saving the defect list…",0.2);
     const name=await _uploadPaper(rel+"/"+`4.1 Defect List ${_fnDate()}.pdf`,blob,(g,t)=>_progressSet(null,0.2+0.2*g/t));
     await _defIngest(rec, blob, name);
-    closeModal(); _fv.live=true; _filesLoad();
+    closeModal(); _fv.live=true; _filesLoad(); _advAuto(rel);
   }catch(e){ closeModal(); toast(e.message,true); _fv.live=true; _filesLoad(); }
 }
 // Read a defect list PDF into the filing record (shared by "Read defect list" and the start flow).
@@ -20932,13 +20959,28 @@ async function _defIngest(rec, blob, name){
   if(_flFC()){ try{ _progressSet("Reading the filing copy's index…",0.7); const ctx=await _flLoadCtx(); index=_parseIndex(ctx); rec.index=index; rec.filingCopy=ctx.name; }catch(e){} }
   const round=(rec.defects||[]).length?Math.max(...rec.defects.map(d=>d.round||1))+1:1;
   const norm=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();
-  const fresh=rows.map(r=>{ const f=Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name});
-    const o=(rec.defects||[]).find(d=>!d.manual&&+d.no===+f.no&&norm(d.text)===norm(f.text));
-    if(o){ ["id","parts","status","ai","note","kind","flags"].forEach(k=>{ if(o[k]!=null) f[k]=o[k]; }); f.firstRound=o.firstRound||o.round||1; }   // still listed: keep its cure
-    return f; });
+  // the same defect again — even re-worded a little or renumbered — but never two different annexures / pages
+  const nums=s=>(norm(s).match(/\b[A-Z]{0,2} ?\d+\b/g)||[]).map(x=>x.replace(/ /g,"")).sort().join(",");
+  const words=s=>new Set(norm(s).split(" ").filter(w=>w.length>2&&!/^\d+$/.test(w)));
+  const sim=(a,b)=>{ const A=words(a),B=words(b); if(!A.size||!B.size) return 0; let n=0; A.forEach(w=>{ if(B.has(w)) n++; }); return n/Math.max(A.size,B.size); };
+  const used=new Set();
+  const same=(d,f)=>!d.manual&&!used.has(d.id)&&(norm(d.text)===norm(f.text)||(nums(d.text)===nums(f.text)&&sim(d.text,f.text)>=0.75));
+  // "defect no. 2 and 4 still remaining": a remark about earlier defects, not a new one
+  const noteRx=/\b(?:defects?|defaults?|objections?)\b[^.]{0,30}?\b(?:nos?\.?|numbers?|at s\.? ?no\.?)?\s*((?:\d{1,3}\s*(?:,|&|and|\/)?\s*)+)[^.]{0,40}?\b(?:still|remain|pending|not\s+(?:yet\s+)?(?:been\s+)?(?:cured|removed|complied|rectified)|persist)/i;
+  const stillNos=new Set(), notes=[];
+  const fresh=[]; rows.forEach(r=>{ const tx=String(r.text||""); const nm=noteRx.exec(tx);
+    if(nm&&tx.length<160){ (nm[1].match(/\d{1,3}/g)||[]).forEach(x=>stillNos.add(+x)); notes.push(tx); return; }
+    const f=Object.assign(_defFromText(r.no,r.text,r.rule,r.date,index),{round,source:name});
+    const o=(rec.defects||[]).find(d=>same(d,f));
+    if(o){ used.add(o.id); ["id","parts","status","ai","note","kind","flags","adv","advNote"].forEach(k=>{ if(o[k]!=null) f[k]=o[k]; }); f.firstRound=o.firstRound||o.round||1; f.relisted=true; }   // still listed: keep its cure and its advice
+    fresh.push(f); });
+  // the defects the Registry says are still not cured come forward into this round, open again
+  const prevR=round-1;
+  (rec.defects||[]).forEach(d=>{ if(stillNos.has(+d.no)&&(d.round||1)===prevR&&!fresh.some(f=>f.id===d.id)){ const c=Object.assign({},d,{round,still:true,relisted:true,firstRound:d.firstRound||d.round||1,stillNote:notes.join(" ")}); if(c.status!=="na") c.status="open"; fresh.push(c); used.add(d.id); } });
   const keep=(rec.defects||[]).filter(d=>!fresh.some(f=>f.id===d.id||(f.no===d.no&&f.text===d.text)));
   rec.defects=keep.concat(fresh); _filingTouch(rec);
-  toast(`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
+  const nNew=fresh.filter(f=>!f.relisted).length, nOld=fresh.length-nNew;
+  toast(round>1?`${nNew} new defect${nNew===1?"":"s"}${nOld?` · ${nOld} from earlier lists (no new advice needed)`:""}.`:`${fresh.length} defect${fresh.length===1?"":"s"} read.`);
   return fresh.length;
 }
 
@@ -21666,7 +21708,7 @@ async function _defReadGo(existing){
       blob=await _paperBlob({path:_filingFolderRel()+"/"+existing,name:existing,size:x?x.size:0});
     }
     await _defIngest(rec, blob, name);
-    closeModal(); _fv.live=true; _flState().view="defects"; _filesLoad();
+    closeModal(); _fv.live=true; _flState().view="defects"; _filesLoad(); _advAuto(_filingFolderRel());
   }catch(e){ closeModal(); toast(e.message,true); }
 }
 /* Adding defects by hand (Oct 2026): one or several at once (one per line, as numbered in the registry's list);
@@ -21688,10 +21730,10 @@ function _defAddGo(){
     const norm=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim();
     if(rec.defects.some(d=>norm(d.text)===norm(t))) return;                                                     // the same remark is already there
     if(rec.defects.some(d=>+d.no===no)) no=Math.max(next,Math.max(0,...rec.defects.map(d=>+d.no||0))+1);       // number taken → the next free one
-    const d=Object.assign(_defFromText(no,t,"",today,rec.index||[]),{manual:true,by:_aiWho()}); rec.defects.push(d); added.push(d); next=Math.max(next,no+1); });
+    const d=Object.assign(_defFromText(no,t,"",today,rec.index||[]),{manual:true,by:_aiWho(),round:rec.defects.length?Math.max(...rec.defects.map(x=>x.round||1)):1}); rec.defects.push(d); added.push(d); next=Math.max(next,no+1); });
   if(!added.length){ toast("Those defects are already there.",true); return; }
   _filingTouch(rec); closeModal();
-  const st=_flState(); st.rstep="cure"; st.flash=added.map(d=>d.id); renderFilesPage();
+  const st=_flState(); st.rstep="cure"; st.flash=added.map(d=>d.id); renderFilesPage(); _advAuto(_filingFolderRel());
   toast(added.length===1?`Defect ${added[0].no} added.`:`${added.length} defects added (${added.map(d=>d.no).join(", ")}).`);
   setTimeout(()=>{ try{ const el=document.querySelector(`[data-did="${added[0].id}"]`)||document.querySelector(".wz"); el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} st.flash=[]; },150);
 }
@@ -23967,7 +24009,7 @@ function _peNorm(op){ op=Object.assign({},op); if(!op.id) op.id=_peId();
 function _peStart(o){
   if(_pe) _peClose(true);
   let n=0; const pl=o.idx.map(i=>({id:"p"+(++n),d:0,i,rot:0}));
-  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",label:o.label,ctx:o.ctx,
+  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",label:o.label,ctx:o.ctx,adv:o.adv||null,
     docs:[{blob:o.ctx.blob,doc:o.ctx.doc,labelOf:(o.ctx.labelOf||[]).slice(),sz:{},segs:{},lab:{}}],pl,base0:o.idx.slice(),_n:n,
     ops:[],imgs:{},undo:[],redo:[],tool:"select",sel:new Set(),zoom:1,dirty:false,pages:[],finger:false,cur:0,
     sty:{c:"#111111",w:2,f:"",o:1,hlc:"#ffe14d",mk:"hl",shape:"rect",stamp:"truecopy",font:"T",size:12,b:false,i:false,al:"l",tc:"#111111",stc:"#1d3f9a",stampTxt:""}};
@@ -23996,8 +24038,18 @@ function _peStart(o){
   ov.classList.add("show"); document.body.style.overflow="hidden";
   document.addEventListener("keydown",_peKey);
   _peUnzoomPage(); _peGestures();
-  _peTool(o.kind==="case"?"pen":(o.did?"edit":"select")); _peRender(); _peBtns();
+  _peTool(o.kind==="case"?"pen":(o.did?"edit":"select")); const E=_pe; _peRender().then(()=>{ if(_pe===E&&o.focus) _peFocusApply(o.focus); }); _peBtns();
 }
+// from the Advice page: go to the page, mark the place, and (Head of Chamber's "make this change") put the change in
+function _peFocusApply(f){ if(!_pe) return; if(f.number){ setTimeout(_peNumberAsk,200); return; }
+  const k=_pe.pl.findIndex(e=>e.d===0&&e.i===f.i); if(k<0) return; _peGoto(k); const P=_pe.pages[k]; if(!P) return;
+  if(f.box){ P._flash={x:f.box.x,y:f.box.y,w:f.box.w,h:f.box.h}; _peDrawUI(P); setTimeout(()=>{ if(P._flash){ P._flash=null; _peDrawUI(P); } },6000);
+    const main=document.getElementById("peMain"), r=P.wrap.getBoundingClientRect(), mr=main.getBoundingClientRect(); if(!P.rot) main.scrollTop+=r.top-mr.top+f.box.y*P.s-mr.height*0.35; }
+  const c=f.apply; if(c&&f.box){ const b=f.box, ids=[];
+    _peChange(()=>{ if(c.what!=="add"){ const w={id:_peId(),p:P.e.id,t:"white",rect:{x:b.x-0.5,y:b.y-0.5,w:b.w+1,h:b.h+1}}; _pe.ops.push(w); ids.push(w.id); }
+      if(c.to){ const size=Math.max(7,Math.min(16,+(b.h*0.86).toFixed(1))); const tx={id:_peId(),p:P.e.id,t:"text",x:b.x,y:b.y+b.h*0.8,size,font:"T",b:false,i:false,c:"#000000",al:"l",w:null,str:c.to}; tx.lines=_peLines(tx); _pe.ops.push(tx); ids.push(tx.id); } });
+    _peTool("select"); _pe.sel=new Set(ids); _peDrawOps(); _peOptsDraw(); toast("The change is in — check it, move it if needed, then Save."); }
+  else if(f.box) _peTool(P.segs&&P.segs.length?"edit":"white"); }
 /* ---- pages on screen: drawn only when near the screen, dropped when far (iPad canvas memory) ---- */
 const _PE_MAXPX=6e6, _PE_PT=96/72;
 function _peAvailW(main){ return Math.min(900,((main&&main.clientWidth)||window.innerWidth)-32); }
@@ -24786,7 +24838,7 @@ async function _peBuild(ks,onStep){ const E=_pe, L=await _libPdfLib(), {PDFDocum
   return {blob:new Blob([bytes],{type:"application/pdf"}),n:out.getPageCount()}; }
 /* ---- save: where depends on how the editor was opened ---- */
 async function _peSave(){ if(!_pe) return; _peTextDone(); _peCommitInput(); const E=_pe;
-  if(E.kind==="case") return _peSaveCase(); if(E.kind==="cure") return _peSaveCure(); if(E.file) return _peSaveFile(); return _peSaveDefect(); }
+  if(E.kind==="case") return _peSaveCase(); if(E.kind==="cure") return _peSaveCure(); if(E.kind==="advdraft") return _peSaveAdv(); if(E.file) return _peSaveFile(); return _peSaveDefect(); }
 async function _peSaveCase(){ const E=_pe; const base=E.path.split("/").slice(0,-1).join("/");
   if(!E.dirty){ _peClose(true); return; }
   _progressModal("Saving…","Making the new version…");
@@ -24888,7 +24940,284 @@ function _peClose(force){ if(!_pe) return; _peTextDone(); _peCommitInput();
 function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
   then==="edit"?_peOpenAsk(did,p.id):_defAttachAsk(did,p.id); }
-try{ Object.assign(window,{_defGenPart,_peArrowHead,_peAspect,_peAvail,_peAvailW,_peBB,_peBegin,_peBtns,_peBuild,_peCancelInput,_peCapText,_peChange,_peClose,_peCommitInput,_peCopyCanvas,_peDelSel,_peDim,_peDownload,_peDrawOps,_peDrawPage,_peDrawPdf,_peDrawUI,_peDrop,_peDup,_peEditSeg,_peEditSelText,_peEnd,_peEraseAt,_peFindAll,_peFindClose,_peFindGo,_peFindMarkAll,_peFindOpen,_peFindReset,_peFocus,_peGAll,_peGDel,_peGDup,_peGExtract,_peGKs,_peGRot,_peGestures,_peGoto,_peGridDrag,_peGridDraw,_peHitAt,_peHitOp,_peIcon,_peId,_peImgBytes,_peImgToPdf,_peInk,_peInkClear,_peInkPath,_peInkSvg,_peInnerTf,_peInput,_peInv,_peKey,_peLabel,_peLayout,_peLines,_peLive,_peLoadDoc,_peMarkRects,_peMeasure,_peMenu,_peMenuAway,_peMenuClose,_peMoreMenu,_peMove,_peMoveTo,_peMul,_peNative,_peNavShow,_peNewPid,_peNorm,_peNumAt,_peNumberAsk,_peNumberGo,_peOpById,_peOpenAsk,_peOpenCure,_peOpenFile,_peOpenGo,_peOpenPaper,_peOpsOf,_peOptsDraw,_peOrder,_peOrgDone,_peOrganize,_pePR,_pePW,_pePageBlank,_pePageDel,_pePageDup,_pePageInsertAsk,_pePageInsertGo,_pePageList,_pePageMenu,_pePageRot,_pePaste,_pePickImage,_pePlaceStamp,_pePt,_pePump,_pePushOp,_peRedo,_peRefocus,_peRefocusTa,_peRefresh,_peRender,_peReorderIds,_peReplayable,_peRestore,_peRotAll,_peSave,_peSaveAsNew,_peSaveCase,_peSaveCure,_peSaveDefect,_peSaveFile,_peSegAt,_peSegs,_peSegsOf,_peSelOps,_peSet,_peSetAl,_peSetBI,_peSetC,_peSetF,_peSetHl,_peSetMk,_peSetO,_peSetShape,_peSetStamp,_peSetStc,_peSetTc,_peSetW,_peSigClear,_peSigInk,_peSigPts,_peSigUse,_peSignPad,_peSizeP,_peSm,_peSnap,_peStart,_peStrokePath,_peSvg,_peSync,_peSyncNow,_peSyncSoon,_peTextDone,_peTextEdit,_peTextW,_peThKey,_peThumb,_peThumbCanvas,_peThumbsLazy,_peToday,_peTool,_peTxtSafe,_peTxtSvg,_peUndo,_peUnzoomPage,_peViewCenter,_peWire,_peXf,_peZoom,_peZoomLabel,_peZoomMenu,_peZoomTo}); }catch(e){}
+try{ Object.assign(window,{_defGenPart,_peArrowHead,_peAspect,_peAvail,_peAvailW,_peBB,_peBegin,_peBtns,_peBuild,_peCancelInput,_peCapText,_peChange,_peClose,_peCommitInput,_peCopyCanvas,_peDelSel,_peDim,_peDownload,_peDrawOps,_peDrawPage,_peDrawPdf,_peDrawUI,_peDrop,_peDup,_peEditSeg,_peEditSelText,_peEnd,_peEraseAt,_peFindAll,_peFindClose,_peFindGo,_peFindMarkAll,_peFindOpen,_peFindReset,_peFocus,_peFocusApply,_peGAll,_peGDel,_peGDup,_peGExtract,_peGKs,_peGRot,_peGestures,_peGoto,_peGridDrag,_peGridDraw,_peHitAt,_peHitOp,_peIcon,_peId,_peImgBytes,_peImgToPdf,_peInk,_peInkClear,_peInkPath,_peInkSvg,_peInnerTf,_peInput,_peInv,_peKey,_peLabel,_peLayout,_peLines,_peLive,_peLoadDoc,_peMarkRects,_peMeasure,_peMenu,_peMenuAway,_peMenuClose,_peMoreMenu,_peMove,_peMoveTo,_peMul,_peNative,_peNavShow,_peNewPid,_peNorm,_peNumAt,_peNumberAsk,_peNumberGo,_peOpById,_peOpenAsk,_peOpenCure,_peOpenFile,_peOpenGo,_peOpenPaper,_peOpsOf,_peOptsDraw,_peOrder,_peOrgDone,_peOrganize,_pePR,_pePW,_pePageBlank,_pePageDel,_pePageDup,_pePageInsertAsk,_pePageInsertGo,_pePageList,_pePageMenu,_pePageRot,_pePaste,_pePickImage,_pePlaceStamp,_pePt,_pePump,_pePushOp,_peRedo,_peRefocus,_peRefocusTa,_peRefresh,_peRender,_peReorderIds,_peReplayable,_peRestore,_peRotAll,_peSave,_peSaveAsNew,_peSaveCase,_peSaveCure,_peSaveDefect,_peSaveFile,_peSegAt,_peSegs,_peSegsOf,_peSelOps,_peSet,_peSetAl,_peSetBI,_peSetC,_peSetF,_peSetHl,_peSetMk,_peSetO,_peSetShape,_peSetStamp,_peSetStc,_peSetTc,_peSetW,_peSigClear,_peSigInk,_peSigPts,_peSigUse,_peSignPad,_peSizeP,_peSm,_peSnap,_peStart,_peStrokePath,_peSvg,_peSync,_peSyncNow,_peSyncSoon,_peTextDone,_peTextEdit,_peTextW,_peThKey,_peThumb,_peThumbCanvas,_peThumbsLazy,_peToday,_peTool,_peTxtSafe,_peTxtSvg,_peUndo,_peUnzoomPage,_peViewCenter,_peWire,_peXf,_peZoom,_peZoomLabel,_peZoomMenu,_peZoomTo}); }catch(e){}
+/* ===================== DEFECT ADVICE (owner's plan, 24 Oct 2026) =====================
+   When a defect list is read, the NEW defects (never ones already advised, nor "defect 2 still remaining" notes) get advice
+   from the AI in the background: what it means, why, how to cure it step by step, one-tap helpers (type out / translate /
+   rescan / open the page), and for changes on a page a before-and-after picture made by the app with the editor's own tools.
+   Staff read it on the Advice page and learn; the Head of Chamber can correct any advice (it becomes a standing rule) and
+   keep good cures as examples. All AI goes through the gatekeeper, which picks the model and keeps the $30 / $10 limits. */
+const _ADV_SCHEMA={type:"object",additionalProperties:false,required:["defects"],properties:{defects:{type:"array",items:{type:"object",additionalProperties:false,
+  required:["id","same_as","category","means","why","steps","person_only","actions","changes"],properties:{
+  id:{type:"string"},same_as:{type:"string"},
+  category:{type:"string",enum:["illegible","translation","pagination","true_copy","date_or_number","wording","index","missing_document","signature_or_affidavit","court_fee","format","other"]},
+  means:{type:"string"},why:{type:"string"},steps:{type:"array",items:{type:"string"}},person_only:{type:"boolean"},
+  actions:{type:"array",items:{type:"object",additionalProperties:false,required:["kind","label","pages","doc"],properties:{
+    kind:{type:"string",enum:["type_out","translate","rescan","open_page","stamp_true_copy","number_pages"]},label:{type:"string"},pages:{type:"array",items:{type:"string"}},doc:{type:"string"}}}},
+  changes:{type:"array",items:{type:"object",additionalProperties:false,required:["page","what","find","to","where"],properties:{
+    page:{type:"string"},what:{type:"string",enum:["replace","remove","add"]},find:{type:"string"},to:{type:"string"},where:{type:"string"}}}}}}}}};
+const _ADV_LOC_SCHEMA={type:"object",additionalProperties:false,required:["found","x0","y0","x1","y1","seen"],properties:{found:{type:"boolean"},x0:{type:"number"},y0:{type:"number"},x1:{type:"number"},y1:{type:"number"},seen:{type:"string"}}};
+const _ADV_VER_SCHEMA={type:"object",additionalProperties:false,required:["match","seen"],properties:{match:{type:"boolean"},seen:{type:"string"}}};
+const _ADV_CHK_SCHEMA={type:"object",additionalProperties:false,required:["ok","mistakes"],properties:{ok:{type:"boolean"},mistakes:{type:"array",items:{type:"object",additionalProperties:false,required:["wrong","right","where"],properties:{wrong:{type:"string"},right:{type:"string"},where:{type:"string"}}}}}};
+const _ADV_CAT={illegible:"Illegible / unclear",translation:"Translation",pagination:"Page numbers",true_copy:"TRUE COPY",date_or_number:"Date or number",wording:"Wording",index:"Index",missing_document:"Missing document",signature_or_affidavit:"Signature / affidavit",court_fee:"Court fee",format:"Format",other:"Other"};
+// a defect with no document part yet (a general one) gets one, so a cure can be attached to it
+function _defEnsurePart(did){ const {rec,d}=_defFind(did); if(!d) return null; if(d.parts&&d.parts.length) return d.parts[0];
+  const p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); return p; }
+function _aiCall(task,job,content,schema){ return _gk("/api/ai",{task,job,content,schema}); }
+function _advFid(rec){ return String(rec.id||"").replace(/[^A-Za-z0-9_-]/g,""); }
+// a page of the filing copy as a JPEG (base64), optionally with the 0–1000 grid the AI reads positions from
+async function _advPageImg(ctx,i,width,grid){ const pg=await ctx.doc.getPage(i+1), v0=pg.getViewport({scale:1}), sc=width/v0.width, vp=pg.getViewport({scale:sc});
+  const c=document.createElement("canvas"); c.width=Math.round(vp.width); c.height=Math.round(vp.height); const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height);
+  await pg.render({canvasContext:g,viewport:vp,intent:"print"}).promise;
+  if(grid){ g.strokeStyle="rgba(0,120,255,.35)"; g.lineWidth=1; g.fillStyle="rgba(0,90,220,.85)"; g.font="bold 11px Helvetica,Arial,sans-serif";
+    for(let k=0;k<=10;k++){ const x=k*c.width/10, y=k*c.height/10; g.beginPath(); g.moveTo(x,0); g.lineTo(x,c.height); g.stroke(); g.beginPath(); g.moveTo(0,y); g.lineTo(c.width,y); g.stroke();
+      if(k<10){ g.fillText(String(k*100),x+2,11); g.fillText(String(k*100),2,y+12); } } }
+  const url=c.toDataURL("image/jpeg",0.78); return {canvas:c,url,b64:url.split(",")[1],w:v0.width,h:v0.height,sc}; }
+// the pages a defect is about, when the paper book's index did not give them: page numbers named in the remark,
+// an annexure by its heading, the impugned order (from printed page 1), an affidavit by its heading
+function _advGuessPages(d,ctx){ const U=(String(d.text||"")+" "+String(d.rule||"")).toUpperCase(), out=[], n=ctx.n||ctx.pages.length;
+  const add=i=>{ if(i!=null&&i>=0&&i<n&&out.indexOf(i)<0) out.push(i); }, top=i=>String((ctx.pages[i]||{}).text||"").slice(0,320);
+  (U.match(/PAGES?\s*(?:NOS?\.?\s*)?[A-Z]{0,2}\d{1,4}(?:\s*(?:-|TO|&|,|AND)\s*[A-Z]{0,2}\d{1,4})*/g)||[]).forEach(s=>{
+    s.replace(/^PAGES?\s*(?:NOS?\.?\s*)?/,"").split(/\s*(?:,|&|AND)\s*/).forEach(r=>{ const m=/^([A-Z]{0,2})(\d+)\s*(?:-|TO)\s*[A-Z]{0,2}(\d+)$/.exec(r.trim());
+      if(m){ for(let k=+m[2];k<=+m[3]&&k-+m[2]<12;k++){ const key=(m[1]||"")+k; if(key in ctx.map) add(ctx.map[key]); } } else { const key=r.trim().replace(/\s+/g,""); if(key in ctx.map) add(ctx.map[key]); } }); });
+  (U.match(/ANNEXURE\s*[A-Z]?\s*-?\s*\d+/g)||[]).forEach(a=>{ const num=/(\d+)/.exec(a)[1], L=(/ANNEXURE\s*([A-Z])/.exec(a)||[])[1]||"P", rx=new RegExp("ANNEXURE\\s*"+L+"\\s*-?\\s*"+num+"\\b","i");
+    for(let i=0;i<n;i++){ if(rx.test(top(i))){ add(i); for(let j=i+1;j<n&&j<i+8;j++){ if(/ANNEXURE\s*[A-Z]?\s*-?\s*\d+/i.test(top(j))) break; add(j); } break; } } });
+  if(!out.length&&/IMPUGNED/.test(U)&&("1" in ctx.map)){ const s=ctx.map["1"]; for(let j=s;j<n&&j<s+8;j++){ if(j>s&&/SPECIAL LEAVE PETITION|PETITION FOR SPECIAL LEAVE|LIST OF DATES/i.test(top(j))) break; add(j); } }
+  if(!out.length&&/AFFIDAVIT/.test(U)){ for(let i=0;i<n&&out.length<6;i++){ if(/\bAFFIDAVIT\b/i.test(top(i))){ add(i); add(i+1); } } }
+  return out.slice(0,8); }
+function _advPid(i,ctx){ const l=ctx.labelOf[i]; return "PDF "+(i+1)+(l?" (printed "+l+")":""); }
+function _advPageOf(str,ctx){ const s=String(str||""); let m=/PDF\s*(\d+)/i.exec(s); if(m) return +m[1]-1;
+  const lab=s.replace(/^(page|printed|p\.?)\s*/i,"").trim(); if(ctx.map&&lab in ctx.map) return ctx.map[lab]; m=/^(\d+)$/.exec(lab); if(m&&ctx.map&&m[1] in ctx.map) return ctx.map[m[1]]; return -1; }
+/* 1 · which defects need advice: this round's new ones, not yet advised */
+function _advTodo(rec){ const all=rec.defects||[]; if(!all.length) return []; const maxR=Math.max(...all.map(d=>d.round||1));
+  return all.filter(d=>(d.round||1)===maxR&&!d.adv&&!d.still&&d.kind!=="note"&&d.status!=="na"); }
+async function _advAuto(rel,force){ try{
+  const rec=_filingRec(rel); if(!rec) return; const todo=force?force.map(id=>(rec.defects||[]).find(d=>d.id===id)).filter(Boolean):_advTodo(rec); if(!todo.length) return;
+  if(rec.adv&&rec.adv.status==="working"&&Date.now()-new Date(rec.adv.at).getTime()<10*60000&&!force) return;   // another device is on it
+  if(rec.adv&&rec.adv.status==="off"&&Date.now()-new Date(rec.adv.at).getTime()<30*60000&&!force) return;     // AI not switched on yet — don't keep asking
+  if(!_gkUrl()) return;
+  rec.adv={status:"working",at:new Date().toISOString(),by:_aiWho(),n:todo.length}; _filingTouch(rec); if(_inFiling()) renderFilesPage();
+  toast(`Preparing advice for ${todo.length} new defect${todo.length===1?"":"s"}… (you can carry on working)`);
+  const ctx=await _flLoadCtx(); const R=()=>_filingRec(rel);
+  let rules=[]; try{ const m=await FB.getMeta("aiRules"); rules=(m&&m.rules)||[]; }catch(e){}
+  const content=[], pages=new Set(), imgPages=[];
+  const all=rec.defects||[], maxR=Math.max(...all.map(d=>d.round||1)), ids=new Set(todo.map(d=>d.id));
+  const pagesOf=d=>{ const out=[]; (d.parts||[]).forEach(p=>{ try{ _resolvePart(p,ctx).idx.forEach(i=>out.push(i)); }catch(e){} }); const u=[...new Set(out)]; return (u.length?u:_advGuessPages(d,ctx)).slice(0,8); };
+  let head=`FILING: ${(rec.folder||"").split("/").slice(-2).join(" / ")}${rec.diaryNo?` · Diary No. ${rec.diaryNo}/${rec.diaryYear||""}`:""} · this is defect list round ${maxR}.\n`;
+  if((rec.index||[]).length) head+="\nPAPER BOOK INDEX:\n"+rec.index.slice(0,60).map(x=>`- ${x.label}${x.pages?` — pages ${x.pages}`:""}`).join("\n")+"\n";
+  if(rules.length) head+="\nCHAMBER'S STANDING RULES:\n"+rules.map(r=>"- "+r).join("\n")+"\n";
+  const done=all.filter(d=>!ids.has(d.id)&&d.kind!=="note");
+  if(done.length) head+="\nALREADY ADVISED (no advice needed):\n"+done.map(d=>`- [${d.id}] defect ${d.no}: ${_flSentence(d.text)}`).join("\n")+"\n";
+  head+="\nNEW DEFECTS (advise on each):\n"+todo.map(d=>{ const ps=pagesOf(d); ps.forEach(i=>pages.add(i)); return `- [${d.id}] defect ${d.no}: ${_flSentence(d.text)}${d.rule?` | Registry's rule note: ${_flSentence(d.rule)}`:""}${(d.parts||[]).length?` | concerns: ${d.parts.map(p=>p.label+(p.pages?` (printed pages ${p.pages})`:"")).join("; ")}`:""}${ps.length?` | pages: ${ps.map(i=>_advPid(i,ctx)).join(", ")}`:""}`; }).join("\n");
+  content.push({type:"text",text:head});
+  let budget=60000;
+  for(const i of [...pages].sort((a,b)=>a-b)){ const t=((ctx.pages[i]||{}).text||"").trim();
+    if(t.length>40){ const s=t.slice(0,3500); budget-=s.length; if(budget<0) break; content.push({type:"text",text:`\n=== ${_advPid(i,ctx)} ===\n${s}`}); }
+    else if(imgPages.length<6){ imgPages.push(i); const im=await _advPageImg(ctx,i,1000,false); content.push({type:"text",text:`\n=== ${_advPid(i,ctx)} — a scanned page (picture below) ===`}); content.push({type:"image",source:{type:"base64",media_type:"image/jpeg",data:im.b64}}); } }
+  const job="adv_"+_advFid(rec)+"_"+todo.map(d=>d.id).sort().join("").slice(0,60).replace(/[^A-Za-z0-9]/g,"")+"_"+todo.length;
+  let res; try{ res=await _aiCall("advise",job,content,_ADV_SCHEMA); }
+  catch(e){ const off=/Unknown request|not switched on|API key/i.test(e.message); const r=R(); if(r){ r.adv=off?{status:"off",at:new Date().toISOString()}:{status:"error",at:new Date().toISOString(),err:e.message}; _filingTouch(r); }
+    if(_inFiling()) renderFilesPage(); if(!off) toast("Advice could not be prepared: "+e.message,true); return; }
+  const r=R(); if(!r) return; const got=(res.json&&res.json.defects)||[]; let n=0;
+  got.forEach(a=>{ const d=(r.defects||[]).find(x=>x.id===a.id); if(!d) return; n++;
+    d.adv={cat:a.category,means:a.means,why:a.why,steps:a.steps||[],person:!!a.person_only,same:a.same_as||"",actions:(a.actions||[]).slice(0,3),
+      changes:(a.changes||[]).slice(0,6).map(c=>Object.assign({},c,{i:_advPageOf(c.page,ctx)})),at:new Date().toISOString(),model:res.model}; });
+  r.adv={status:"ready",at:new Date().toISOString(),n,usd:res.usd,round:maxR}; _filingTouch(r); if(_inFiling()) renderFilesPage();
+  toast(`Advice ready for ${n} defect${n===1?"":"s"}.`);
+  await _advPictures(rel,got.map(a=>a.id));
+}catch(e){ console.warn("advice",e); } }
+/* 2 · before-and-after pictures for changes on a page: the place is found in the page's own text when it has text, otherwise
+   the AI looks at the page (and a second quick look checks the cut-out before a box is shown). Pictures are drawn by the app. */
+function _advFindText(ctx,i,find){ const pg=ctx.pages[i]; if(!pg||!find) return null; const want=String(find).replace(/\s+/g," ").trim().toLowerCase(); if(want.length<1) return null;
+  const chars=[]; (pg.rows||[]).forEach((row,ri)=>{ if(chars.length) chars.push({c:" ",row:ri,x:null}); let end=null;
+    row.forEach(it=>{ const s=String(it.s); if(end!=null&&it.x-end>1.6) chars.push({c:" ",row:ri,x:null}); const cw=(it.w||s.length*5)/Math.max(1,s.length);
+      for(let k=0;k<s.length;k++) chars.push({c:s[k],row:ri,x:it.x+k*cw,x2:it.x+(k+1)*cw,y:it.y,h:Math.max(7,cw*1.9)}); end=it.x+(it.w||s.length*5); }); });
+  let str="", map=[]; chars.forEach((ch,ix)=>{ const c=/\s/.test(ch.c)?" ":ch.c.toLowerCase(); if(c===" "&&str.endsWith(" ")) return; str+=c; map.push(ix); });
+  let at=str.indexOf(want); if(at<0) at=str.replace(/[^a-z0-9 ]/g,"?").indexOf(want.replace(/[^a-z0-9 ]/g,"?")); if(at<0) return null;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; for(let k=at;k<at+want.length;k++){ const ch=chars[map[k]]; if(!ch||ch.x==null) continue; x0=Math.min(x0,ch.x); x1=Math.max(x1,ch.x2); y0=Math.min(y0,ch.y-ch.h*0.78); y1=Math.max(y1,ch.y+ch.h*0.22); }
+  return x1>x0?{x:x0,y:y0,w:x1-x0,h:y1-y0,how:"text"}:null; }
+async function _advLocate(ctx,i,c){ const im=await _advPageImg(ctx,i,1000,true);
+  const what=c.what==="add"?`the place to add "${c.to}" — next to "${c.find}"`:`the text "${c.find}"`;
+  const r=await _aiCall("locate","",[{type:"text",text:`Find ${what}${c.where?` (${c.where})`:""}.`},{type:"image",source:{type:"base64",media_type:"image/jpeg",data:im.b64}}],_ADV_LOC_SCHEMA);
+  const L=r.json; if(!L||!L.found) return null; const b={x:Math.min(L.x0,L.x1)/1000*im.w,y:Math.min(L.y0,L.y1)/1000*im.h,w:Math.abs(L.x1-L.x0)/1000*im.w,h:Math.abs(L.y1-L.y0)/1000*im.h,how:"ai"};
+  if(b.w<2||b.h<2) return null;
+  // second look: does the cut-out really show it?
+  const hi=await _advPageImg(ctx,i,1400,false), s=hi.sc, pad=8, cx=Math.max(0,(b.x-pad)*s), cy=Math.max(0,(b.y-pad)*s), cw=Math.min(hi.canvas.width-cx,(b.w+2*pad)*s), chh=Math.min(hi.canvas.height-cy,(b.h+2*pad)*s);
+  const cut=document.createElement("canvas"); cut.width=Math.max(8,Math.round(cw)); cut.height=Math.max(8,Math.round(chh)); cut.getContext("2d").drawImage(hi.canvas,cx,cy,cw,chh,0,0,cut.width,cut.height);
+  try{ const v=await _aiCall("verify","",[{type:"text",text:`Item: ${what}.`},{type:"image",source:{type:"base64",media_type:"image/jpeg",data:cut.toDataURL("image/jpeg",0.85).split(",")[1]}}],_ADV_VER_SCHEMA);
+    if(!(v.json&&v.json.match)) return {x:0,y:0,w:im.w,h:im.h,how:"page"}; }catch(e){ b.how="ai?"; }
+  return b; }
+function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the page: before (red box) and after (made with white-out + text)
+  // a close-up around the place: wide enough to see where it is, tight enough to read it
+  const pw=full.width/sc, ph=full.height/sc, cw=Math.min(pw,Math.max(150,box.w*5,(c.to?_peMeasure(c.to,box.h,false,"T"):0)*2.2)), chh=Math.min(ph,Math.max(56,box.h*4.2));
+  const cx0=Math.max(0,Math.min(pw-cw,box.x+box.w/2-cw/2)), cy0=Math.max(0,Math.min(ph-chh,box.y+box.h/2-chh/2));
+  const bx0=Math.round(cx0*sc), by0=Math.round(cy0*sc), W=Math.round(cw*sc), H=Math.round(chh*sc);
+  const out=(after)=>{ const k=Math.min(2,640/W), c2=document.createElement("canvas"); c2.width=Math.round(W*k); c2.height=Math.round(H*k); const g=c2.getContext("2d");
+    g.drawImage(full,bx0,by0,W,H,0,0,c2.width,c2.height); const X=v=>(v*sc-bx0)*k, Y=v=>(v*sc-by0)*k;
+    const bx=X(box.x)-3, byy=Y(box.y)-3, bw=box.w*sc*k+6, bh=box.h*sc*k+6;
+    if(!after){ g.strokeStyle="#d11a1a"; g.lineWidth=3; g.strokeRect(bx,byy,bw,bh); }
+    else{ if(c.what!=="add"){ g.fillStyle="#fff"; g.fillRect(X(box.x)-1,Y(box.y)-1,box.w*sc*k+2,box.h*sc*k+2); }
+      let tw=0, fs=0; if(c.to){ fs=Math.max(8,box.h*sc*k*0.82); g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; const maxW=Math.max(box.w*sc*k*1.6,60); if(tw>maxW){ fs=fs*maxW/tw; g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; }
+        g.fillStyle="#000"; g.textBaseline="alphabetic"; g.fillText(c.to,X(box.x),Y(box.y)+box.h*sc*k*0.82); }
+      g.strokeStyle="#1e7d32"; g.lineWidth=3; g.strokeRect(bx,byy,Math.max(bw,tw+6),bh); }
+    return c2.toDataURL("image/jpeg",0.8); };
+  return {b:out(false),a:out(true)}; }
+async function _advPictures(rel,ids){ try{
+  const ctx=await _flLoadCtx(); const R=()=>_filingRec(rel); let rec=R(); if(!rec) return; const sd=rec.chamber==="SD", fid=_advFid(rec);
+  for(const id of ids){ const d=(R().defects||[]).find(x=>x.id===id); if(!d||!d.adv) continue;
+    for(let n=0;n<(d.adv.changes||[]).length;n++){ const c=d.adv.changes[n]; if(c.img||c.i<0||c.i==null) continue;
+      try{ let box=c.find?_advFindText(ctx,c.i,c.find):null; if(!box) box=await _advLocate(ctx,c.i,c);
+        if(!box){ c.box={how:"none"}; continue; }
+        c.box=box; if(box.how==="page") continue;
+        const im=await _advPageImg(ctx,c.i,1300,false); const pair=_advDrawPair(im.canvas,im.sc,box,c); im.canvas.width=0;
+        const key=`${fid}_${id}_${n}`; await FB.putAdvImg(sd,key,{b:pair.b,a:pair.a,at:new Date().toISOString()}); c.img=key; window.__advImg=window.__advImg||{}; window.__advImg[key]=pair;
+      }catch(e){ console.warn("advice picture",e); c.box=c.box||{how:"none"}; } }
+    const r=R(); const dd=r&&(r.defects||[]).find(x=>x.id===id); if(dd&&dd.adv){ dd.adv.changes=d.adv.changes; _filingTouch(r); } }
+  if(document.getElementById("advOverlay")&&document.getElementById("advOverlay").classList.contains("show")) _advRender();
+}catch(e){ console.warn("advice pictures",e); } }
+/* 3 · the Advice page — for staff and the Head of Chamber */
+function _advOpen(focusId){ let ov=document.getElementById("advOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="advOverlay"; document.body.appendChild(ov); }
+  window.__advFocus=focusId||null; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
+function _advClose(){ const ov=document.getElementById("advOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; }
+function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) return; const rec=_flRec(); const all=(rec.defects||[]).slice(); const owner=!isStaffView();
+  const rounds=[...new Set(all.map(d=>d.round||1))].sort((a,b)=>b-a);
+  const st=rec.adv||{}; const busy=st.status==="working";
+  const card=d=>{ const a=d.adv, s=_defState(d);
+    const head=`<div class="adv-h"><span class="adv-no">${esc(d.no)}</span><span class="adv-rem">${esc(_flSentence(d.text))}</span></div>
+      <div class="adv-tags">${a&&a.cat?`<i>${esc(_ADV_CAT[a.cat]||a.cat)}</i>`:""}${d.still?`<i class="warn">Still pending after refiling</i>`:""}<i class="st s-${s}">${esc(_DS_LAB[s]||s)}</i></div>`;
+    if(!a) return `<div class="adv-c" id="adv_${d.id}">${head}<div class="adv-none">${d.kind==="note"?"For information only — nothing to cure.":d.still?"Advice was given in an earlier round (see below).":busy?"Advice is being prepared…":"No advice yet."}
+      ${owner&&d.kind!=="note"&&!busy?` <button class="link-btn" onclick="_advAgain('${d.id}')">${d.still?"Advise again (costs a little)":"Get advice"}</button>`:""}</div></div>`;
+    const acts=(a.actions||[]).map((x,j)=>`<button class="btn seal sm" onclick="_advAct('${d.id}',${j})">${esc(_advActLabel(x))}</button>`).join("");
+    const ch=(a.changes||[]).map((c,n)=>{ const pic=c.img?`<div class="adv-pair" data-img="${esc(c.img)}"><figure><figcaption>Before</figcaption><img alt="before" data-k="b"></figure><figure><figcaption>After</figcaption><img alt="after" data-k="a"></figure></div>`
+        :c.box&&c.box.how==="page"?`<div class="hint">The change is on ${esc(c.page)}${c.where?`, ${esc(c.where)}`:""} — the exact spot could not be marked; look there.</div>`:c.box?``:`<div class="hint">Picture being made…</div>`;
+      return `<div class="adv-ch"><div class="adv-cht"><b>${esc(c.page)}</b> — ${c.what==="remove"?`remove “${esc(c.find)}”`:c.what==="add"?`add “${esc(c.to)}”${c.find?` next to “${esc(c.find)}”`:""}`:`change “${esc(c.find)}” to “${esc(c.to)}”`}${c.where?` <span class="hint">(${esc(c.where)})</span>`:""}</div>${pic}
+        <div class="adv-chb"><button class="btn ghost sm" onclick="_advOpenAt('${d.id}',${n})">✏️ Open at the spot</button>${owner?`<button class="btn ghost sm" onclick="_advOpenAt('${d.id}',${n},true)">Make this change</button>`:""}</div></div>`; }).join("");
+    const ex=_advExamplesFor(a.cat);
+    return `<div class="adv-c${window.__advFocus===d.id?" focus":""}" id="adv_${d.id}">${head}
+      ${a.same?`<div class="adv-p">This is a remark about an earlier defect.</div>`:""}
+      <div class="adv-sec"><div class="adv-l">What it means</div><div class="adv-p">${esc(a.means)}</div></div>
+      ${a.why?`<div class="adv-sec"><div class="adv-l">Why the Registry asks</div><div class="adv-p">${esc(a.why)}</div></div>`:""}
+      <div class="adv-sec"><div class="adv-l">How to cure it${a.person?` <span class="adv-person">needs a person</span>`:""}</div><ol class="adv-steps">${(a.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
+      ${ch?`<div class="adv-sec"><div class="adv-l">The change to make</div>${ch}</div>`:""}
+      ${ex.length?`<div class="adv-sec"><div class="adv-l">Example from this chamber</div><div class="adv-ex">${ex.map(e=>`<figure data-img="${esc(e.prev)}"><img alt="example" data-k="a"><figcaption>${esc(e.title)}</figcaption></figure>`).join("")}</div></div>`:""}
+      ${acts?`<div class="adv-acts">${acts}</div>`:""}
+      ${d.advNote?`<div class="adv-note">Head of Chamber: ${esc(d.advNote)}</div>`:""}
+      ${owner?`<div class="adv-own"><button class="link-btn" onclick="_advCorrect('${d.id}')">✎ Correct this advice</button>${d.status==="cured"&&(d.parts||[]).some(p=>p.cure)?` · <button class="link-btn" onclick="_advExampleSave('${d.id}')">⭐ Save this cure as an example</button>`:""} · <button class="link-btn" onclick="_advAgain('${d.id}')">Advise again</button></div>`:""}
+    </div>`; };
+  ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_advClose()" title="Close">✕</button><div class="pe-ttl"><b>Defect advice</b><span>${esc((rec.folder||"").split("/").pop())}${rec.diaryNo?` · Diary ${esc(rec.diaryNo)}/${esc(rec.diaryYear||"")}`:""}</span></div>
+      ${owner?`<button class="btn ghost sm" onclick="_advRulesAsk()">Standing rules</button>`:""}</div>
+    <div class="rv-body">
+      ${busy?`<div class="adv-busy">✨ Advice for ${st.n||""} new defect${st.n===1?"":"s"} is being prepared — it appears here by itself.</div>`:st.status==="error"?`<div class="adv-busy err">Advice could not be prepared: ${esc(st.err||"")} ${owner?`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`:""}</div>`:""}
+      ${rounds.map((r,ri)=>{ const xs=all.filter(d=>(d.round||1)===r).sort((a,b)=>(a.adv?0:1)-(b.adv?0:1)||(+a.no)-(+b.no));
+        const inner=xs.map(card).join(""); const lab=`Round ${r}${r===1?" — first defect list":" — after refiling"} · ${xs.length} defect${xs.length===1?"":"s"}`;
+        return ri===0?`<div class="adv-round"><div class="adv-rh">${lab}</div>${inner}</div>`:`<details class="adv-round"><summary class="adv-rh">${lab}</summary>${inner}</details>`; }).join("")||`<div class="fv-empty">No defects yet.</div>`}
+      <div class="adv-foot" id="advUse"></div>
+    </div>`;
+  _advImgs(ov);
+  if(window.__advFocus){ const el=document.getElementById("adv_"+window.__advFocus); if(el) setTimeout(()=>el.scrollIntoView({block:"start"}),30); window.__advFocus=null; } }
+async function _advImgs(root){ const rec=_flRec(); const sd=rec.chamber==="SD"; window.__advImg=window.__advImg||{};
+  for(const box of root.querySelectorAll("[data-img]")){ const key=box.dataset.img; let p=window.__advImg[key];
+    if(!p){ try{ p=await FB.getAdvImg(sd,key); if(p) window.__advImg[key]=p; }catch(e){} }
+    if(p) box.querySelectorAll("img").forEach(im=>{ const v=p[im.dataset.k]; if(v) im.src=v; }); } }
+async function _advUsage(){ const el=document.getElementById("advUse"); if(!el) return;
+  try{ const u=await _gk("/api/aiusage",{}); if(!u.on){ el.textContent="AI is not switched on yet."; return; }
+    el.textContent=isStaffView()?`Your typing / translation pages today: ${u.pagesToday||0} of ${u.limits.pagesDay}.`
+      :`AI this month: $${u.total.toFixed(2)} of $${u.limits.total} · staff $${(u.staff||0).toFixed(2)} of $${u.limits.staff}.`; }catch(e){} }
+function _advActLabel(x){ const doc=x.doc?" "+x.doc:""; return x.label||({type_out:"Type out"+doc,translate:"Translate"+doc,rescan:"Rescan"+doc,open_page:"Open the page",stamp_true_copy:"Stamp TRUE COPY",number_pages:"Number the pages"}[x.kind]||x.kind); }
+function _advPart(d,x){ const ps=d.parts||[]; if(!ps.length) return null; const want=String((x&&x.doc)||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  return ps.find(p=>want&&String(p.label).toUpperCase().replace(/[^A-Z0-9]/g,"").indexOf(want)>=0)||ps[0]; }
+async function _advAct(did,j){ const {d}=_defFind(did); if(!d||!d.adv) return; const x=d.adv.actions[j]; if(!x) return;
+  _defEnsurePart(did); const p=_advPart(_defFind(did).d,x);
+  if(x.kind==="type_out"||x.kind==="translate") return _advTypeGo(did,p&&p.id,x);
+  if(x.kind==="rescan"){ _advClose(); return _defRescan(did,p.id); }
+  if(x.kind==="stamp_true_copy"){ _advClose(); return _defTrueCopy(did,p.id); }
+  if(x.kind==="open_page"||x.kind==="number_pages"){ const ctx=await _flLoadCtx(); let idx=(x.pages||[]).map(s=>_advPageOf(s,ctx)).filter(i=>i>=0);
+    if(!idx.length&&p){ try{ idx=_resolvePart(p,ctx).idx; }catch(e){} } if(!idx.length){ toast("Those pages are not in the filing copy.",true); return; }
+    _advClose(); _peStart({did,pid:p.id,ctx,idx:[...new Set(idx)].sort((a,b)=>a-b),label:p.label,prev:p.cure&&p.cure.edit,focus:{number:x.kind==="number_pages"}}); } }
+// open the editor on the page with the place marked; "make this change" (Head of Chamber) also puts the change in, ready to check and save
+async function _advOpenAt(did,n,apply){ const {d}=_defFind(did); if(!d||!d.adv) return; const c=d.adv.changes[n]; if(!c) return; const ctx=await _flLoadCtx();
+  if(c.i==null||c.i<0){ toast("That page is not in the filing copy.",true); return; }
+  _defEnsurePart(did); const D=_defFind(did).d; const p=_advPart(D,null);
+  let idx=[]; try{ idx=_resolvePart(p,ctx).idx; }catch(e){} if(idx.indexOf(c.i)<0) idx=[c.i];
+  _advClose(); _peStart({did,pid:p.id,ctx,idx,label:p.label,prev:p.cure&&p.cure.edit,focus:{i:c.i,box:c.box&&c.box.how!=="page"&&c.box.how!=="none"?c.box:null,apply:apply?c:null}}); }
+/* typing out / translating pages: one page at a time, each a short request; the draft opens in the editor to be checked */
+async function _advTypeGo(did,pid,x){ const {d,p}=_defFind(did,pid); if(!p){ toast("Add the document first.",true); return; }
+  const ctx=await _flLoadCtx(); let idx=(x.pages||[]).map(s=>_advPageOf(s,ctx)).filter(i=>i>=0); if(!idx.length){ try{ idx=_resolvePart(p,ctx).idx; }catch(e){} }
+  idx=[...new Set(idx)].sort((a,b)=>a-b); if(!idx.length){ toast("The pages of that document are not in the filing copy — set its pages first.",true); return; }
+  if(idx.length>15&&!confirm(`That is ${idx.length} pages. Go ahead?`)) return;
+  const tr=x.kind==="translate", texts=[]; let stop=false;
+  _progressModal(tr?"Translating…":"Typing…",`Page 1 of ${idx.length}…`);
+  try{ for(let k=0;k<idx.length&&!stop;k++){ _progressSet(`${tr?"Translating":"Typing"} page ${k+1} of ${idx.length}…`,k/idx.length);
+      const im=await _advPageImg(ctx,idx[k],1500,false); const job=`${tr?"tr":"ty"}_${_advFid(_flRec())}_${did}_${idx[k]}`.replace(/[^A-Za-z0-9_]/g,"").slice(0,110);
+      let r=await _aiCall(tr?"translate":"type",job,[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:im.b64}}]);
+      let t=(r.text||"").trim();
+      if(!tr){ const words=t.split(/\s+/).length||1, bad=(t.match(/\[illegible\]/g)||[]).length; if(bad/words>0.06){ r=await _aiCall("typehw",job+"hw",[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:im.b64}}]); t=(r.text||"").trim()||t; } }
+      texts.push({i:idx[k],t}); }
+    _progressSet("Making the pages…",0.95);
+    const label=(x.doc||p.label||"").trim(); const blob=await _advTypedPdf(tr?"TRUE TRANSLATION":"TRUE TYPED COPY",`${tr?"English translation":"Typed copy"} of ${label} (pages ${idx.map(i=>ctx.labelOf[i]||("PDF "+(i+1))).join(", ")})`,texts.map(z=>z.t));
+    const doc=await _peLoadDoc(blob); closeModal();
+    _peStart({did,pid,kind:"advdraft",file:"",ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:(tr?"Translation — ":"Typed copy — ")+label,adv:{tr,label,src:idx}});
+    toast("Check it against the original, correct anything with Edit text / Text, then Save.");
+  }catch(e){ closeModal(); toast(e.message,true); } }
+async function _advTypedPdf(heading,sub,pages){ const L=await _libPdfLib(), {PDFDocument,StandardFonts,rgb}=L; const out=await PDFDocument.create();
+  const fR=await out.embedFont(StandardFonts.TimesRoman), fB=await out.embedFont(StandardFonts.TimesRomanBold); const W=595.28,H=841.89,M=72,size=12,lh=18;
+  const safe=s=>_peTxtSafe(fR,s); let pg=null,y=0; const np=()=>{ pg=out.addPage([W,H]); y=H-M; };
+  const line=(s,f,sz,center)=>{ if(y<M+lh){ np(); } const tw=f.widthOfTextAtSize(s,sz); pg.drawText(s,{x:center?(W-tw)/2:M,y,size:sz,font:f,color:rgb(0,0,0)}); y-=lh; };
+  const wrap=(s,f,sz)=>{ const words=String(s).split(/(\s+)/); let cur=""; const out2=[]; words.forEach(w=>{ const t=cur+w; if(cur.trim()&&f.widthOfTextAtSize(t.trim(),sz)>W-2*M){ out2.push(cur.trim()); cur=w.trim(); } else cur=t; }); if(cur.trim()||!out2.length) out2.push(cur.trim()); return out2; };
+  np(); line(heading,fB,13,true); y-=4; wrap(safe(sub),fR,11).forEach(s=>line(s,fR,11,true)); y-=lh*0.6;
+  pages.forEach((t,k)=>{ if(k>0){ y-=lh*0.5; } String(t||"").split(/\n/).forEach(par=>{ const s=safe(par); if(!s.trim()){ y-=lh*0.5; return; } wrap(s,fR,size).forEach(w=>line(w,fR,size,false)); }); });
+  return new Blob([await out.save()],{type:"application/pdf"}); }
+// save of a typed copy / translation: it is attached to the defect as pages ADDED after the original
+async function _peSaveAdv(){ const E=_pe; const {rec,d,p}=_defFind(E.did,E.pid); if(!p){ toast("That defect is no longer there.",true); return; }
+  _progressModal("Saving…","Making the pages…");
+  try{ const {blob}=await _peBuild(null); const nm=`5.${_stageNext(5,_currentNames())} ${E.adv.tr?"Translation":"Typed copy"} ${_fnSafe(E.adv.label)}.pdf`;
+    const name=await _uploadPaper(_filingFolderRel()+"/"+nm,blob,(g,t)=>_progressSet(null,0.5+0.5*g/t));
+    const old=p.cure&&p.cure.file&&/^(typed|translated)$/.test(p.cure.how)?p.cure.file:"";
+    p.cure={file:name,pages:"all",how:E.adv.tr?"translated":"typed",mode:"add",src:E.adv.src,by:_aiWho(),at:new Date().toISOString()};
+    _defCheckDone(d); _filingTouch(rec); if(old&&old!==name){ try{ await _gkTrash(_filingFolderRel()+"/"+old); }catch(e){} }
+    closeModal(); _peClose(true); toast(`Saved and attached to defect ${d.no} — it goes after the original pages.`); _fv.live=true; _filesLoad();
+  }catch(e){ closeModal(); toast(e.message,true); } }
+/* the Head of Chamber's check (Opus) of a typed copy / translation against the original pages */
+async function _advCheck(did,pid){ if(isStaffView()) return; const {p}=_defFind(did,pid); if(!p||!p.cure) return; const ctx=await _flLoadCtx();
+  _progressModal("Checking…","Reading the draft…");
+  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file}); const td=await _pdfTextDoc(blob); const draft=td.pages.map(x=>x.text).join("\n");
+    const src=(p.cure.src||[]).slice(0,6); if(!src.length){ closeModal(); toast("The original pages of this draft are not recorded.",true); return; }
+    const all=[]; for(let k=0;k<src.length;k++){ _progressSet(`Checking page ${k+1} of ${src.length}…`,k/src.length); const im=await _advPageImg(ctx,src[k],1500,false);
+      const r=await _aiCall("check","",[{type:"text",text:`The page is ${_advPid(src[k],ctx)}. The full draft (${p.cure.how==="translated"?"translation":"typed copy"}) is below; check only the part that belongs to this page.\n\n${draft.slice(0,12000)}`},{type:"image",source:{type:"base64",media_type:"image/jpeg",data:im.b64}}],_ADV_CHK_SCHEMA);
+      ((r.json&&r.json.mistakes)||[]).forEach(m=>all.push(Object.assign({page:_advPid(src[k],ctx)},m))); }
+    closeModal();
+    openModal("Opus check",(all.length?`<div class="hint" style="margin-bottom:8px">${all.length} thing${all.length===1?"":"s"} to correct (open the draft in the editor and fix them):</div><ol class="adv-steps">${all.map(m=>`<li><b>${esc(m.page)}</b>: “${esc(m.wrong)}” → “${esc(m.right)}” <span class="hint">${esc(m.where)}</span></li>`).join("")}</ol>`
+      :`<div>✓ No mistakes found against the original pages.</div>`)+`<div class="btn-row" style="margin-top:12px"><button class="btn seal" onclick="closeModal()">OK</button></div>`);
+  }catch(e){ closeModal(); toast(e.message,true); } }
+/* the Head of Chamber's corrections become standing rules; good cures become examples */
+async function _advCorrect(did){ const {rec,d}=_defFind(did); if(!d) return; const v=prompt("What should the advice have said? (This is kept as a standing rule for all future advice.)",d.advNote||""); if(v==null) return;
+  const s=v.trim(); d.advNote=s; _filingTouch(rec);
+  if(s){ try{ const m=(await FB.getMeta("aiRules"))||{}; const rules=(m.rules||[]).concat([`${_flSentence(d.text).slice(0,90)} → ${s}`]).slice(-80); await FB.putChamberMeta("aiRules",{rules,at:new Date().toISOString()}); toast("Kept as a standing rule."); }catch(e){ toast("Saved on this defect; the rule could not be stored: "+e.message,true); } }
+  _advRender(); }
+async function _advRulesAsk(){ let rules=[]; try{ const m=await FB.getMeta("aiRules"); rules=(m&&m.rules)||[]; }catch(e){}
+  openModal("Standing rules for AI advice",`<div class="hint" style="margin-bottom:8px">One rule per line. The AI follows these over general practice.</div><textarea class="in" id="advRules" rows="12" style="width:100%">${esc(rules.join("\n"))}</textarea>
+    <div class="btn-row" style="margin-top:10px"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn seal" onclick="_advRulesSave()">Save</button></div>`); }
+async function _advRulesSave(){ const rules=String(document.getElementById("advRules").value||"").split("\n").map(s=>s.trim()).filter(Boolean).slice(0,120);
+  try{ await FB.putChamberMeta("aiRules",{rules,at:new Date().toISOString()}); closeModal(); toast("Saved."); }catch(e){ toast(e.message,true); } }
+window.__advEx=null;
+function _advExamplesFor(cat){ if(!cat) return []; if(!window.__advEx){ window.__advEx=[]; FB.getMeta("advExamples").then(m=>{ window.__advEx=(m&&m.items)||[]; if(window.__advEx.length&&document.getElementById("advOverlay")&&document.getElementById("advOverlay").classList.contains("show")) _advRender(); }).catch(()=>{}); return []; }
+  return window.__advEx.filter(e=>e.cat===cat).slice(-2); }
+async function _advExampleSave(did){ const {d}=_defFind(did); if(!d||!d.adv) return; const p=(d.parts||[]).find(x=>x.cure&&x.cure.file); if(!p) return;
+  const title=(prompt("A short title for this example",_flSentence(d.text).slice(0,60))||"").trim(); if(!title) return;
+  _progressModal("Saving…","Making the picture…");
+  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file}); const doc=await _peLoadDoc(blob); const im=await _advPageImg({doc},0,900,false);
+    const key="ex_"+uid(); await FB.putAdvImg(false,key,{a:im.url,at:new Date().toISOString()});
+    const m=(await FB.getMeta("advExamples"))||{}; const items=(m.items||[]).concat([{id:key,prev:key,cat:d.adv.cat,title,at:new Date().toISOString()}]).slice(-60);
+    await FB.putChamberMeta("advExamples",{items}); window.__advEx=items; closeModal(); toast("Saved as an example — it will show on similar defects."); _advRender(); }
+  catch(e){ closeModal(); toast(e.message,true); } }
+function _advAgain(did){ const rec=_flRec(); const d=(rec.defects||[]).find(x=>x.id===did); if(!d) return; if(d.adv&&!confirm("Ask the AI again for this defect? (It costs a little.)")) return;
+  delete d.adv; d.still=false; _filingTouch(rec); _advAuto(_filingFolderRel(),[did]); _advRender(); }
+function _advBarHTML(rec){ const st=rec.adv||{}; const n=(rec.defects||[]).filter(d=>d.adv).length;
+  if(st.status==="working") return `<div class="adv-bar busy">✨ Preparing advice for ${st.n||""} new defect${st.n===1?"":"s"}… <span class="hint">you can carry on</span></div>`;
+  if(st.status==="off") return isStaffView()?"":`<div class="adv-bar">💡 AI advice on these defects will appear here once AI is switched on (gatekeeper update + API key). <button class="link-btn" onclick="_flRec().adv=null;_advAuto(_filingFolderRel())">Check again</button></div>`;
+  if(st.status==="error") return `<div class="adv-bar err">Advice could not be prepared: ${esc(st.err||"")} ${isStaffView()?"":`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`}</div>`;
+  return n?`<div class="adv-bar">💡 Advice on how to cure ${n} defect${n===1?"":"s"} <button class="btn seal sm" onclick="_advOpen()">Open advice</button></div>`:""; }
+try{ Object.assign(window,{_advAct,_advActLabel,_advAgain,_advAuto,_advCheck,_advClose,_advCorrect,_advDrawPair,_advExampleSave,_advExamplesFor,_advFid,_advFindText,_advImgs,_advLocate,_advOpen,_advOpenAt,_advPageImg,_advPageOf,_advPart,_advPictures,_advPid,_advRender,_advRulesAsk,_advRulesSave,_advTodo,_advTypeGo,_advTypedPdf,_advUsage,_aiCall,_defEnsurePart,_peSaveAdv,_advBarHTML}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -28518,6 +28847,9 @@ FB.getStaffDir = async function(uid){ const s=await getDoc(FB.staffDirRef(uid));
 FB.putStaffDir = async function(uid, data){ await setDoc(FB.staffDirRef(uid), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
 FB.getAiPreview = async function(sd,id){ const r=sd?doc(db,"accounts",FB.uid(),"aiPreviews",id):doc(db,"chamber","main","aiPreviews",id); const s=await getDoc(r); return s.exists()?s.data():null; };
 FB.getOwnMeta = async function(id){ const b=FB._base(); if(!b) return null; const s=await getDoc(doc(db,b,"meta",id)); return s.exists()?s.data():null; };
+FB.putAdvImg = async function(sd,id,data){ const r=sd?doc(db,"accounts",FB.uid(),"advImg",id):doc(db,"chamber","main","advImg",id); await setDoc(r,data); };
+FB.getAdvImg = async function(sd,id){ const r=sd?doc(db,"accounts",FB.uid(),"advImg",id):doc(db,"chamber","main","advImg",id); const s=await getDoc(r); return s.exists()?s.data():null; };
+FB.putChamberMeta = async function(id,data){ await setDoc(doc(db,"chamber","main","meta",id), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
 FB.putSpeed = async function(dev,data){ const b=this._base(); if(!b) return; await setDoc(doc(db,b,"meta","speed_"+String(dev).replace(/[^a-z0-9]/gi,"")), data); };
 FB.getMeta = async function(id){ const s=await getDoc(doc(db,"chamber","main","meta",id)); return s.exists()?s.data():null; };
 FB.getOwnMeta = async function(id){ const b=FB._base(); if(!b) return null; const s=await getDoc(doc(db,b,"meta",id)); return s.exists()?s.data():null; };
@@ -28597,7 +28929,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-1500";
+  window.APP_VERSION = "2026.10.24-1800";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
