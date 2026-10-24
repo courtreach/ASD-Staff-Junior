@@ -2122,6 +2122,10 @@
   .pe-org .pe-tools,.pe-org .pe-opts,.pe-org .pe-thumbs{display:none}
   .pe-sigc{display:block;border:1px solid var(--line);border-radius:8px;background:#fff;background-image:linear-gradient(transparent calc(100% - 34px),#d8d2c4 calc(100% - 34px),#d8d2c4 calc(100% - 33px),transparent calc(100% - 33px));touch-action:none;max-width:100%}
   #advOverlay{position:fixed;inset:0;z-index:2000;background:#f4f2ee;display:none;flex-direction:column} #advOverlay.show{display:flex} #advOverlay .pe-top{gap:8px}
+  .adv-lang{display:flex;flex:none;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff} .adv-lang button{border:0;background:transparent;padding:6px 10px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;touch-action:manipulation} .adv-lang button+button{border-left:1px solid var(--line)} .adv-lang button.on{background:var(--seal);color:#fff}
+  @media (max-width:700px){ #advOverlay .pe-top{flex-wrap:wrap;row-gap:8px;height:auto;min-height:52px;padding:8px} #advOverlay .pe-top .pe-ttl{flex:1 1 calc(100% - 60px);min-width:0}
+    #advOverlay .adv-lang{order:5;flex:1 1 100%} #advOverlay .adv-lang button{flex:1;padding:8px 6px;font-size:14px} #advOverlay .pe-top>.btn{order:6} }
+  .adv-rem-tr{margin:6px 0 0 40px;font-size:16px;font-weight:600;line-height:1.5;color:#3b342e} .adv-c[lang=hi] .adv-p,.adv-c[lang=mr] .adv-p,.adv-c[lang=hi] .adv-steps,.adv-c[lang=mr] .adv-steps{font-size:16px;line-height:1.65} .adv-c[lang=hi] .adv-l,.adv-c[lang=mr] .adv-l{font-size:14px;letter-spacing:0;text-transform:none}
   .adv-round{max-width:880px;margin:0 auto 18px} .adv-rh{font-size:12.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:6px 2px 10px;cursor:default} details.adv-round>summary{cursor:pointer;list-style:none}
   .adv-c{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:16px 18px;margin-bottom:14px;border:2px solid transparent} .adv-c.focus{border-color:var(--seal)}
   .adv-h{display:flex;gap:10px;align-items:flex-start} .adv-no{flex:none;min-width:30px;height:30px;border-radius:15px;background:var(--seal);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
@@ -2567,6 +2571,8 @@ html[data-theme=dark] .pe-tools{background:#201c18}
 html[data-theme=dark] #advOverlay{background:#2f2b25}
 html[data-theme=dark] .adv-c{background:#201c18}
 html[data-theme=dark] .adv-rem{color:#ece6da}
+html[data-theme=dark] .adv-rem-tr{color:#d9d0c2}
+html[data-theme=dark] .adv-lang{background:#201c18;border-color:#4a4136}
 html[data-theme=dark] :is(.adv-ch){background:#2b261c}
 html[data-theme=dark] :is(.adv-bar,.dd-adv,.adv-busy){background:#3a3220;border-color:#5a4a26}
 html[data-theme=dark] .adv-note{background:#22303f}
@@ -25195,11 +25201,40 @@ async function _advPictures(rel,ids){ try{
 }catch(e){ console.warn("advice pictures",e); } }
 /* 3 · the Advice page — for staff and the Head of Chamber */
 function _advOpen(focusId){ let ov=document.getElementById("advOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="advOverlay"; document.body.appendChild(ov); }
-  window.__advFocus=focusId||null; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
+  window.__advFocus=focusId||null; window.__advLang="en"; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
 // back on the Advice page after the editor / scanner / a stamp: show the new state, same place on the page
 function _advRefresh(){ const ov=document.getElementById("advOverlay"); if(!ov||!ov.classList.contains("show")) return;
   const b=ov.querySelector(".rv-body"), y=b?b.scrollTop:0; document.body.style.overflow="hidden"; _advRender(); _advUsage(); const b2=ov.querySelector(".rv-body"); if(b2) b2.scrollTop=y; }
 function _advClose(){ const ov=document.getElementById("advOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; }
+/* ---------- the advice in Hindi / Marathi (owner, 24 Oct 2026): English first, हिंदी / मराठी a tap away ----------
+   Translated once per filing and language (Sonnet, from the chamber's share, a few paise) and kept on the defect, so everyone
+   after sees it at once. If the advice is corrected, the translation no longer matches (its key) and is made again. */
+const _ADV_LANGS={en:"English",hi:"हिंदी",mr:"मराठी"};
+const _ADV_L={
+  hi:{means:"इसका मतलब",why:"रजिस्ट्री यह क्यों माँगती है",how:"इसे कैसे ठीक करें",person:"यह किसी व्यक्ति को ही करना होगा",change:"करने वाला बदलाव",before:"पहले",after:"बाद में",
+    earlier:"यह पहले वाले दोष के बारे में टिप्पणी है।",example:"इस चेंबर का उदाहरण",remove:t=>`“${t}” हटाएँ`,add:(t,f)=>`${f?`“${f}” के पास `:""}“${t}” जोड़ें`,repl:(f,t)=>`“${f}” की जगह “${t}” लिखें`,busy:"हिंदी में अनुवाद हो रहा है…",look:(pg,w)=>`बदलाव ${pg} पर है${w?`, ${w}`:""} — सही जगह पर निशान नहीं लग सका; वहाँ देखें।`,making:"चित्र बन रहा है…"},
+  mr:{means:"याचा अर्थ",why:"रजिस्ट्री हे का मागते",how:"हे कसे दुरुस्त करावे",person:"हे एखाद्या व्यक्तीलाच करावे लागेल",change:"करायचा बदल",before:"आधी",after:"नंतर",
+    earlier:"ही आधीच्या त्रुटीबद्दलची टिप्पणी आहे.",example:"या चेंबरमधील उदाहरण",remove:t=>`“${t}” काढा`,add:(t,f)=>`${f?`“${f}” च्या शेजारी `:""}“${t}” जोडा`,repl:(f,t)=>`“${f}” ऐवजी “${t}” लिहा`,busy:"मराठीत भाषांतर होत आहे…",look:(pg,w)=>`बदल ${pg} वर आहे${w?`, ${w}`:""} — नेमक्या जागी खूण करता आली नाही; तिथे पहा.`,making:"चित्र तयार होत आहे…"}};
+const _ADV_LANG_SCHEMA={type:"object",additionalProperties:false,required:["items"],properties:{items:{type:"array",items:{type:"object",additionalProperties:false,
+  required:["id","remark","means","why","steps","wheres","note"],properties:{id:{type:"string"},remark:{type:"string"},means:{type:"string"},why:{type:"string"},
+  steps:{type:"array",items:{type:"string"}},wheres:{type:"array",items:{type:"string"}},note:{type:"string"}}}}}};
+function _advHash(s){ let h=0; s=String(s); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
+function _advTrKey(d){ const a=d.adv||{}; return _advHash(JSON.stringify([d.text,a.means,a.why,a.steps,(a.changes||[]).map(c=>c.where||""),d.advNote||""])); }
+function _advTr(d,lang){ const a=d.adv; if(!a||!a.tr||lang==="en") return null; const t=a.tr[lang]; return t&&t.h===_advTrKey(d)?t:null; }
+function _advLang(){ return _ADV_LANGS[window.__advLang]?window.__advLang:"en"; }
+async function _advLangGo(lang){ window.__advLang=_ADV_LANGS[lang]?lang:"en"; window.__advTrFail=null; if(lang==="en"||window.__advTrBusy){ _advRefresh(); return; }
+  const rec=_flRec(); const need=(rec.defects||[]).filter(d=>d.adv&&!_advTr(d,lang)); if(!need.length){ _advRefresh(); return; }
+  window.__advTrBusy=lang; _advRefresh();
+  try{ for(let k=0;k<need.length;k+=8){ const part=need.slice(k,k+8);
+      const items=part.map(d=>({id:d.id,remark:_flSentence(d.text),means:d.adv.means||"",why:d.adv.why||"",steps:d.adv.steps||[],wheres:(d.adv.changes||[]).map(c=>c.where||""),note:d.advNote||""}));
+      const job=`al_${_advFid(rec)}_${lang}_${_advHash(part.map(_advTrKey).join("."))}`;
+      const r=await _aiCall("advlang",job,[{type:"text",text:`Language: ${lang==="hi"?"Hindi":"Marathi"}\n\nThe advice (JSON):\n${JSON.stringify(items)}`}],_ADV_LANG_SCHEMA);
+      const R=_flRec(); ((r.json&&r.json.items)||[]).forEach(x=>{ const d=(R.defects||[]).find(z=>z.id===x.id); if(!d||!d.adv) return;
+        d.adv.tr=Object.assign({},d.adv.tr||{},{[lang]:{h:_advTrKey(d),rem:x.remark||"",means:x.means||"",why:x.why||"",steps:x.steps||[],wheres:x.wheres||[],note:x.note||""}}); });
+      _filingTouch(R); }
+    if((_flRec().defects||[]).some(d=>d.adv&&!_advTr(d,lang))) window.__advTrFail=lang; }   // something came back short: no automatic retry (a tap tries again)
+  catch(e){ window.__advTrFail=lang; window.__advLang="en"; toast(/Unknown AI task/i.test(e.message)?"Hindi and Marathi need the updated gatekeeper — the Head of Chamber must paste the new worker code.":e.message,true); }
+  window.__advTrBusy=null; _advRefresh(); }
 function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) return; const rec=_flRec(); const all=(rec.defects||[]).slice(); const owner=!isStaffView();
   const rounds=[...new Set(all.map(d=>d.round||1))].sort((a,b)=>b-a);
   const st=rec.adv||{}; const busy=st.status==="working"||st.status==="queued";
@@ -25208,26 +25243,32 @@ function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) r
       <div class="adv-tags">${a&&a.cat?`<i>${esc(_ADV_CAT[a.cat]||a.cat)}</i>`:""}${d.still?`<i class="warn">Still pending after refiling</i>`:""}<i class="st s-${s}">${esc(_DS_LAB[s]||s)}</i></div>`;
     if(!a) return `<div class="adv-c" id="adv_${d.id}">${head}<div class="adv-none">${d.kind==="note"?"For information only — nothing to cure.":d.still?"Advice was given in an earlier round (see below).":busy?"Advice is being prepared…":"No advice yet."}
       ${owner&&d.kind!=="note"&&!busy?` <button class="link-btn" onclick="_advMac('${d.id}')">Ask the Claude app (free)</button> · <button class="link-btn" onclick="_advAgain('${d.id}')">${d.still?"Advise again with AI credits":"Get advice"}</button>`:""}</div></div>`;
+    const L=_advLang(), T=_advTr(d,L), W=T?_ADV_L[L]:null;
     const acts=(a.actions||[]).map((x,j)=>`<button class="btn seal sm" onclick="_advAct('${d.id}',${j})">${esc(_advActLabel(x))}</button>`).join("");
-    const ch=(a.changes||[]).map((c,n)=>{ const pic=c.img?`<div class="adv-pair" data-img="${esc(c.img)}"><figure><figcaption>Before</figcaption><img alt="before" data-k="b"></figure><figure><figcaption>After</figcaption><img alt="after" data-k="a"></figure></div>`
-        :c.box&&c.box.how==="page"?`<div class="hint">The change is on ${esc(c.page)}${c.where?`, ${esc(c.where)}`:""} — the exact spot could not be marked; look there.</div>`:c.box?``:`<div class="hint">Picture being made…</div>`;
-      return `<div class="adv-ch"><div class="adv-cht"><b>${esc(c.page)}</b> — ${c.what==="remove"?`remove “${esc(c.find)}”`:c.what==="add"?`add “${esc(c.to)}”${c.find?` next to “${esc(c.find)}”`:""}`:`change “${esc(c.find)}” to “${esc(c.to)}”`}${c.where?` <span class="hint">(${esc(c.where)})</span>`:""}</div>${pic}
+    const ch=(a.changes||[]).map((c,n)=>{ const wh=T&&T.wheres[n]?T.wheres[n]:c.where;
+      const pic=c.img?`<div class="adv-pair" data-img="${esc(c.img)}"><figure><figcaption>${W?W.before:"Before"}</figcaption><img alt="before" data-k="b"></figure><figure><figcaption>${W?W.after:"After"}</figcaption><img alt="after" data-k="a"></figure></div>`
+        :c.box&&c.box.how==="page"?`<div class="hint">${W?W.look(esc(c.page),wh?esc(wh):""):`The change is on ${esc(c.page)}${wh?`, ${esc(wh)}`:""} — the exact spot could not be marked; look there.`}</div>`:c.box?``:`<div class="hint">${W?W.making:"Picture being made…"}</div>`;
+      const what=W?(c.what==="remove"?W.remove(esc(c.find)):c.what==="add"?W.add(esc(c.to),c.find?esc(c.find):""):W.repl(esc(c.find),esc(c.to)))
+        :c.what==="remove"?`remove “${esc(c.find)}”`:c.what==="add"?`add “${esc(c.to)}”${c.find?` next to “${esc(c.find)}”`:""}`:`change “${esc(c.find)}” to “${esc(c.to)}”`;
+      return `<div class="adv-ch"><div class="adv-cht"><b>${esc(c.page)}</b> — ${what}${wh?` <span class="hint">(${esc(wh)})</span>`:""}</div>${pic}
         <div class="adv-chb"><button class="btn ghost sm" onclick="_advOpenAt('${d.id}',${n})">✏️ Open at the spot</button>${owner?`<button class="btn ghost sm" onclick="_advOpenAt('${d.id}',${n},true)">Make this change</button>`:""}</div></div>`; }).join("");
     const ex=_advExamplesFor(a.cat);
-    return `<div class="adv-c${window.__advFocus===d.id?" focus":""}" id="adv_${d.id}">${head}
-      ${a.same?`<div class="adv-p">This is a remark about an earlier defect.</div>`:""}
-      <div class="adv-sec"><div class="adv-l">What it means</div><div class="adv-p">${esc(a.means)}</div></div>
-      ${a.why?`<div class="adv-sec"><div class="adv-l">Why the Registry asks</div><div class="adv-p">${esc(a.why)}</div></div>`:""}
-      <div class="adv-sec"><div class="adv-l">How to cure it${a.person?` <span class="adv-person">needs a person</span>`:""}</div><ol class="adv-steps">${(a.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>
-      ${ch?`<div class="adv-sec"><div class="adv-l">The change to make</div>${ch}</div>`:""}
-      ${ex.length?`<div class="adv-sec"><div class="adv-l">Example from this chamber</div><div class="adv-ex">${ex.map(e=>`<figure data-img="${esc(e.prev)}"><img alt="example" data-k="a"><figcaption>${esc(e.title)}</figcaption></figure>`).join("")}</div></div>`:""}
+    return `<div class="adv-c${window.__advFocus===d.id?" focus":""}" id="adv_${d.id}" lang="${T?L:"en"}">${head}${T&&T.rem?`<div class="adv-rem-tr">${esc(T.rem)}</div>`:""}
+      ${a.same?`<div class="adv-p">${W?W.earlier:"This is a remark about an earlier defect."}</div>`:""}
+      <div class="adv-sec"><div class="adv-l">${W?W.means:"What it means"}</div><div class="adv-p">${esc(T?T.means||a.means:a.means)}</div></div>
+      ${a.why?`<div class="adv-sec"><div class="adv-l">${W?W.why:"Why the Registry asks"}</div><div class="adv-p">${esc(T?T.why||a.why:a.why)}</div></div>`:""}
+      <div class="adv-sec"><div class="adv-l">${W?W.how:"How to cure it"}${a.person?` <span class="adv-person">${W?W.person:"needs a person"}</span>`:""}</div><ol class="adv-steps">${(a.steps||[]).map((x,i)=>`<li>${esc(T&&T.steps[i]?T.steps[i]:x)}</li>`).join("")}</ol></div>
+      ${ch?`<div class="adv-sec"><div class="adv-l">${W?W.change:"The change to make"}</div>${ch}</div>`:""}
+      ${ex.length?`<div class="adv-sec"><div class="adv-l">${W?W.example:"Example from this chamber"}</div><div class="adv-ex">${ex.map(e=>`<figure data-img="${esc(e.prev)}"><img alt="example" data-k="a"><figcaption>${esc(e.title)}</figcaption></figure>`).join("")}</div></div>`:""}
       ${acts?`<div class="adv-acts">${acts}</div>`:""}
-      ${d.advNote?`<div class="adv-note">Head of Chamber: ${esc(d.advNote)}</div>`:""}
+      ${d.advNote?`<div class="adv-note">Head of Chamber: ${esc(T&&T.note?T.note:d.advNote)}</div>`:""}
       ${owner?`<div class="adv-own"><button class="link-btn" onclick="_advMac('${d.id}')">Ask the Claude app again (free)</button> · <button class="link-btn" onclick="_advCorrect('${d.id}')">✎ Correct this advice</button>${d.status==="cured"&&(d.parts||[]).some(p=>p.cure)?` · <button class="link-btn" onclick="_advExampleSave('${d.id}')">⭐ Save this cure as an example</button>`:""} · <button class="link-btn" onclick="_advAgain('${d.id}')">Advise again</button></div>`:""}
     </div>`; };
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_advClose()" title="Close">✕</button><div class="pe-ttl"><b>Defect advice</b><span>${esc((rec.folder||"").split("/").pop())}${rec.diaryNo?` · Diary ${esc(rec.diaryNo)}/${esc(rec.diaryYear||"")}`:""}</span></div>
+      <div class="adv-lang" role="group" aria-label="Language">${Object.entries(_ADV_LANGS).map(([k,v])=>`<button class="${_advLang()===k?"on":""}" lang="${k}" onclick="_advLangGo('${k}')">${v}</button>`).join("")}</div>
       ${owner?`<button class="btn ghost sm" onclick="_aiSettingsAsk()">AI settings</button><button class="btn ghost sm" onclick="_advRulesAsk()">Standing rules</button>`:""}</div>
     <div class="rv-body">
+      ${window.__advTrBusy?`<div class="adv-busy">✨ ${_ADV_L[window.__advTrBusy].busy}</div>`:""}
       ${busy?`<div class="adv-busy">✨ Advice for ${st.n||""} new defect${st.n===1?"":"s"} is being prepared — it appears here by itself.</div>`:st.status==="error"?`<div class="adv-busy err">Advice could not be prepared: ${esc(st.err||"")} ${owner?`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`:""}</div>`:""}
       ${rounds.map((r,ri)=>{ const xs=all.filter(d=>(d.round||1)===r).sort((a,b)=>(a.adv?0:1)-(b.adv?0:1)||(+a.no)-(+b.no));
         const inner=xs.map(card).join(""); const lab=`Round ${r}${r===1?" — first defect list":" — after refiling"} · ${xs.length} defect${xs.length===1?"":"s"}`;
@@ -25235,6 +25276,7 @@ function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) r
       <div class="adv-foot" id="advUse"></div>
     </div>`;
   _advImgs(ov);
+  { const L=_advLang(); if(L!=="en"&&!window.__advTrBusy&&window.__advTrFail!==L&&all.some(d=>d.adv&&!_advTr(d,L))) setTimeout(()=>_advLangGo(L),0); }
   if(window.__advFocus){ const el=document.getElementById("adv_"+window.__advFocus); if(el) setTimeout(()=>el.scrollIntoView({block:"start"}),30); window.__advFocus=null; } }
 async function _advImgs(root){ const rec=_flRec(); const sd=rec.chamber==="SD"; window.__advImg=window.__advImg||{};
   for(const box of root.querySelectorAll("[data-img]")){ const key=box.dataset.img; let p=window.__advImg[key];
@@ -25343,7 +25385,7 @@ function _advBarHTML(rec){ const st=rec.adv||{}; const n=(rec.defects||[]).filte
   if(st.status==="off") return isStaffView()?"":`<div class="adv-bar">💡 AI advice on these defects will appear here once AI is switched on (gatekeeper update + API key). <button class="link-btn" onclick="_flRec().adv=null;_advAuto(_filingFolderRel())">Check again</button></div>`;
   if(st.status==="error") return `<div class="adv-bar err">Advice could not be prepared: ${esc(st.err||"")} ${isStaffView()?"":`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`}</div>`;
   return n?`<div class="adv-bar">💡 Advice on how to cure ${n} defect${n===1?"":"s"} <button class="btn seal sm" onclick="_advOpen()">Open advice</button></div>`:""; }
-try{ Object.assign(window,{_advActs,_advAddSpot,_advRefresh,_advAct,_advActLabel,_advAgain,_advAuto,_advCheck,_advClose,_advCorrect,_advDrawPair,_advExampleSave,_advExamplesFor,_advFid,_advFindText,_advImgs,_advLocate,_advOpen,_advOpenAt,_advPageImg,_advPageOf,_advPart,_advPictures,_advPid,_advRender,_advRulesAsk,_advRulesSave,_advTodo,_advTypeGo,_advTypedPdf,_advUsage,_aiCall,_defEnsurePart,_peSaveAdv,_advBarHTML}); }catch(e){}
+try{ Object.assign(window,{_advLangGo,_advTr,_advTrKey,_advLang,_advActs,_advAddSpot,_advRefresh,_advAct,_advActLabel,_advAgain,_advAuto,_advCheck,_advClose,_advCorrect,_advDrawPair,_advExampleSave,_advExamplesFor,_advFid,_advFindText,_advImgs,_advLocate,_advOpen,_advOpenAt,_advPageImg,_advPageOf,_advPart,_advPictures,_advPid,_advRender,_advRulesAsk,_advRulesSave,_advTodo,_advTypeGo,_advTypedPdf,_advUsage,_aiCall,_defEnsurePart,_peSaveAdv,_advBarHTML}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -29056,7 +29098,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2200";
+  window.APP_VERSION = "2026.10.24-2300";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
