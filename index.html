@@ -21836,7 +21836,7 @@ async function _defTrueCopyGo(did,pid){
     const name=await _uploadPaper(_filingFolderRel()+"/"+`5.${_stageNext(5,_currentNames())} True Copy ${_fnSafe(p.label)}.pdf`,blob,(g,t)=>_progressSet(null,0.85+0.15*g/t));
     if(idx.length<all.idx.length){ if(!p.pagesOrig) p.pagesOrig=p.pages; p.pages=idx.map(i=>ctx.labelOf[i]||("p"+(i+1))).join(", "); }   // only these pages are refiled
     else if(p.pagesOrig){ p.pages=p.pagesOrig; delete p.pagesOrig; }
-    await _cureAdopt(rec,d,p,{file:name,pages:"all",how:"stamp"});
+    await _cureAdopt(rec,d,p,{file:name,pages:"all",how:"stamp"}); _advRefresh();
     closeModal(); _blobReady(blob,name,(idx.length===1?"Sign above TRUE COPY on the page.":"Sign above TRUE COPY on each page.")+" If you sign on paper, scan it back with Rescan; if you sign in a PDF app, keep the same file name.");
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); }
@@ -22049,7 +22049,7 @@ async function _defAttachGo(did,pid){
 function _defRescan(did,pid){
   const {d,p}=_defFind(did,pid); if(!p||!_cureBusyOK(p)) return;
   const mode=p.whole?"replace":_defDefaultMode(d);
-  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added ":"Better copy ")+_fnSafe(p.label), onDone:name=>{ const x=_defFind(did,pid); if(x.p){ _cureAdopt(x.rec,x.d,x.p,{file:name,pages:"all",how:"scan",mode}).then(()=>renderFilesPage()); } }});
+  _scanOpen({stage:5, title:(p.whole?"Fresh ":mode==="add"?"Added ":"Better copy ")+_fnSafe(p.label), onDone:name=>{ const x=_defFind(did,pid); if(x.p){ _cureAdopt(x.rec,x.d,x.p,{file:name,pages:"all",how:"scan",mode}).then(()=>{ renderFilesPage(); _advRefresh(); }); } }});
 }
 function _blobReady(blob,name,note,dlName){
   window.__readyBlob={blob,name,dl:dlName||name};
@@ -24072,7 +24072,8 @@ function _peFocusApply(f){ if(!_pe) return; if(f.number){ setTimeout(_peNumberAs
     const main=document.getElementById("peMain"), r=P.wrap.getBoundingClientRect(), mr=main.getBoundingClientRect(); if(!P.rot) main.scrollTop+=r.top-mr.top+f.box.y*P.s-mr.height*0.35; }
   const c=f.apply; if(c&&f.box){ const b=f.box, ids=[];
     _peChange(()=>{ if(c.what!=="add"){ const w={id:_peId(),p:P.e.id,t:"white",rect:{x:b.x-0.5,y:b.y-0.5,w:b.w+1,h:b.h+1}}; _pe.ops.push(w); ids.push(w.id); }
-      if(c.to){ const size=Math.max(7,Math.min(16,+(b.h*0.86).toFixed(1))); const tx={id:_peId(),p:P.e.id,t:"text",x:b.x,y:b.y+b.h*0.8,size,font:"T",b:false,i:false,c:"#000000",al:"l",w:null,str:c.to}; tx.lines=_peLines(tx); _pe.ops.push(tx); ids.push(tx.id); } });
+      if(c.to){ const size=Math.max(7,Math.min(16,+(b.h*0.86).toFixed(1))); const sp=c.what==="add"?_advAddSpot(b,c,_peDim(P).W,size):{x:b.x,y:b.y,b:false};
+        const tx={id:_peId(),p:P.e.id,t:"text",x:sp.x,y:sp.y+b.h*0.8,size,font:"T",b:!!sp.b,i:false,c:"#000000",al:"l",w:null,str:c.to}; tx.lines=_peLines(tx); _pe.ops.push(tx); ids.push(tx.id); } });
     _peTool("select"); _pe.sel=new Set(ids); _peDrawOps(); _peOptsDraw(); toast("The change is in — check it, move it if needed, then Save."); }
   else if(f.box) _peTool(P.segs&&P.segs.length?"edit":"white"); }
 /* ---- pages on screen: drawn only when near the screen, dropped when far (iPad canvas memory) ---- */
@@ -24956,7 +24957,7 @@ function _peClose(force){ if(!_pe) return; _peTextDone(); _peCommitInput();
   if(_pe.did&&_pe.pid) _cureMark(_pe.did,_pe.pid,false);
   _peMenuClose(); document.removeEventListener("keydown",_peKey); (_pe._off||[]).forEach(f=>{ try{ f(); }catch(e){} }); if(_pe.tio) _pe.tio.disconnect(); if(_pe.gio) _pe.gio.disconnect();
   (_pe.pages||[]).forEach(P=>{ P.dead=true; _peDrop(P); }); Object.values(_pe.imgs||{}).forEach(im=>{ try{ URL.revokeObjectURL(im.url); }catch(e){} });
-  window.__peSig=null; _peUnzoomPage(); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show","pe-org"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; }
+  window.__peSig=null; _peUnzoomPage(); const ov=document.getElementById("peOverlay"); if(ov){ ov.classList.remove("show","pe-org"); ov.innerHTML=""; } document.body.style.overflow=""; _pe=null; setTimeout(_advRefresh,0); }
 /* every defect: Edit pages or Add cured document — a general defect (no part yet) gets a part on first use */
 function _defGenPart(did, then){ const {rec,d}=_defFind(did); if(!d) return; let p=(d.parts||[])[0];
   if(!p){ p={id:uid(),key:"gen",label:"Cured document",pages:"",cure:null,whole:false}; d.parts=[p]; if(d.kind==="general") d.kind="pages"; _filingTouch(rec); }
@@ -25125,7 +25126,7 @@ async function _advAuto(rel,force,opt){ try{
     if(_inFiling()) renderFilesPage(); if(!off) toast("Advice could not be prepared: "+e.message,true); return; }
   const r=R(); if(!r) return; const got=(res.json&&res.json.defects)||[]; let n=0;
   got.forEach(a=>{ const d=(r.defects||[]).find(x=>x.id===a.id); if(!d) return; n++;
-    d.adv={cat:a.category,means:a.means,why:a.why,steps:a.steps||[],person:!!a.person_only,same:a.same_as||"",actions:(a.actions||[]).slice(0,3),
+    d.adv={cat:a.category,means:a.means,why:a.why,steps:a.steps||[],person:!!a.person_only,same:a.same_as||"",actions:_advActs(d,a.actions,a.person_only?"person":a.category),
       changes:(a.changes||[]).slice(0,6).map(c=>Object.assign({},c,{i:_advPageOf(c.page,ctx)})),at:new Date().toISOString(),model:res.model}; });
   r.adv={status:"ready",at:new Date().toISOString(),n,usd:res.usd,round:maxR}; _filingTouch(r); if(_inFiling()) renderFilesPage();
   toast(`Advice ready for ${n} defect${n===1?"":"s"}.`);
@@ -25152,12 +25153,18 @@ async function _advLocate(ctx,i,c){ const im=await _advPageImg(ctx,i,1000,true);
   try{ const v=await _aiCall("verify","",[{type:"text",text:`Item: ${what}.`},{type:"image",source:{type:"base64",media_type:"image/jpeg",data:cut.toDataURL("image/jpeg",0.85).split(",")[1]}}],_ADV_VER_SCHEMA);
     if(!(v.json&&v.json.match)) return {x:0,y:0,w:im.w,h:im.h,how:"page"}; }catch(e){ b.how="ai?"; }
   return b; }
+// where an advised "add" goes (owner, 24 Oct): after the found text, or below / above it as "where" says — never on top of it;
+// centred on the page when "where" says centred, in bold when it says bold. No "find" = the box is the empty spot itself.
+function _advAddSpot(box,c,pw,size){ const wh=String(c.where||""), b=/\bbold\b/i.test(wh), mid=/cent(er|re)|middle/i.test(wh), tw=_peMeasure(c.to||"",size,b,"T");
+  let pos=!c.find?"in":/below|under|beneath|new line|next line/i.test(wh)?"below":/above/i.test(wh)?"above":"after";
+  if(pos==="after"&&(mid||box.x+box.w+4+tw>pw)) pos="below";
+  const y=pos==="below"?box.y+box.h+2:pos==="above"?Math.max(0,box.y-box.h-2):box.y;
+  const x=mid?Math.max(0,(pw-tw)/2):pos==="after"?box.x+box.w+4:box.x;
+  return {x,y,w:tw,h:box.h,b}; }
 function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the page: before (red box) and after (made with white-out + text)
   const pw=full.width/sc, ph=full.height/sc;
   // "add" next to found text: the new words go after it (or below / above, as "where" says) — never on top of it (24 Oct, Anupriya test)
-  let tb=box; if(c.what==="add"&&c.find&&c.to){ const tw0=_peMeasure(c.to,box.h*0.82,false,"T"), wh=String(c.where||"");
-    let pos=/below|under|beneath|new line|next line/i.test(wh)?"below":/above/i.test(wh)?"above":"after"; if(pos==="after"&&box.x+box.w+4+tw0>pw) pos="below";
-    tb=pos==="below"?{x:box.x,y:box.y+box.h+2,w:tw0,h:box.h}:pos==="above"?{x:box.x,y:Math.max(0,box.y-box.h-2),w:tw0,h:box.h}:{x:box.x+box.w+4,y:box.y,w:tw0,h:box.h}; }
+  let tb=box; if(c.what==="add"&&c.to){ const sp=_advAddSpot(box,c,pw,box.h*0.82); if(sp.x!==box.x||sp.y!==box.y||sp.b) tb=sp; }
   const ub={x:Math.min(box.x,tb.x),y:Math.min(box.y,tb.y)}; ub.w=Math.max(box.x+box.w,tb.x+tb.w)-ub.x; ub.h=Math.max(box.y+box.h,tb.y+tb.h)-ub.y;
   // a close-up around the place: wide enough to see where it is, tight enough to read it
   const cw=Math.min(pw,Math.max(150,ub.w*3,box.w*5,(c.to?_peMeasure(c.to,box.h,false,"T"):0)*2.2)), chh=Math.min(ph,Math.max(56,ub.h*2.6,box.h*4.2));
@@ -25168,7 +25175,7 @@ function _advDrawPair(full,sc,box,c){ // two cut-outs of the same band of the pa
     const bx=X(box.x)-3, byy=Y(box.y)-3, bw=box.w*sc*k+6, bh=box.h*sc*k+6;
     if(!after){ g.strokeStyle="#d11a1a"; g.lineWidth=3; g.strokeRect(bx,byy,bw,bh); }
     else{ if(c.what!=="add"){ g.fillStyle="#fff"; g.fillRect(X(box.x)-1,Y(box.y)-1,box.w*sc*k+2,box.h*sc*k+2); }
-      let tw=0, fs=0; if(c.to){ fs=Math.max(8,tb.h*sc*k*0.82); g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; const maxW=tb!==box?c2.width-X(tb.x)-4:Math.max(box.w*sc*k*1.6,60); if(tw>maxW&&maxW>20){ fs=fs*maxW/tw; g.font=`${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; }
+      const bf=tb.b?"bold ":""; let tw=0, fs=0; if(c.to){ fs=Math.max(8,tb.h*sc*k*0.82); g.font=`${bf}${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; const maxW=tb!==box?c2.width-X(tb.x)-4:Math.max(box.w*sc*k*1.6,60); if(tw>maxW&&maxW>20){ fs=fs*maxW/tw; g.font=`${bf}${fs}px "Times New Roman",Times,serif`; tw=g.measureText(c.to).width; }
         g.fillStyle="#000"; g.textBaseline="alphabetic"; g.fillText(c.to,X(tb.x),Y(tb.y)+tb.h*sc*k*0.82); }
       g.strokeStyle="#1e7d32"; g.lineWidth=3; if(tb!==box) g.strokeRect(X(tb.x)-3,Y(tb.y)-3,Math.max(tb.w*sc*k,tw)+6,tb.h*sc*k+6); else g.strokeRect(bx,byy,Math.max(bw,tw+6),bh); }
     return c2.toDataURL("image/jpeg",0.8); };
@@ -25189,6 +25196,9 @@ async function _advPictures(rel,ids){ try{
 /* 3 · the Advice page — for staff and the Head of Chamber */
 function _advOpen(focusId){ let ov=document.getElementById("advOverlay"); if(!ov){ ov=document.createElement("div"); ov.id="advOverlay"; document.body.appendChild(ov); }
   window.__advFocus=focusId||null; ov.classList.add("show"); document.body.style.overflow="hidden"; _advRender(); _advUsage(); }
+// back on the Advice page after the editor / scanner / a stamp: show the new state, same place on the page
+function _advRefresh(){ const ov=document.getElementById("advOverlay"); if(!ov||!ov.classList.contains("show")) return;
+  const b=ov.querySelector(".rv-body"), y=b?b.scrollTop:0; document.body.style.overflow="hidden"; _advRender(); _advUsage(); const b2=ov.querySelector(".rv-body"); if(b2) b2.scrollTop=y; }
 function _advClose(){ const ov=document.getElementById("advOverlay"); if(ov){ ov.classList.remove("show"); ov.innerHTML=""; } document.body.style.overflow=""; }
 function _advRender(){ const ov=document.getElementById("advOverlay"); if(!ov) return; const rec=_flRec(); const all=(rec.defects||[]).slice(); const owner=!isStaffView();
   const rounds=[...new Set(all.map(d=>d.round||1))].sort((a,b)=>b-a);
@@ -25235,22 +25245,28 @@ async function _advUsage(){ const el=document.getElementById("advUse"); if(!el) 
     el.textContent=isStaffView()?`Your typing / translation pages today: ${u.pagesToday||0} of ${u.limits.pagesDay}.`
       :`AI this month: $${u.total.toFixed(2)} of $${u.limits.total} · staff $${(u.staff||0).toFixed(2)} of $${u.limits.staff}.`; }catch(e){} }
 function _advActLabel(x){ const doc=x.doc?" "+x.doc:""; return x.label||({type_out:"Type out"+doc,translate:"Translate"+doc,rescan:"Rescan"+doc,open_page:"Open the page",stamp_true_copy:"Stamp TRUE COPY",number_pages:"Number the pages"}[x.kind]||x.kind); }
+// a better copy may not be available (owner, 24 Oct): a "better copy" defect always offers a typed copy of each of its documents too
+// (not when only a person can cure it — a vakalatnama or affidavit needs the signed original, a typed copy is no cure)
+function _advActs(d,list,cat){ const a=(list||[]).slice(0,3); if(cat==="person"||(cat!=="illegible"&&!a.some(x=>x.kind==="rescan"))) return a;
+  (d.parts||[]).slice(0,3).forEach(p=>{ const k=String(p.label||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(!a.some(x=>x.kind==="type_out"&&String(x.doc||"").toUpperCase().replace(/[^A-Z0-9]/g,"")===k)) a.push({kind:"type_out",label:"No better copy? Type out "+p.label,pages:[],doc:p.label}); });
+  return a.slice(0,6); }
 function _advPart(d,x){ const ps=d.parts||[]; if(!ps.length) return null; const want=String((x&&x.doc)||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
   return ps.find(p=>want&&String(p.label).toUpperCase().replace(/[^A-Z0-9]/g,"").indexOf(want)>=0)||ps[0]; }
 async function _advAct(did,j){ const {d}=_defFind(did); if(!d||!d.adv) return; const x=d.adv.actions[j]; if(!x) return;
   _defEnsurePart(did); const p=_advPart(_defFind(did).d,x);
   if(x.kind==="type_out"||x.kind==="translate") return _advTypeGo(did,p&&p.id,x);
-  if(x.kind==="rescan"){ _advClose(); return _defRescan(did,p.id); }
-  if(x.kind==="stamp_true_copy"){ _advClose(); return _defTrueCopy(did,p.id); }
+  if(x.kind==="rescan") return _defRescan(did,p.id);            // opens on top of the Advice page; closing it lands back here (owner, 24 Oct)
+  if(x.kind==="stamp_true_copy") return _defTrueCopy(did,p.id);
   if(x.kind==="open_page"||x.kind==="number_pages"){ const ctx=await _flLoadCtx(); let idx=(x.pages||[]).map(s=>_advPageOf(s,ctx)).filter(i=>i>=0);
     if(!idx.length&&p){ try{ idx=_resolvePart(p,ctx).idx; }catch(e){} } if(!idx.length){ toast("Those pages are not in the filing copy.",true); return; }
-    _advClose(); _peStart({did,pid:p.id,ctx,idx:[...new Set(idx)].sort((a,b)=>a-b),label:p.label,prev:p.cure&&p.cure.edit,focus:{number:x.kind==="number_pages"}}); } }
+    _peStart({did,pid:p.id,ctx,idx:[...new Set(idx)].sort((a,b)=>a-b),label:p.label,prev:p.cure&&p.cure.edit,focus:{number:x.kind==="number_pages"}}); } }
 // open the editor on the page with the place marked; "make this change" (Head of Chamber) also puts the change in, ready to check and save
 async function _advOpenAt(did,n,apply){ const {d}=_defFind(did); if(!d||!d.adv) return; const c=d.adv.changes[n]; if(!c) return; const ctx=await _flLoadCtx();
   if(c.i==null||c.i<0){ toast("That page is not in the filing copy.",true); return; }
   _defEnsurePart(did); const D=_defFind(did).d; const p=_advPart(D,null);
   let idx=[]; try{ idx=_resolvePart(p,ctx).idx; }catch(e){} if(idx.indexOf(c.i)<0) idx=[c.i];
-  _advClose(); _peStart({did,pid:p.id,ctx,idx,label:p.label,prev:p.cure&&p.cure.edit,focus:{i:c.i,box:c.box&&c.box.how!=="page"&&c.box.how!=="none"?c.box:null,apply:apply?c:null}}); }
+  _peStart({did,pid:p.id,ctx,idx,label:p.label,prev:p.cure&&p.cure.edit,focus:{i:c.i,box:c.box&&c.box.how!=="page"&&c.box.how!=="none"?c.box:null,apply:apply?c:null}}); }
 /* typing out / translating pages: one page at a time, each a short request; the draft opens in the editor to be checked */
 async function _advTypeGo(did,pid,x){ const {d,p}=_defFind(did,pid); if(!p){ toast("Add the document first.",true); return; }
   const ctx=await _flLoadCtx(); let idx=(x.pages||[]).map(s=>_advPageOf(s,ctx)).filter(i=>i>=0); if(!idx.length){ try{ idx=_resolvePart(p,ctx).idx; }catch(e){} }
@@ -25327,7 +25343,7 @@ function _advBarHTML(rec){ const st=rec.adv||{}; const n=(rec.defects||[]).filte
   if(st.status==="off") return isStaffView()?"":`<div class="adv-bar">💡 AI advice on these defects will appear here once AI is switched on (gatekeeper update + API key). <button class="link-btn" onclick="_flRec().adv=null;_advAuto(_filingFolderRel())">Check again</button></div>`;
   if(st.status==="error") return `<div class="adv-bar err">Advice could not be prepared: ${esc(st.err||"")} ${isStaffView()?"":`<button class="link-btn" onclick="_advAuto(_filingFolderRel())">Try again</button>`}</div>`;
   return n?`<div class="adv-bar">💡 Advice on how to cure ${n} defect${n===1?"":"s"} <button class="btn seal sm" onclick="_advOpen()">Open advice</button></div>`:""; }
-try{ Object.assign(window,{_advAct,_advActLabel,_advAgain,_advAuto,_advCheck,_advClose,_advCorrect,_advDrawPair,_advExampleSave,_advExamplesFor,_advFid,_advFindText,_advImgs,_advLocate,_advOpen,_advOpenAt,_advPageImg,_advPageOf,_advPart,_advPictures,_advPid,_advRender,_advRulesAsk,_advRulesSave,_advTodo,_advTypeGo,_advTypedPdf,_advUsage,_aiCall,_defEnsurePart,_peSaveAdv,_advBarHTML}); }catch(e){}
+try{ Object.assign(window,{_advActs,_advAddSpot,_advRefresh,_advAct,_advActLabel,_advAgain,_advAuto,_advCheck,_advClose,_advCorrect,_advDrawPair,_advExampleSave,_advExamplesFor,_advFid,_advFindText,_advImgs,_advLocate,_advOpen,_advOpenAt,_advPageImg,_advPageOf,_advPart,_advPictures,_advPid,_advRender,_advRulesAsk,_advRulesSave,_advTodo,_advTypeGo,_advTypedPdf,_advUsage,_aiCall,_defEnsurePart,_peSaveAdv,_advBarHTML}); }catch(e){}
 /* ---------- tidy row actions (one ⋯ menu) and Select-many (owner's request, Oct 2026) ---------- */
 window.__fvSel=window.__fvSel||{on:false,set:new Set(),meta:{}};
 function _fvSelOn(v){ __fvSel.on=!!v; __fvSel.set=new Set(); __fvSel.meta={}; _fvMenuClose(); if(_inFiling()) renderFilesPage(); else { renderFilesPage(); } _fvSelBar(); }
@@ -25413,7 +25429,7 @@ async function _rvOpen(){
   const lab=i=>ctx.labelOf[i]||("PDF "+(i+1));
   ov.innerHTML=`<div class="pe-top"><button class="pe-ib" onclick="_rvClose()" title="Close">✕</button>
       <div class="pe-ttl"><b>Review the defect pages</b><span>${esc(_fv.title||"")}${rec.diaryNo?" · Diary "+esc(rec.diaryNo+"/"+rec.diaryYear):""}${last?" · "+esc(last.dl||last.file)+(last.pages?" · "+last.pages+" pages":""):""}</span></div>
-      ${owner?`<button class="btn ghost sm" onclick="_aiCheckAllAsk()">✨ Check all with AI</button>`:""}${owner&&waiting?`<button class="btn ghost sm" onclick="_rvClose();_refBackAsk()">Send back</button><button class="btn seal sm" onclick="_rvClose();_refApprove()">✓ Approve for filing</button>`:""}</div>
+      ${owner?`<button class="btn ghost sm" onclick="_aiCheckAllAsk()">✨ Check all with AI</button>`:""}${owner&&waiting?`<button class="btn ghost sm" onclick="_refBackAsk()">Send back</button><button class="btn seal sm" onclick="_refApprove()">✓ Approve for filing</button>`:""}</div>
     <div class="rv-body" id="rvBody">${sections.map(S=>{ const d=S.d;
       const pages=S.items.map(it=>{
         if(it.err) return `<div class="rv-err">${esc(it.p.label)}: ${esc(it.err)}</div>`;
@@ -25481,7 +25497,7 @@ function _refApprove(){
   if(isStaffView()){ toast("Only the Head of Chamber can give the final approval.",true); return; }
   const rec=_flRec(); const last=(rec.refilings||[]).slice(-1)[0]; if(!last) return;
   if(!confirm(`Approve "${last.dl||last.file}" (${last.pages||"?"} pages) for filing?`)) return;
-  last.ok={by:headLabel(), at:new Date().toISOString()}; delete last.back; _filingTouch(rec); toast("Approved — the defect pages can now be filed."); renderFilesPage();
+  last.ok={by:headLabel(), at:new Date().toISOString()}; delete last.back; _filingTouch(rec); _rvClose(); toast("Approved — the defect pages can now be filed."); renderFilesPage();
 }
 function _refSignedAsk(){
   openModal("Upload the signed copy", `<div class="hint" style="margin-bottom:8px">The defect pages after signing — a scan, or the PDF signed digitally. It is saved as <b>Final Defect Pages</b>.</div>
@@ -25515,7 +25531,7 @@ function _refBackGo(){
   if(isStaffView()) return;
   const v=((document.getElementById("refBack")||{}).value||"").trim(); if(!v){ toast("Say what needs fixing.",true); return; }
   const rec=_flRec(); const last=(rec.refilings||[]).slice(-1)[0]; if(!last) return;
-  last.back={by:headLabel(), at:new Date().toISOString(), note:v}; _filingTouch(rec); closeModal(); toast("Sent back to staff."); renderFilesPage();
+  last.back={by:headLabel(), at:new Date().toISOString(), note:v}; _filingTouch(rec); closeModal(); _rvClose(); toast("Sent back to staff."); renderFilesPage();
 }
 /* ---------- AI clerk (Oct 2026): Claude on the owner's Mac cures the defect pages IN THE PDF ----------
    "Cure with AI" sets defects[i].ai.status="queued". The scheduled Claude task (helper/defect_clerk.py +
@@ -29040,7 +29056,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2100";
+  window.APP_VERSION = "2026.10.24-2200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
