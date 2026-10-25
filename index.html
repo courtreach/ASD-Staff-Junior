@@ -267,6 +267,7 @@
   /* Above the overlay panels (registers/forms sit at 8500–8700), so a menu opened
      from inside one appears ON TOP of it instead of behind. Still below the blocking
      system overlays: cloud/access gates (9000–9200), the lock screen and toasts. */
+  .fv-chk{flex:none;align-self:center;font-size:12px;color:var(--muted);margin-right:8px;white-space:nowrap} .fv-chk[hidden]{display:none}
   .modal-bg{position:fixed;inset:0;background:rgba(26,26,24,.42);display:none;
     place-items:center;z-index:8800;padding:18px}
   .modal-bg.show{display:grid}
@@ -19824,9 +19825,23 @@ function _staleNote(it,d){
   const when=d.modified?(" (online copy saved "+new Date(d.modified).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})+")"):"";
   return "This may be an OLDER version: your Mac has a different copy that OneDrive hasn't uploaded yet"+when+".";
 }
-async function _paperBlob(it, onProgress){
+// OneDrive's download address for a paper, remembered for 5 minutes: preview, then Share or Download, asks OneDrive once
+const _dlMemo={};
+async function _dlurl(path){ const m=_dlMemo[path]; if(m&&Date.now()-m.t<5*60e3) return m.d; const d=await _gk("/api/dlurl",{path}); _dlMemo[path]={d,t:Date.now()}; return d; }
+function _pcVerOf(d){ return d?((d.etag||"")+"|"+(d.modified||"")+"|"+(+d.size||0)):""; }
+// the newest copy of this paper already on this device, whatever its version
+async function _pcAny(it){ try{ if(!window.caches) return null; const pre="https://papers.asdc.invalid/"+encodeURIComponent(it.path)+"?v=";
+  const e=_pcIdx().filter(x=>x.k.indexOf(pre)===0).sort((a,b)=>b.t-a.t)[0]; if(!e) return null;
+  const ver=decodeURIComponent(e.k.slice(pre.length)); const b=await _pcGet(it,ver); return b?{blob:b,ver}:null; }catch(e){ return null; } }
+// behind a copy shown from this device: is it still the newest? If OneDrive has a newer one, fetch it, keep it, tell the caller
+function _paperFresh(it,ver,onNewer){ (async()=>{ try{ const d=await _dlurl(it.path); it._stale=_staleNote(it,d); const v2=_pcVerOf(d); if(!v2||v2===ver) return;
+  const b=await _paperBlobFetch(it,null,d); await _pcPut(it,b,v2); onNewer&&onNewer(b); }catch(e){} })(); }
+// opt.fast (viewing only): a copy already on this device is shown at once and checked behind; Share / Download wait for the check
+async function _paperBlob(it, onProgress, opt){
+  opt=opt||{};
+  if(opt.fast){ const any=await _pcAny(it); if(any){ onProgress&&onProgress(any.blob.size,any.blob.size); _paperFresh(it,any.ver,opt.onNewer); return any.blob; } }
   let d=null;
-  try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
+  try{ d=await _dlurl(it.path); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
   const ver=d?((d.etag||"")+"|"+(d.modified||"")+"|"+(+d.size||0)):"";
   it._stale=_staleNote(it,d);
   const hit=await _pcGet(it,ver); if(hit){ onProgress&&onProgress(hit.size,hit.size); return hit; }
@@ -19836,7 +19851,7 @@ async function _paperBlobFetch(it, onProgress, pre){
   const _t0=performance.now(); try{ const b=await _paperBlobFetch2(it,onProgress,pre); try{ _spdAdd("download","paper",performance.now()-_t0,{kb:Math.round(((b&&b.size)||0)/1024)}); }catch(e){} return b; }catch(e){ throw e; } }
 async function _paperBlobFetch2(it, onProgress, pre){
   let d=pre||null;
-  if(!d){ try{ d=await _gk("/api/dlurl",{path:it.path}); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; } }
+  if(!d){ try{ d=await _dlurl(it.path); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; } }
   if(d&&d.url){
     const r=await fetch(d.url);
     if(!r.ok) throw new Error("Microsoft did not send the file ("+r.status+").");
@@ -19901,7 +19916,8 @@ async function _paperOpen(k){
     }
     // PDFs & images: the WHOLE file, downloaded straight from Microsoft, shown in the browser's own viewer.
     const mb=b=>(b/1048576).toFixed(1);
-    const blob=await _paperBlob(it,(got,total)=>{ try{ const el=win&&win.document.getElementById("dlp"); if(el) el.textContent=total?("Downloading "+mb(got)+" of "+mb(total)+" MB…"):("Downloading "+mb(got)+" MB…"); }catch(e){} });
+    const blob=await _paperBlob(it,(got,total)=>{ try{ const el=win&&win.document.getElementById("dlp"); if(el) el.textContent=total?("Downloading "+mb(got)+" of "+mb(total)+" MB…"):("Downloading "+mb(got)+" MB…"); }catch(e){} },
+      {fast:true,onNewer:b=>{ if(win&&!win.closed){ _blobOpenIn(win,b,b._name||it.name); toast("A newer copy was in OneDrive — showing it."); } }});
     if(it._stale && win && !win.closed){
       // Keep the warning visible: show it above the document instead of navigating straight to it.
       const url=URL.createObjectURL(blob);
@@ -20100,23 +20116,63 @@ function openFiles(serial, q, sub, view){
   }else openSub("files");
   _filesLoad();
 }
+/* ---------- folders open at once (owner, 25 Oct 2026: "that four or five seconds delay is enough for me to look elsewhere") ----------
+   Every folder list the app has seen is kept on this device (Cache Storage "asdc-papers-lists", which an app update keeps).
+   Opening a folder shows that list at once and asks OneDrive / the index quietly behind it; new or changed papers slot in
+   when the answer comes. Lists are kept per signed-in person, so one person's lists are never shown to another. */
+const _LC_NAME="asdc-papers-lists-v1";
+window.__fvMem=window.__fvMem||{};
+function _lcUrl(key){ return "https://lists.asdc.invalid/"+encodeURIComponent(((window.FB&&FB.uid&&FB.uid())||"x")+"|"+key); }
+async function _lcGet(key){ try{ if(!window.caches) return null; const c=await caches.open(_LC_NAME); const r=await c.match(_lcUrl(key)); return r?await r.json():null; }catch(e){ return null; } }
+async function _lcPut(key,val){ try{ if(!window.caches||!val) return; const c=await caches.open(_LC_NAME); await c.put(_lcUrl(key),new Response(JSON.stringify(val),{headers:{"Content-Type":"application/json"}})); }catch(e){} }
+function _fvKey(f){ const path=f.folder+(f.sub?"/"+f.sub:""); return (!isStaffView()&&!f.sub)?"idx:"+f.serial:"live:"+path; }
+// a fresh list arrived while the person is typing in the search box: redraw only the list, never the box (it keeps focus)
+function _fvRedraw(){ const q=document.getElementById("fvQ"); if(q&&document.activeElement===q&&!_inFiling()){ _fvRenderList(); _fvChkMark(); } else renderFilesPage(); }
+function _fvChkMark(){ const el=document.getElementById("fvChk"); if(el) el.hidden=!(_fv&&_fv.checking); }
 function _filesLoad(){
   if(window.__fvSel&&__fvSel.on){ __fvSel.on=false; __fvSel.set=new Set(); try{ _fvSelBar(); }catch(e){} }
-  const f=_fv; f.loading=true; f.err=""; renderFilesPage();
-  const path=f.folder+(f.sub?"/"+f.sub:"");
-  const done=fx=>{ if(_fv!==f) return; f.idx=fx; f.loading=false; f.title=f.title||(fx&&fx.title)||""; renderFilesPage(); };
-  const fail=msg=>{ if(_fv!==f) return; f.loading=false; f.err=msg; renderFilesPage(); };
+  const f=_fv; const path=f.folder+(f.sub?"/"+f.sub:""), key=_fvKey(f);
+  let shown=null, fresh=false;
+  // fromCache: what this device saw before (shown at once, still being checked) — or the newest answer
+  const done=(fx,fromCache)=>{ if(_fv!==f||(fromCache&&fresh)) return; if(!fromCache){ fresh=true; window.__fvMem[key]=fx; _lcPut(key,fx); }
+    const js=JSON.stringify(fx||null); f.checking=!!fromCache;
+    if(js===shown){ _fvChkMark(); return; } const first=shown===null; shown=js;
+    f.idx=fx; f.loading=false; f.err=""; f.title=f.title||(fx&&fx.title)||""; first?renderFilesPage():_fvRedraw(); };
+  const fail=msg=>{ if(_fv!==f) return; f.checking=false; if(f.idx){ _fvChkMark(); return; } f.loading=false; f.err=msg; renderFilesPage(); };
   const live=()=>{
     if(!f.folder) return fail("This case has no folder in the Master Cases Folder yet.");
     if(!_gkUrl()) return f.sub?fail("Opening older folders needs Settings → Documents (OneDrive) to be connected."):fail(isStaffView()?"Files can be opened once the Head of Chamber has set up Documents.":"No paper list yet — it appears once the ASDC Helper on your Mac has run.");
-    _gk("/api/list",{folder:path}).then(d=>done(_liveItemsToIndex(d.folder||path,d.items))).catch(e=>fail(e.message));
+    _gk("/api/list",{folder:path}).then(d=>done(_liveItemsToIndex(d.folder||path,d.items),false)).catch(e=>fail(e.message));
   };
   const wantLive=!!f.live; f.live=false;
+  const mem=!wantLive&&(window.__fvMem[key]||(key.indexOf("idx:")===0&&window.__folderIdx[f.serial]));
+  if(mem){ done(mem,true); } else { f.loading=true; f.err=""; renderFilesPage(); if(!wantLive) _lcGet(key).then(c=>{ if(c) done(c,true); }); }
   if(!isStaffView() && !f.sub && !wantLive && window.FB && FB.getFolderIndex){
-    const c=window.__folderIdx[f.serial]; if(c) done(c);
-    FB.getFolderIndex(f.serial).then(fx=>{ if(fx){ window.__folderIdx[f.serial]=fx; if(!f.folder&&fx.folder) f.folder=fx.folder; done(fx); } else if(!c) live(); }).catch(()=>{ if(!c) live(); });
+    FB.getFolderIndex(f.serial).then(fx=>{ if(fx){ window.__folderIdx[f.serial]=fx; if(!f.folder&&fx.folder) f.folder=fx.folder; done(fx,false); } else if(!shown) live(); else { f.checking=false; _fvChkMark(); } }).catch(()=>{ if(!shown) live(); else { f.checking=false; _fvChkMark(); } });
   } else live();
 }
+// ahead of time, quietly: every case's paper list (owner, from the helper's index, every 6 hours) and the live lists of the
+// cases opened lately and their filings — so the folder you open next is already here, and Microsoft's sign-in is warm
+let _fvWarmAt=0;
+async function _fvWarm(){ try{
+  if(!window.FB||!FB.uid||!FB.uid()||document.hidden||Date.now()-_fvWarmAt<10*60e3) return; _fvWarmAt=Date.now();
+  const staff=isStaffView();
+  if(!staff&&FB.getAllFolderIndex){ let last=0; try{ last=+localStorage.getItem("asdc_idx_all_at")||0; }catch(e){}
+    let all=null; if(Date.now()-last>6*3600e3){ all=await FB.getAllFolderIndex(); _lcPut("idxall",all); try{ localStorage.setItem("asdc_idx_all_at",String(Date.now())); }catch(e){} }
+    else if(!window.__fvAllDone) all=await _lcGet("idxall");
+    (all||[]).forEach(fx=>{ if(fx&&fx.serial!=null){ window.__folderIdx[fx.serial]=window.__folderIdx[fx.serial]||fx; const k="idx:"+fx.serial; if(!window.__fvMem[k]) window.__fvMem[k]=fx; } }); window.__fvAllDone=true; }
+  if(!_gkUrl()) return;
+  let rec=[]; try{ rec=JSON.parse(localStorage.getItem("asdc_recent_cases")||"[]"); }catch(e){}
+  const paths=[];
+  rec.slice(0,4).forEach(x=>{ const serial=+((x&&x.serial)!=null?x.serial:x); if(!serial) return;
+    const r=(DB.register||[]).find(y=>+y.serial===serial), m=(DB.matters||[]).find(y=>!isVoided(y)&&+y.serial===serial);
+    const folder=(r&&r.folder)||(m&&m.folder)||((window.__folderIdx[serial]||{}).folder)||""; if(!folder) return;
+    if(staff) paths.push(folder);
+    (DB.filings||[]).filter(fl=>fl&&+fl.serial===serial&&fl.folder).slice(-2).forEach(fl=>paths.push(fl.folder)); });
+  for(const pth of [...new Set(paths)].slice(0,6)){ if(document.hidden) break;
+    try{ const d=await _gk("/api/list",{folder:pth}); const fx=_liveItemsToIndex(d.folder||pth,d.items); window.__fvMem["live:"+pth]=fx; _lcPut("live:"+pth,fx); }catch(e){} }
+}catch(e){} }
+setTimeout(_fvWarm,6000); setInterval(_fvWarm,15*60e3); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(_fvWarm,1500); });
 function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _fv.virt=null; _filesLoad(); }
 function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.virt=null; _filesLoad(); }
 const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
@@ -20249,7 +20305,7 @@ function renderFilesPage(){
   const ch=f.chamber?` <span class="tag" style="background:${f.chamber==="SD"?"#3b5a7a":"var(--brass)"};color:#fff;vertical-align:middle">${esc(f.chamber)}</span>`:"";
   panel.innerHTML=`${back}
     <div class="card">
-      <div class="fv-head">
+      <div class="fv-head"><span id="fvChk" class="fv-chk" ${f.checking?"":"hidden"} title="Showing the list this device saw last; checking OneDrive for anything new">↻ checking</span>
         ${_inFiling()?`<div style="min-width:0;flex:1"><button class="btn ghost sm" onclick="_filesUp()">‹ All papers of ${esc(String(f.serial).padStart(3,"0"))}</button></div>`:`<div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
           <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>`}
         <div style="display:flex;gap:6px">${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
@@ -25807,9 +25863,15 @@ async function _qlShow(k){
   const stale=()=>seq!==_ql.seq;
   try{
     if(ext===".pdf"){
-      const [lib,d]=await Promise.all([_qlPdfLib(), _gk("/api/dlurl",{path:it.path})]); if(stale()) return;
-      const sn=_staleNote(it,d);
-      const task=lib.getDocument({url:d.url, disableAutoFetch:true, disableStream:true, rangeChunkSize:262144});
+      const libP=_qlPdfLib(); const any=await _pcAny(it); if(stale()) return;
+      let src, sn="";
+      if(any){ src={data:new Uint8Array(await any.blob.arrayBuffer())};
+        _paperFresh(it,any.ver,()=>{ if(!stale()&&_ql.open){ toast("A newer copy was in OneDrive — showing it."); _qlShow(k); } }); }
+      else{ const d=await _dlurl(it.path); if(stale()) return; sn=_staleNote(it,d);
+        src={url:d.url, disableAutoFetch:true, disableStream:true, rangeChunkSize:262144};
+        if((+d.size||0)>0&&(+d.size)<15*1048576) _paperBlobFetch(it,null,d).then(b=>_pcPut(it,b,_pcVerOf(d))).catch(()=>{}); }   // next time: instant
+      const lib=await libP; if(stale()) return;
+      const task=lib.getDocument(src);
       const pdf=await task.promise; if(stale()){ try{ pdf.destroy(); }catch(e){} return; }
       _ql.doc=pdf;
       document.getElementById("qlMeta").textContent=(it.num?it.num+" · ":"")+pdf.numPages+" page"+(pdf.numPages>1?"s":"")+" · "+_fmtSize(it.size);
@@ -25828,10 +25890,12 @@ async function _qlShow(k){
       _ql.obs=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) render(e.target); }),{root:body, rootMargin:"300px 0px"});
       holders.forEach(h=>_ql.obs.observe(h));
     }else if(/^\.(jpe?g|png|gif|webp|heic)$/.test(ext)){
-      const d=await _gk("/api/dlurl",{path:it.path}); if(stale()) return;
-      body.innerHTML=`<img class="ql-img" src="${esc(d.url)}" alt="">`;
+      const any=await _pcAny(it); if(stale()) return;
+      if(any){ body.innerHTML=`<img class="ql-img" src="${URL.createObjectURL(any.blob)}" alt="">`; _paperFresh(it,any.ver,()=>{ if(!stale()&&_ql.open) _qlShow(k); }); }
+      else{ const d=await _dlurl(it.path); if(stale()) return; body.innerHTML=`<img class="ql-img" src="${esc(d.url)}" alt="">`;
+        if((+d.size||0)>0&&(+d.size)<15*1048576) _paperBlobFetch(it,null,d).then(b=>_pcPut(it,b,_pcVerOf(d))).catch(()=>{}); }
     }else if(ext===".docx"){
-      const [lib,blob]=await Promise.all([_qlDocxLib(), _paperBlob(it)]); if(stale()) return;
+      const [lib,blob]=await Promise.all([_qlDocxLib(), _paperBlob(it,null,{fast:true,onNewer:()=>{ if(!stale()&&_ql.open) _qlShow(k); }})]); if(stale()) return;
       body.innerHTML=(it._stale?`<div style="align-self:stretch;background:#fff4d6;border:1px solid #c99a1a;border-radius:8px;padding:8px 12px;color:#5a4300;font-size:13.5px">⚠ ${esc(it._stale)}</div>`:"")+`<div class="ql-docx"></div>`;
       await lib.renderAsync(blob, body.querySelector(".ql-docx"), null, {inWrapper:true, ignoreLastRenderedPageBreak:true, experimental:false});
     }else{
@@ -29062,7 +29126,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.24-2330";
+  window.APP_VERSION = "2026.10.25-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
