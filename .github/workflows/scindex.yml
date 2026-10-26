@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       year:
-        description: "Year to build (2017-2026)"
+        description: "Year(s) to build, one after another: 2025  or  2026,2024,2023"
         required: true
         default: "2025"
       from_run:
@@ -22,7 +22,20 @@ permissions:
   contents: read
   actions: read
 jobs:
+  years:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.y.outputs.list }}
+    steps:
+      - id: y
+        run: echo "list=$(echo '${{ inputs.year }}' | python3 -c 'import sys,json; print(json.dumps([y.strip() for y in sys.stdin.read().split(",") if y.strip()]))')" >> "$GITHUB_OUTPUT"
   build:
+    needs: years
+    strategy:
+      max-parallel: 1          # one year at a time: one request at a time to the Court
+      fail-fast: false
+      matrix:
+        year: ${{ fromJSON(needs.years.outputs.list) }}
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
@@ -38,7 +51,7 @@ jobs:
         if: ${{ inputs.from_run != '' }}
         uses: actions/download-artifact@v4
         with:
-          name: sc-archive-${{ inputs.year }}
+          name: sc-archive-${{ matrix.year }}
           path: out
           run-id: ${{ inputs.from_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,11 +59,11 @@ jobs:
         if: ${{ inputs.from_run == '' }}
         run: |
           cp fetch_causelist.py scindex/
-          cd scindex && python -u build_year.py ${{ inputs.year }}
+          cd scindex && python -u build_year.py ${{ matrix.year }}
       - uses: actions/upload-artifact@v4
         if: ${{ always() && inputs.from_run == '' }}
         with:
-          name: sc-archive-${{ inputs.year }}
+          name: sc-archive-${{ matrix.year }}
           path: out/
           retention-days: 30
       - name: Send to OneDrive
