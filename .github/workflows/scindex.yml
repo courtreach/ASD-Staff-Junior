@@ -1,0 +1,37 @@
+# Supreme Court cause-list archive, built on GitHub (owner, 26 Oct 2026): one year per run.
+# Reads every daily list of the year from the Court's public archive (api.sci.gov.in/jonew/cl/...), one request at a
+# time with a pause, and keeps the lists + one line per listed matter as a downloadable artifact. Later runs will send
+# them on to OneDrive and the gatekeeper's index; nothing here needs the owner's laptop.
+name: SC cause-list archive (one year)
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: "Year to build (2017-2026)"
+        required: true
+        default: "2025"
+concurrency:
+  group: scindex
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pymupdf==1.24.10 certifi
+      - name: Build the year
+        env:
+          SCI_OUT: ${{ github.workspace }}/out
+        run: |
+          cp fetch_causelist.py scindex/
+          cd scindex && python -u build_year.py ${{ inputs.year }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sc-archive-${{ inputs.year }}
+          path: out/
+          retention-days: 30
