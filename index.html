@@ -20281,7 +20281,9 @@ function _fvRenderList(){
     h=(tiles||fdTile||ordTile?`<div class="fv-isls" style="margin-top:4px">${ordTile}${tiles}${fdTile}</div>`:"")
       +(files.length?`<div class="fv-cols" style="margin-top:${tiles||fdTile||ordTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
         +(others.length?`<div class="fv-group" style="margin-top:14px">Other files · ${others.length}</div>`+others.map(row).join(""):""):"");
-    if(!files.length&&!dirs.length) h=`<div class="fv-empty">The folder is empty.</div>`;
+    if(!files.length&&!dirs.length){ // the Mac has papers here that OneDrive has not uploaded yet (the helper's list knows them)
+      const bx=_fv.sub&&((((window.__fvMem["idx:"+_fv.serial]||window.__folderIdx[_fv.serial]||{}).bundles)||[]).find(b=>b.name===_fv.sub));
+      h=bx&&+bx.count?`<div class="fv-empty">${+bx.count} paper${+bx.count===1?" is":"s are"} in this folder on your Mac but not yet in OneDrive online.<br>They appear here once OneDrive uploads them — usually within minutes (the Mac helper sends them itself if OneDrive is slow).</div>`:`<div class="fv-empty">The folder is empty.</div>`; }
     box.innerHTML=h; return;
   }
   if(f.sort==="new"){
@@ -29129,7 +29131,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.26-1000";
+  window.APP_VERSION = "2026.10.26-1100";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
