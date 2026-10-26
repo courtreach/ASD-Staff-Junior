@@ -1,0 +1,33 @@
+# When a year of the SC cause-list archive finishes, send its files into the owner's OneDrive ("ASDC Data") by itself
+# (owner, 26 Oct 2026). Files already there (same size) are skipped, so running twice costs nothing.
+name: SC archive - send to OneDrive
+on:
+  workflow_run:
+    workflows: ["SC cause-list archive (one year)"]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      SCI_OUT: ${{ github.workspace }}/out
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install certifi
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: sc-archive-*
+          merge-multiple: true
+          path: out
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Send to OneDrive
+        run: python -u scindex/push_onedrive.py
