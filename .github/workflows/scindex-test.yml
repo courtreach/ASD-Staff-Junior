@@ -1,0 +1,27 @@
+# Quick check of the archive path (owner, 26 Oct 2026): GitHub -> gatekeeper intake -> OneDrive "ASDC Data",
+# with ONE real cause list, and whether Cloudflare can reach the Court's site. Safe to run any time.
+name: SC archive - quick check
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SCI_OUT: ${{ github.workspace }}/out
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      PROBE: https://www.sci.gov.in/sci-get-pdf/?diary_no=251172025&type=o&order_date=2026-10-12&from=latest_judgements_order
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install certifi
+      - name: One list into OneDrive
+        run: |
+          mkdir -p "out/SC Cause Lists/2025"
+          curl -sf -A "Mozilla/5.0" -o "out/SC Cause Lists/2025/2025 11 18 Miscellaneous Supplementary.pdf" "https://api.sci.gov.in/jonew/cl/2025-11-18/M_J_2.pdf"
+          ls -la "out/SC Cause Lists/2025"
+          python -u scindex/push_onedrive.py
