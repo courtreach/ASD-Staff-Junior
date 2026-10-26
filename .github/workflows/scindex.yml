@@ -1,7 +1,8 @@
 # Supreme Court cause-list archive, built on GitHub (owner, 26 Oct 2026): one year per run.
 # Reads every daily list of the year from the Court's public archive (api.sci.gov.in/jonew/cl/...), one request at a
-# time with a pause, and keeps the lists + one line per listed matter as a downloadable artifact. Later runs will send
-# them on to OneDrive and the gatekeeper's index; nothing here needs the owner's laptop.
+# time with a pause, then sends the lists and one line per listed matter into the owner's OneDrive ("ASDC Data") through
+# the gatekeeper's intake (INGEST_KEY). A copy is also kept as a downloadable artifact. No laptop involved.
+# "from_run": instead of reading the Court again, take the files of an earlier run of this job and only send them.
 name: SC cause-list archive (one year)
 on:
   workflow_dispatch:
@@ -10,28 +11,53 @@ on:
         description: "Year to build (2017-2026)"
         required: true
         default: "2025"
+      from_run:
+        description: "Optional: id of an earlier run whose files to send instead of building again"
+        required: false
+        default: ""
 concurrency:
   group: scindex
   cancel-in-progress: false
+permissions:
+  contents: read
+  actions: read
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    env:
+      SCI_OUT: ${{ github.workspace }}/out
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install pymupdf==1.24.10 certifi
+      - name: Take the files of an earlier run
+        if: ${{ inputs.from_run != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: sc-archive-${{ inputs.year }}
+          path: out
+          run-id: ${{ inputs.from_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build the year
-        env:
-          SCI_OUT: ${{ github.workspace }}/out
+        if: ${{ inputs.from_run == '' }}
         run: |
           cp fetch_causelist.py scindex/
           cd scindex && python -u build_year.py ${{ inputs.year }}
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ always() && inputs.from_run == '' }}
         with:
           name: sc-archive-${{ inputs.year }}
           path: out/
           retention-days: 30
+      - name: Send to OneDrive
+        if: ${{ always() }}
+        env:
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+          PROBE: https://api.sci.gov.in/jonew/cl/2025-11-18/M_J_2.pdf
+        run: |
+          if [ -z "$INGEST_KEY" ]; then echo "INGEST_KEY not set yet - files kept as the artifact only"; exit 0; fi
+          python -u scindex/push_onedrive.py
