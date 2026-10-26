@@ -20176,7 +20176,7 @@ setTimeout(_fvWarm,6000); setInterval(_fvWarm,15*60e3); document.addEventListene
 function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _fv.virt=null; _filesLoad(); }
 function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.virt=null; _filesLoad(); }
 const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
-const _FV_GROUP={fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
+const _FV_GROUP={ord:"Court orders",fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
 function _fileKind(ext){ ext=String(ext||"").toLowerCase(); if(/^\.(docx?|rtf|odt)$/.test(ext)) return "word"; if(ext===".pdf") return "pdf"; if(/^\.(jpe?g|png|heic|gif|webp|tiff?)$/.test(ext)) return "img"; if(/^\.(xlsx?|csv)$/.test(ext)) return "xls"; return "file"; }
 const _FK={word:["W","#2b579a"],pdf:["PDF","#b3261e"],img:["IMG","#3d7a46"],xls:["X","#1d6f42"],file:["FILE","#7b746a"]};
 function _cleanDesc(desc,title){
@@ -20191,7 +20191,8 @@ function _fvRows(){
   const f=_fv, fx=f.idx||{items:[],bundles:[]};
   const title=f.title||fx.title||"";
   const files=(fx.items||[]).map(i=>Object.assign({},i,{_t:i.letter||"X", _label:_cleanDesc(i.desc||i.name,title)}));
-  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:_FILING_RX.test(b.name)?"fil":"dir",_label:b.name}));
+  // the "Orders" sub-folder (the helper saves the Court's orders there by themselves, 26 Oct 2026) gets its own tile
+  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:b.name==="Orders"?"ord":_FILING_RX.test(b.name)?"fil":"dir",_label:b.name==="Orders"?"Court orders":b.name}));
   return {files,dirs,title};
 }
 function _fvSetQ(v){ _fv.q=String(v||""); _fvRenderList(); }
@@ -20272,11 +20273,13 @@ function _fvRenderList(){
       const last=(t==="dir"||t==="fil")?"":g.map(x=>x.mtime||"").sort().pop();
       return `<button class="fv-isl" onclick="_fvSetType('${t}')"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${lab}</span>${last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">${g.reduce((a,x)=>a+(+x.count||0),0)} items</span>`}</button>`;
     }).join("");
+    const od=dirs.find(x=>x._t==="ord");
+    const ordTile=od?`<button class="fv-isl" onclick="_filesSub('Orders')"><span class="fv-isl-ic">📜</span><span class="fv-isl-n">${+od.count||0}</span><span class="fv-isl-l">Court orders</span><span class="fv-isl-d">${+od.count?"saved by themselves after each hearing":"none yet — they arrive after a hearing"}</span></button>`:"";
     const nFil=dirs.filter(x=>x._t==="fil").length;
     const fdTile=nFil?`<button class="fv-isl" onclick="_fvFilingDocs()"><span class="fv-isl-ic">📑</span><span class="fv-isl-n" style="font-size:20px">PDFs</span><span class="fv-isl-l">Filing documents</span><span class="fv-isl-d">filing copy, defect pages, final copy…</span></button>`:"";
     const col=(lab,xs)=>`<div class="fv-col"><div class="fv-group" style="margin-top:0">${lab} · ${xs.length}</div>${xs.length?xs.map(row).join(""):`<div class="hint" style="padding:8px 2px">None.</div>`}</div>`;
-    h=(tiles||fdTile?`<div class="fv-isls" style="margin-top:4px">${tiles}${fdTile}</div>`:"")
-      +(files.length?`<div class="fv-cols" style="margin-top:${tiles||fdTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
+    h=(tiles||fdTile||ordTile?`<div class="fv-isls" style="margin-top:4px">${ordTile}${tiles}${fdTile}</div>`:"")
+      +(files.length?`<div class="fv-cols" style="margin-top:${tiles||fdTile||ordTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
         +(others.length?`<div class="fv-group" style="margin-top:14px">Other files · ${others.length}</div>`+others.map(row).join(""):""):"");
     if(!files.length&&!dirs.length) h=`<div class="fv-empty">The folder is empty.</div>`;
     box.innerHTML=h; return;
@@ -29126,7 +29129,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.25-1000";
+  window.APP_VERSION = "2026.10.26-1000";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
