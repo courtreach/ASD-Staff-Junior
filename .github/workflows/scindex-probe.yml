@@ -1,0 +1,24 @@
+# Does the Court's cause-list archive have lists for these dates? (owner, 28 Oct 2026). Reads only; saves nothing.
+name: SC archive - probe dates
+on:
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: "Dates, comma separated: 2016-12-09,2016-08-12"
+        required: true
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Ask the Court
+        run: |
+          for d in $(echo "${{ inputs.dates }}" | tr ',' ' '); do
+            for s in M_J_1 F_J_1 M_R_1 M_J_2 F_J_2; do
+              code=$(curl -s -A "Mozilla/5.0" -m 90 -o p.bin -w "%{http_code} %{size_download}" "https://api.sci.gov.in/jonew/cl/$d/$s.pdf")
+              kind=$(head -c5 p.bin 2>/dev/null | grep -q '%PDF-' && echo PDF || echo -)
+              echo "$d $s $code $kind"; rm -f p.bin; sleep 1
+            done
+          done
