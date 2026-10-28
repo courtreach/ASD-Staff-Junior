@@ -1,11 +1,17 @@
-# Does the Court's cause-list archive have lists for these dates? (owner, 28 Oct 2026). Reads only; saves nothing.
+# Does the Court's site have these files? (owner, 28 Oct 2026). Reads only; saves nothing; prints status, size and the
+# first words of each PDF.
 name: SC archive - probe dates
 on:
   workflow_dispatch:
     inputs:
       dates:
-        description: "Dates, comma separated: 2016-12-09,2016-08-12"
-        required: true
+        description: "Cause-list dates, comma separated: 2016-12-09,2016-08-12"
+        required: false
+        default: ""
+      urls:
+        description: "Or full Court addresses, comma separated"
+        required: false
+        default: ""
 permissions:
   contents: read
 jobs:
@@ -13,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      - run: pip install pymupdf==1.24.10
       - name: Ask the Court
         run: |
           for d in $(echo "${{ inputs.dates }}" | tr ',' ' '); do
@@ -21,4 +28,13 @@ jobs:
               kind=$(head -c5 p.bin 2>/dev/null | grep -q '%PDF-' && echo PDF || echo -)
               echo "$d $s $code $kind"; rm -f p.bin; sleep 1
             done
+          done
+          for u in $(echo "${{ inputs.urls }}" | tr ',' ' '); do
+            code=$(curl -s -A "Mozilla/5.0" -m 90 -o p.bin -w "%{http_code} %{content_type} %{size_download}" "$u")
+            words=$(python3 -c "
+          import sys
+          try:
+              import pymupdf; d=pymupdf.open('p.bin'); t=' '.join(d[0].get_text().split())[:160]; print('PDF', d.page_count, 'pages |', t)
+          except Exception as e: print('not a PDF |', open('p.bin','rb').read(80))")
+            echo "$u -> $code | $words"; rm -f p.bin; sleep 1
           done
