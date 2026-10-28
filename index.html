@@ -9468,6 +9468,14 @@ function _clRenderRefList(iso){
       </div>`;
     }).join("");
 }
+// The court-list checker's results for our cases (owner, 28 Oct 2026: off the public website, for privacy).
+// They come through the gatekeeper — signed in, owner and approved staff only. The old same-site file is read
+// only as a stand-in until the move is complete (then it is gone and this just returns nothing).
+function _cuFetch(){
+  const file=()=>fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  if(!_gkUrl()) return file();
+  return _gk("/api/courtupdates",{}).then(d=>(d&&d.by_date&&Object.keys(d.by_date).length)?d:file()).catch(file);
+}
 // Read the auto-fetched court-updates.json and present it as a tight,
 // glanceable table grouped by day → court (coram shown once per court) → matter.
 // Tolerates BOTH fetcher schemas: the original {by_date:{...}} and the v2
@@ -9674,8 +9682,7 @@ function _loadCourtUpdates(){
   const box=document.getElementById("clAutoBox");
   if(!box) return;
   const selDate=(document.getElementById("clDate")||{}).value||"";
-  fetch("court-updates.json", {cache:"no-store"})
-    .then(r=>r.ok?r.json():null)
+  _cuFetch()
     .then(raw=>{
       const cu=_normCourtUpdates(raw);
       window.__cuCache=cu;   // cache for the cause-list print
@@ -9745,7 +9752,7 @@ function _loadCourtUpdates(){
 function _fillHomeCourtCard(){
   const el=document.getElementById("homeCourtCard");
   if(!el) return;
-  fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
+  _cuFetch()
   .then((rawCU)=>{ window.__cuCache=_normCourtUpdates(rawCU); try{ _autoTrackListings(); }catch(e){}
     // redraw the Today card (so it can leave out cases listed today) FIRST — the Supreme Court list sits inside it —
     // then fill the list (12 Oct 2026: the other order wiped the listings off the Today card)
@@ -14129,7 +14136,7 @@ function openMatterDetail(id){
   // If the auto-fetched cause list hasn't loaded yet (e.g. opened before visiting
   // home), pull it once and re-render so the "Listed in the cause list" card appears.
   if(!window.__cuCache){
-    fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
+    _cuFetch()
       .then(raw=>{ if(raw){ window.__cuCache=_normCourtUpdates(raw); try{ _autoTrackListings(); }catch(e){} if(_currentMatterId===id) renderMatterDetail(); } });
   }
 }
@@ -15615,7 +15622,7 @@ function openCalendar(){
   // Load the auto-fetched Supreme Court cause list if not yet in memory, then repaint
   // so listed cases show on the calendar.
   if(!window.__cuCache){
-    fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null)
+    _cuFetch()
       .then(raw=>{ if(raw){ window.__cuCache=_normCourtUpdates(raw); try{ _autoTrackListings(); }catch(e){} try{ if(document.getElementById("panel-calendar").classList.contains("active")) renderCalendar(isStaffView()); }catch(e){} } });
   }
   if(isStaffView()){
@@ -29131,7 +29138,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.26-1100";
+  window.APP_VERSION = "2026.10.28-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
