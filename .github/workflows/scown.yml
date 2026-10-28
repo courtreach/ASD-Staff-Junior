@@ -1,0 +1,47 @@
+# The owner's OWN cases (AD Chamber for now): their orders, office reports and judgments, saved into each case folder's
+# "Orders", "Office Reports" and "Judgments" sub-folders (owner, 28 Oct 2026). Runs three times a day — 07:30, 18:30 and
+# 22:30 IST — so the next listing's office report is fetched the evening before and new orders soon after a hearing.
+# The case list comes from the Mac helper through the gatekeeper; the code is fetched privately from the gatekeeper.
+# One request at a time; never overwrites a file; the log shows counts only.
+name: Own cases - orders, office reports, judgments
+on:
+  schedule:
+    - cron: "0 2,13,17 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Optional: only this many cases (a test)"
+        required: false
+        default: ""
+concurrency:
+  group: scown
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      PAUSE: "0.7"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
+        env:
+          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+        run: |
+          curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \
+               -H "Content-Type: application/json" -d '{"key":"sci:engine"}' -o engine.json
+          python3 -c "import json,base64; v=json.load(open('engine.json')).get('value'); assert v, 'engine missing in the gatekeeper'; open('engine.tgz','wb').write(base64.b64decode(v))"
+          tar xzf engine.tgz && rm -f engine.json engine.tgz && echo "engine ready: $(ls scindex | wc -l) files"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pymupdf==1.24.10 certifi
+      - name: Fetch for every own case
+        run: |
+          cd scindex
+          if [ -n "${{ inputs.limit }}" ]; then python -u own_cases.py --limit ${{ inputs.limit }}; else python -u own_cases.py; fi
