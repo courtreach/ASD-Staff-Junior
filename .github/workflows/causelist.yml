@@ -32,6 +32,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
+        env:
+          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          INGEST_KEY: ${{ secrets.INGEST_KEY }}
+        run: |
+          curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \
+               -H "Content-Type: application/json" -d '{"key":"sci:engine"}' -o engine.json
+          python3 -c "import json,base64; v=json.load(open('engine.json')).get('value'); assert v, 'engine missing in the gatekeeper'; open('engine.tgz','wb').write(base64.b64decode(v))"
+          tar xzf engine.tgz && rm -f engine.json engine.tgz && echo "engine ready: $(ls scindex | wc -l) files"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
