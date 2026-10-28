@@ -9468,13 +9468,11 @@ function _clRenderRefList(iso){
       </div>`;
     }).join("");
 }
-// The court-list checker's results for our cases (owner, 28 Oct 2026: off the public website, for privacy).
-// They come through the gatekeeper — signed in, owner and approved staff only. The old same-site file is read
-// only as a stand-in until the move is complete (then it is gone and this just returns nothing).
+// The court-list checker's results for our cases (owner, 28 Oct 2026: off the public website, for privacy —
+// they reveal the chamber's whole case list). Only through the gatekeeper: signed in, owner and approved staff.
 function _cuFetch(){
-  const file=()=>fetch("court-updates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
-  if(!_gkUrl()) return file();
-  return _gk("/api/courtupdates",{}).then(d=>(d&&d.by_date&&Object.keys(d.by_date).length)?d:file()).catch(file);
+  if(!_gkUrl()) return Promise.resolve(null);
+  return _gk("/api/courtupdates",{}).catch(()=>null);
 }
 // Read the auto-fetched court-updates.json and present it as a tight,
 // glanceable table grouped by day → court (coram shown once per court) → matter.
@@ -29138,7 +29136,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.28-1500";
+  window.APP_VERSION = "2026.10.28-1600";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
