@@ -1,0 +1,36 @@
+# Every order of every case the cause lists give a diary number for (owner, 28 Oct 2026), into the owner's OneDrive
+# ("ASDC Data/SC Orders"). Runs at night (20:00 and 02:00 IST, about 5h20m each), one request a second to the Court,
+# and carries on from where the last night stopped (progress kept in the gatekeeper). Nothing is kept on GitHub.
+name: SC orders archive (nightly)
+on:
+  schedule:
+    - cron: "30 14 * * *"
+    - cron: "30 20 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Optional: only this many cases (a test)"
+        required: false
+        default: ""
+concurrency:
+  group: scorders
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  walk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pymupdf==1.24.10 certifi
+      - name: Walk the orders
+        run: |
+          cd scindex
+          if [ -n "${{ inputs.limit }}" ]; then python -u walk_orders.py --limit ${{ inputs.limit }}; else python -u walk_orders.py; fi
