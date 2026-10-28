@@ -1,11 +1,13 @@
 # Every order of every case the cause lists give a diary number for (owner, 28 Oct 2026), into the owner's OneDrive
-# ("ASDC Data/SC Orders"). Runs at night (20:00 and 02:00 IST, about 5h20m each), one request a second to the Court,
+# ("ASDC Data/SC Orders"). Runs outside court hours (16:00, 21:30 and 03:00 IST, about 5h20m each), one request at a
+# time with a short pause (the Court takes ~1 s to answer, so about one request every 1.6 s),
 # and carries on from where the last night stopped (progress kept in the gatekeeper). Nothing is kept on GitHub.
 name: SC orders archive (nightly)
 on:
   schedule:
-    - cron: "30 14 * * *"
-    - cron: "30 20 * * *"
+    - cron: "30 10 * * *"
+    - cron: "0 16 * * *"
+    - cron: "30 21 * * *"
   workflow_dispatch:
     inputs:
       limit:
@@ -24,6 +26,7 @@ jobs:
     env:
       GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
       INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      PAUSE: "0.5"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
