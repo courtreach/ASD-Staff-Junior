@@ -1,8 +1,10 @@
-# Every order of every case the cause lists give a diary number for (owner, 28 Oct 2026), into the owner's OneDrive
-# ("ASDC Data/SC Orders"). Runs outside court hours (16:00, 21:30 and 03:00 IST, about 5h20m each), one request at a
-# time with a short pause (the Court takes ~1 s to answer, so about one request every 1.6 s),
-# and carries on from where the last night stopped (progress kept in the gatekeeper). Nothing is kept on GitHub.
-name: SC orders archive (nightly)
+# The Court's PUBLIC documents — orders, office reports and judgments — for every case the cause lists give a diary
+# number for (owner, 28 Oct 2026). These are served with no login and no CAPTCHA; the case file (which is login-gated)
+# is never touched here. Runs three times a day OUTSIDE court hours (16:00, 21:30, 03:00 IST, about 5h20m each), ONE
+# request at a time with a short pause, and carries on from where the last run stopped (progress in the gatekeeper).
+# It backs off and stops for the night if the Court's site pushes back; it never rotates addresses to evade a block.
+# Nothing is kept on GitHub.
+name: SC public documents archive (nightly)
 on:
   schedule:
     - cron: "30 10 * * *"
@@ -33,7 +35,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pymupdf==1.24.10 certifi
-      - name: Walk the orders
+      - name: Walk orders, office reports and judgments
         run: |
           cd scindex
           if [ -n "${{ inputs.limit }}" ]; then python -u walk_orders.py --limit ${{ inputs.limit }}; else python -u walk_orders.py; fi
