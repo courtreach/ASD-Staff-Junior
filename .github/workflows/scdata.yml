@@ -10,6 +10,10 @@ on:
         description: "Years to read"
         required: true
         default: "2017,2018,2019,2020,2021,2022,2023,2024,2025,2026"
+      from_run:
+        description: "Optional: id of an earlier run of this job whose readings to reuse (only the categories are rebuilt)"
+        required: false
+        default: ""
 permissions:
   contents: read
   actions: read
@@ -23,6 +27,7 @@ jobs:
         run: echo "list=$(echo '${{ inputs.years }}' | python3 -c 'import sys,json; print(json.dumps([y.strip() for y in sys.stdin.read().split(",") if y.strip()]))')" >> "$GITHUB_OUTPUT"
   read:
     needs: years
+    if: ${{ inputs.from_run == '' }}
     strategy:
       max-parallel: 5
       fail-fast: false
@@ -72,6 +77,8 @@ jobs:
           pattern: scparsed-*
           merge-multiple: true
           path: parsed
+          run-id: ${{ inputs.from_run || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build the categories
         run: python -u scindex/build_categories.py parsed "out/SC Data"
       - name: Send to OneDrive
