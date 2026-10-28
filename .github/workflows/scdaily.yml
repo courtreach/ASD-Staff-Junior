@@ -3,7 +3,8 @@
 # the readings yet (one request at a time), saves the PDFs into OneDrive ("ASDC Data/SC Cause Lists/<year>"), reads
 # them with the full reader, rebuilds every category file and sends "ASDC Data/SC Data" (with its Readings) to OneDrive.
 # The readings are carried from run to run in GitHub's private build cache (not downloadable by the public).
-# "dates": fetch particular dates instead (e.g. 2025-08-28 for lists missed earlier). "seed_run": first run only.
+# "dates": fetch particular dates instead (e.g. 2025-08-28 for lists missed earlier). If the cache is ever lost, the
+# readings are restored from OneDrive ("SC Data/Readings") — no copy of the data is kept on GitHub.
 name: SC daily top-up
 on:
   schedule:
@@ -13,10 +14,6 @@ on:
     inputs:
       dates:
         description: "Optional: particular dates, comma separated (YYYY-MM-DD)"
-        required: false
-        default: ""
-      seed_run:
-        description: "Optional (first run): id of the 'SC data categories' run whose readings to start from"
         required: false
         default: ""
 concurrency:
@@ -40,25 +37,15 @@ jobs:
           python-version: "3.12"
       - run: pip install pymupdf==1.24.10 certifi
       - name: Readings from the last run
-        if: ${{ inputs.seed_run == '' }}
         uses: actions/cache/restore@v4
         with:
           path: parsed
           key: scparsed-${{ github.run_id }}
           restore-keys: scparsed-
-      - name: Readings to start from (first run)
-        if: ${{ inputs.seed_run != '' }}
-        uses: actions/download-artifact@v4
-        with:
-          pattern: scparsed-*
-          merge-multiple: true
-          path: parsed
-          run-id: ${{ inputs.seed_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check the readings are there
         run: |
           n=$(ls parsed/items\ *.jsonl.gz 2>/dev/null | wc -l)
-          echo "years in the readings: $n"; [ "$n" -ge 10 ] || { echo "readings missing - run with seed_run"; exit 1; }
+          echo "years in the readings: $n"; [ "$n" -ge 10 ] || { echo "readings missing - restore SC Data/Readings from OneDrive"; exit 1; }
       - name: New lists
         run: |
           cd scindex

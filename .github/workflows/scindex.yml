@@ -1,8 +1,8 @@
 # Supreme Court cause-list archive, built on GitHub (owner, 26 Oct 2026): one year per run.
 # Reads every daily list of the year from the Court's public archive (api.sci.gov.in/jonew/cl/...), one request at a
 # time with a pause, then sends the lists and one line per listed matter into the owner's OneDrive ("ASDC Data") through
-# the gatekeeper's intake (INGEST_KEY). A copy is also kept as a downloadable artifact. No laptop involved.
-# "from_run": instead of reading the Court again, take the files of an earlier run of this job and only send them.
+# the gatekeeper's intake (INGEST_KEY). No laptop involved.
+# No copy is kept on GitHub (owner, 28 Oct 2026: the data is his edge) — files go straight to OneDrive.
 name: SC cause-list archive (one year)
 on:
   workflow_dispatch:
@@ -11,10 +11,6 @@ on:
         description: "Year(s) to build, one after another: 2025  or  2026,2024,2023"
         required: true
         default: "2025"
-      from_run:
-        description: "Optional: id of an earlier run whose files to send instead of building again"
-        required: false
-        default: ""
 concurrency:
   group: scindex
   cancel-in-progress: false
@@ -47,30 +43,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pymupdf==1.24.10 certifi
-      - name: Take the files of an earlier run
-        if: ${{ inputs.from_run != '' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: sc-archive-${{ matrix.year }}
-          path: out
-          run-id: ${{ inputs.from_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build the year
-        if: ${{ inputs.from_run == '' }}
         run: |
           cp fetch_causelist.py scindex/
           cd scindex && python -u build_year.py ${{ matrix.year }}
-      - uses: actions/upload-artifact@v4
-        if: ${{ always() && inputs.from_run == '' }}
-        with:
-          name: sc-archive-${{ matrix.year }}
-          path: out/
-          retention-days: 30
       - name: Send to OneDrive
         if: ${{ always() }}
         env:
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
           PROBE: https://api.sci.gov.in/jonew/cl/2025-11-18/M_J_2.pdf
         run: |
-          if [ -z "$INGEST_KEY" ]; then echo "INGEST_KEY not set yet - files kept as the artifact only"; exit 0; fi
+          if [ -z "$INGEST_KEY" ]; then echo "INGEST_KEY not set - nothing sent"; exit 0; fi
           python -u scindex/push_onedrive.py
