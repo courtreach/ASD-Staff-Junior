@@ -2396,6 +2396,32 @@
     .fv-tools .fv-search{min-width:0;flex:1 1 100%}
     .fv-tools .fv-sort{flex:1 1 auto}
   }
+
+  /* Court data (owner only, 28 Oct 2026) */
+  .cd-wrap{display:flex;flex-direction:column;gap:12px}
+  .cd-seg{align-self:flex-start}
+  .cd-form{display:flex;gap:8px;align-items:center}
+  .cd-form .fv-search{flex:1;min-width:0}
+  .cd-form .btn{display:inline-flex;align-items:center;gap:6px}
+  .cd-title{font-size:15px;font-weight:600;margin:2px 0 6px}
+  .cd-title span,.cd-v{color:var(--muted);font-weight:400}
+  .cd-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px 14px;margin:10px 0}
+  .cd-fact{display:flex;flex-direction:column;font-size:13px}
+  .cd-fact.wide{grid-column:1/-1}
+  .cd-fact span{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  .cd-tbl{width:100%;font-size:13px;border-collapse:collapse}
+  .cd-tbl th,.cd-tbl td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .cd-tbl td.nw{white-space:nowrap}
+  .cd-sub{color:var(--muted);font-size:12px}
+  .cd-tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:8px;background:var(--paper2);border:1px solid var(--line);color:var(--muted)}
+  .cd-link{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid var(--line);border-radius:8px;text-decoration:none;margin:1px 2px 1px 0}
+  .cd-list{display:flex;flex-direction:column}
+  .cd-row{text-align:left;padding:9px 6px;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;cursor:pointer}
+  .cd-row:hover,.cd-click:hover{background:var(--paper2)}
+  .cd-click{cursor:pointer}
+  .cd-rm ul{margin:6px 0 0 18px;font-size:13px}
+  @media (max-width:700px){ .cd-tbl th:nth-child(4),.cd-tbl td:nth-child(4){display:none} }
+  @media (max-width:520px){ .cd-form{flex-wrap:wrap} .cd-form .fv-search{flex-basis:100%} .cd-form .btn{width:100%;justify-content:center} }
 </style>
 <style id="darkTheme">
 /* ===== DARK MODE (owner, Oct 2026) — the switch in the top bar (moon / sun), remembered on each device.
@@ -2726,6 +2752,7 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
   <section class="panel" id="panel-reminders"></section>
   <section class="panel" id="panel-activity"></section>
   <section class="panel" id="panel-aiclerk"></section>
+  <section class="panel" id="panel-courtdata"></section>
   <section class="panel" id="panel-access"></section>
   <section class="panel" id="panel-calendar"></section>
   <section class="panel" id="panel-booksoverview"></section>
@@ -26392,6 +26419,7 @@ const SUB_PAGES={
     vakalatnamas:{fn:renderVakalatnamas,id:"vakalatnamas",label:"Vakalatnama & Affidavit register"},
     activity:{fn:renderActivity,id:"activity",label:"Activity"},
     aiclerk:{fn:renderAiClerk,id:"aiclerk",label:"AI clerk activity"},
+    courtdata:{fn:renderCourtData,id:"courtdata",label:"Court data"},
     access:{fn:renderAccess,id:"access",label:"Access control"},
     appts:{fn:renderAppointments,id:"appts",label:"Appointments & meetings"},
     calendar:{fn:renderCalendar,id:"calendar",label:"Calendar"},
@@ -27550,6 +27578,145 @@ function _acNeeds(){
 }
 function _acGo(folder,did){ if(!did){ _openFiling(folder,"stages","filing"); return; } _openFiling(folder,"defects");
   (async()=>{ for(let i=0;i<80;i++){ await new Promise(r=>setTimeout(r,100)); if(document.getElementById("dd_"+did)) break; } try{ _ddOpen(did); }catch(e){} })(); }
+/* ---------- COURT DATA — owner only (28 Oct 2026) ----------
+   Every Supreme Court listing since 24 Jul 2017, from the daily lookup files in the owner's OneDrive ("ASDC Data/SC Data/
+   Lookup"), one small file at a time through an owner-only gatekeeper link. Staff never see it: no menu entry, the page
+   refuses, and the gatekeeper refuses. Owner's rule: the data and its analysis are his edge — never shared. */
+const _CD={tab:"case",q:"",busy:false,err:"",out:"",mem:{},names:null,partyCases:null,partyName:"",mine:null};
+const _CD_LISTS={M_J_1:"Misc",M_J_2:"Misc suppl.",F_J_1:"Regular",F_J_2:"Regular suppl.",M_R_1:"Registrar",M_R_2:"Registrar suppl.",M_CC_1:"Curative / review"};
+const _CD_STOP=new Set("the and of ors anr state union india ltd limited pvt private co company through its secretary govt government nct ms mr smt shri sri dr thr lrs legal heirs etc others other versus respondent petitioner appellant district collector commissioner officer department director chief general managing manager deceased dead represented natural guardian wife husband father mother son daughter".split(" "));
+function _cdFnv(s){ let h=0x811c9dc5; for(const b of new TextEncoder().encode(s)){ h^=b; h=Math.imul(h,0x01000193)>>>0; } return h>>>0; }
+function _cdPre(w){ w=String(w||"").toLowerCase().replace(/[^a-z0-9]/g,""); return w.length>=2?w.slice(0,2):((w+"_").slice(0,2)||"__"); }
+const _CD_TYPES={slpc:"SLP(C)",slpcrl:"SLP(Crl)",ca:"C.A.",crla:"Crl.A.",wpc:"W.P.(C)",wpcrl:"W.P.(Crl)",tpc:"T.P.(C)",tpcrl:"T.P.(Crl)",tcc:"T.C.(C)",ma:"M.A.",dia:"Diary",rpc:"R.P.(C)",rpcrl:"R.P.(Crl)",conmtpetc:"Contempt (C)",curativepetc:"Curative (C)"};
+function _cdKeyLabel(k){ const p=String(k).split(":"); return p.length===3?`${_CD_TYPES[p[0]]||p[0].toUpperCase()} ${p[1]}/${p[2]}`:String(k); }
+function _cdKeyBtns(arr){ return (arr||[]).map(k=>`<button type="button" class="cd-link" onclick="_cdOpenKey('${esc(k)}')">${esc(_cdKeyLabel(k))}</button>`).join(" "); }
+function _cdDate(d){ if(!d) return ""; const [y,m,dd]=d.split("-"); return `${+dd} ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]} ${y}`; }
+async function _cdFile(rel){
+  if(_CD.mem[rel]!==undefined) return _CD.mem[rel];
+  let d;
+  try{ d=await _gk("/api/scdataurl",{path:rel}); }
+  catch(e){ if(/Not in the data/i.test(e.message||"")){ _CD.mem[rel]=null; return null; } throw e; }
+  const r=await fetch(d.url); if(!r.ok) throw new Error("Could not download the data ("+r.status+").");
+  const buf=new Uint8Array(await r.arrayBuffer());
+  let txt;
+  if(buf[0]===0x1f&&buf[1]===0x8b){ txt=await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text(); }
+  else txt=new TextDecoder().decode(buf);
+  const v=JSON.parse(txt); _CD.mem[rel]=v; return v;
+}
+async function _cdReady(){ const m=await _cdFile("meta.json.gz"); if(m&&!_CD.meta){ _CD.meta=m; } return !!m; }
+function _cdParseNo(q){
+  const m=/(\d{1,7})\s*[\/\-–]\s*((?:19|20)\d{2})(?!\d)/.exec(q||""); if(!m) return null;
+  const before=(q.slice(0,m.index)||"").toLowerCase();
+  const typ=/diary|d\.?\s*no/.test(before)?"dia":before.replace(/no\.?|nos?\.?|\(s\)/g,"").replace(/[^a-z]/g,"");
+  return {num:+m[1], yr:m[2], typ};
+}
+function _cdRecMatches(rec,num,yr){
+  const p=String(rec.k||"").split(":"); if(p[2]!==String(yr)) return false;
+  const a=+p[1]; if(a===num) return true;
+  const rg=/(\d+)-(\d+)\/\d{4}/.exec(rec.n||""); return !!(rg&&num>=+rg[1]&&num<=+rg[2]);
+}
+async function _cdFindCase(q){
+  const n=_cdParseNo(q); if(!n) return {err:"Type a case or diary number with its year, e.g. SLP(C) 9386/2023 or Diary 45257/2025."};
+  const dr=_cdFnv(`${n.num}:${n.yr}`)%512;
+  const recs=await _cdFile(`cases/c${String(dr).padStart(3,"0")}.json.gz`)||{};
+  let hits=Object.values(recs).filter(r=>_cdRecMatches(r,n.num,n.yr));
+  if(n.typ){ const same=hits.filter(r=>r.t===n.typ||(n.typ==="dia"&&r.t==="dia")||String(r.t).startsWith(n.typ)||n.typ.startsWith(r.t)); if(same.length) hits=same; }
+  return {hits, n};
+}
+async function _cdOpenKey(key){
+  const p=String(key).split(":"); if(p.length!==3) return;
+  _CD.tab="case"; _CD.q=(p[0]==="dia"?"Diary ":"")+p[1]+"/"+p[2]; await _cdSearch(true, key);
+}
+function _cdDiaryOf(rec){
+  if(rec.t==="dia"){ const p=rec.k.split(":"); return {n:p[1],y:p[2],sure:true}; }
+  if(rec.dg){ const p=rec.dg.split(":"); return {n:p[1],y:p[2],sure:false}; }
+  return null;
+}
+function _cdCaseHTML(rec){
+  const dia=_cdDiaryOf(rec);
+  const link=(href,label)=>`<a class="cd-link" href="${esc(href)}" target="_blank" rel="noopener">${label}</a>`;
+  const ord=d=>dia?link(`https://www.sci.gov.in/sci-get-pdf/?diary_no=${dia.n}${dia.y}&type=o&order_date=${d}&from=latest_judgements_order`,"Order"):"";
+  const rep=d=>dia?link(`https://api.sci.gov.in/officereport/${dia.y}/${dia.n}/${dia.n}_${dia.y}_${d}.pdf`,"Office report"):"";
+  const facts=[["First listed",_cdDate(rec.f)],["Last listed",_cdDate(rec.l)],["Times listed",rec.x],["Last court",rec.lc],["Last stage",rec.ls],
+    ["Registry section",(rec.sec||[]).join(", ")],["Subject",(rec.sub||[]).join("; ")],["Case age at last listing",rec.age!=null?rec.age+" yrs":""]]
+    .filter(f=>f[1]!==""&&f[1]!=null).map(f=>`<div class="cd-fact"><span>${f[0]}</span><b>${esc(String(f[1]))}</b></div>`).join("");
+  const ppl=(lab,arr)=>arr&&arr.length?`<div class="cd-fact wide"><span>${lab}</span><b>${arr.map(esc).join(" · ")}</b></div>`:"";
+  const cases=(lab,arr)=>arr&&arr.length?`<div class="cd-fact wide"><span>${lab}</span><div>${_cdKeyBtns(arr)}</div></div>`:"";
+  const rows=(rec.h||[]).slice().reverse().map(h=>`<tr><td class="nw">${_cdDate(h[0])}</td><td>${esc(_CD_LISTS[h[1]]||h[1])}</td><td class="nw">${esc(h[2])} · ${esc(h[3])}${h[7]?' <span class="cd-tag">tagged</span>':""}</td><td>${esc(h[4]||"")}</td><td>${esc(h[5]||"")}${h[6]?`<div class="cd-sub">${esc(h[6])}</div>`:""}</td><td class="nw">${[ord(h[0]),rep(h[0])].filter(Boolean).join(" ")}</td></tr>`).join("");
+  const rm=(rec.rm||[]).slice().reverse().map(r=>`<li><b>${_cdDate(r[0])}</b> · <i>${esc(r[1])}</i> — ${esc(r[2])}</li>`).join("");
+  return `<div class="scard cd-case">
+    <div class="sc-head"><h3>${esc(rec.n)}</h3>${rec.la?'<span class="cd-tag">legal aid</span>':""}</div>
+    <div class="cd-title">${esc(rec.p||"—")} <span>v</span> ${esc(rec.r||"—")}</div>
+    ${dia?`<div class="hint">Diary No. ${dia.n}/${dia.y}${dia.sure?"":" — matched by the parties' names, not yet confirmed"} · ${link(`https://www.sci.gov.in/sci-get-pdf/?diary_no=${dia.n}${dia.y}&type=j&order_date=2000-01-01&from=latest_judgements_order`,"Judgment, if any")}</div>`:`<div class="hint">No diary number known for this case, so the court's order links can't be built.</div>`}
+    <div class="cd-facts">${facts}${ppl("AoR for petitioner",rec.ap)}${ppl("AoR for respondent",rec.ar)}${ppl("Caveators",rec.cv)}${ppl("Interveners",rec.iv)}${cases("Tagged with",rec.tw)}${cases("Arises in",rec.in)}</div>
+    <div class="tbl-wrap"><table class="cd-tbl"><thead><tr><th>Date</th><th>List</th><th>Court · item</th><th>Bench</th><th>Stage / subject</th><th>Court copies</th></tr></thead><tbody>${rows||'<tr><td colspan="6">No listings.</td></tr>'}</tbody></table></div>
+    ${rm?`<details class="cd-rm"><summary>Remarks printed under the item (${(rec.rm||[]).length})</summary><ul>${rm}</ul></details>`:""}
+  </div>`;
+}
+async function _cdSearch(fromKey, key){
+  const q=fromKey?_CD.q:((document.getElementById("cdQ")||{}).value||"").trim();
+  _CD.q=q; _CD.err=""; _CD.out=""; _CD.busy=true; renderCourtData();
+  try{
+    if(!await _cdReady()) throw new Error("Your court data is still being prepared — the first build runs on GitHub and takes about an hour. Try again later.");
+    if(_CD.tab==="case"){
+      const r=await _cdFindCase(q);
+      if(r.err) _CD.err=r.err;
+      else{ let hits=r.hits; if(key) hits=hits.filter(h=>h.k===key).concat(hits.filter(h=>h.k!==key));
+        _CD.out=hits.length?hits.map(_cdCaseHTML).join(""):`<div class="fv-empty">No listing of ${esc(q)} in the cause lists since 24 Jul 2017.</div>`; }
+    }else if(_CD.tab==="party"){
+      const ws=(q.toUpperCase().match(/[A-Z]{3,}/g)||[]).filter(w=>!_CD_STOP.has(w.toLowerCase()));
+      if(!ws.length){ _CD.err="Type a distinctive word from the party's name (at least 3 letters)."; }
+      else{ const idx=await _cdFile(`names/w_${_cdPre(ws[0])}.json.gz`)||{};
+        const names=new Set(); Object.keys(idx).filter(w=>w.startsWith(ws[0])).forEach(w=>(idx[w]||[]).forEach(n=>names.add(n)));
+        const hit=[...names].filter(n=>ws.every(w=>n.includes(w))).sort().slice(0,120);
+        _CD.names=hit; _CD.partyCases=null;
+        _CD.out=hit.length?`<div class="scard"><div class="sc-head"><h3>Parties matching “${esc(q)}”</h3><span class="hint">${hit.length}${hit.length===120?"+":""}</span></div><div class="cd-list">${hit.map((n,i)=>`<button class="cd-row" onclick="_cdParty(${i})">${esc(n)}</button>`).join("")}</div></div>`:`<div class="fv-empty">No party with “${esc(q)}” in the lists since 24 Jul 2017.</div>`; }
+    }
+  }catch(e){ _CD.err=(e&&e.message)||"Could not load the data."; }
+  _CD.busy=false; renderCourtData();
+}
+async function _cdParty(i){
+  const name=(_CD.names||[])[i]; if(!name) return; _CD.busy=true; renderCourtData();
+  try{ const idx=await _cdFile(`names/p_${_cdPre(name)}.json.gz`)||{}; const cs=idx[name]||[];
+    _CD.out=`<div class="scard"><div class="sc-head"><h3>${esc(name)}</h3><span class="hint">${cs.length} case${cs.length===1?"":"s"}${cs.length===400?" (latest 400)":""}</span></div>
+      <div class="tbl-wrap"><table class="cd-tbl"><thead><tr><th>Case</th><th>As</th><th>Other side</th><th>Last listed</th></tr></thead><tbody>${cs.map(c=>`<tr class="cd-click" onclick="_cdOpenKey('${esc(c[0])}')"><td class="nw">${esc(c[1])}</td><td>${c[3]==="p"?"Petitioner":"Respondent"}</td><td>${esc(c[2])}</td><td class="nw">${_cdDate(c[4])}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }catch(e){ _CD.err=(e&&e.message)||"Could not load the data."; }
+  _CD.busy=false; renderCourtData();
+}
+async function _cdMine(){
+  _CD.busy=true; _CD.err=""; renderCourtData();
+  try{
+    if(!await _cdReady()) throw new Error("Your court data is still being prepared — the first build runs on GitHub and takes about an hour. Try again later.");
+    const mine=await _cdFile("mine.json.gz")||[];
+    const reg=[]; (DB.register||[]).forEach(r=>{ if(r.status!=="removed"&&r.status!=="merged") reg.push({k:_regKeys(r),label:`${String(r.serial||"").padStart(3,"0")} ${r.title||""}`}); });
+    (DB.matters||[]).forEach(m=>{ if(!isVoided(m)) reg.push({k:_matterKeys(m),label:`${m.serial?String(m.serial).padStart(3,"0")+" ":""}${m.parties||m.client||""}`}); });
+    const inReg=[], notReg=[];
+    mine.forEach(m=>{ const k=_numKeys((m.diary?"Diary No. "+m.diary.slice(0,-4)+"/"+m.diary.slice(-4)+" ":"")+m.case); const hit=reg.find(r=>_keysMatch(k,r.k)); (hit?inReg:notReg).push(Object.assign({reg:hit&&hit.label},m)); });
+    const row=m=>`<tr class="cd-click" onclick="_cdOpenKey('${esc(m.k)}')"><td class="nw">${esc(m.case)}</td><td>${esc(m.p)} <span class="cd-v">v</span> ${esc(m.r)}</td><td class="nw">${m.side==="p"?"Petitioner":m.side==="r"?"Respondent":"—"}</td><td class="nw">${m.n}</td><td class="nw">${_cdDate(m.last)}</td>${m.reg!==undefined?`<td>${esc(m.reg||"")}</td>`:""}</tr>`;
+    const tbl=(arr,withReg)=>`<div class="tbl-wrap"><table class="cd-tbl"><thead><tr><th>Case</th><th>Parties</th><th>Your side</th><th>Times</th><th>Last listed</th>${withReg?"<th>In your register as</th>":""}</tr></thead><tbody>${arr.map(row).join("")}</tbody></table></div>`;
+    _CD.out=`<div class="scard"><div class="sc-head"><h3>Listed for you, not in your register</h3><span class="hint">${notReg.length}</span></div>
+      <div class="hint">Matters where the court printed you as AoR but the app has no matching number. Check each — it may be a missing case, or a number the register spells differently.</div>${notReg.length?tbl(notReg.map(m=>{ delete m.reg; return m; }),false):'<div class="fv-empty">None — every listing in your name is in the register.</div>'}</div>
+      <div class="scard"><div class="sc-head"><h3>Listed for you and in your register</h3><span class="hint">${inReg.length}</span></div>${inReg.length?tbl(inReg,true):""}</div>`;
+    _CD.mine=mine.length;
+  }catch(e){ _CD.err=(e&&e.message)||"Could not load the data."; }
+  _CD.busy=false; renderCourtData();
+}
+function _cdTab(t){ _CD.tab=t; _CD.err=""; _CD.out=""; if(t==="mine") _cdMine(); else renderCourtData(); }
+function renderCourtData(){
+  const panel=document.getElementById("panel-courtdata"); if(!panel) return;
+  if(isStaffView()){ panel.innerHTML=`<div class="fv-empty">Not available.</div>`; return; }
+  const tabs=[["case","Case"],["party","Party"],["mine","My court record"]];
+  const ph=_CD.tab==="case"?"Case or diary number, e.g. SLP(C) 9386/2023 or Diary 45257/2025":"A word from the party's name, e.g. Textiles Committee";
+  panel.innerHTML=`<div class="cd-wrap">
+    <div class="hint">Every Supreme Court cause-list entry since 24 Jul 2017, kept in your OneDrive and visible only to you. Order and office-report links open the court's own public copies.${_CD.meta?` Data updated ${esc(_cdDate((_CD.meta.built||"").slice(0,10)))} · ${(+_CD.meta.cases||0).toLocaleString("en-IN")} cases.`:""}</div>
+    <div class="seg cd-seg">${tabs.map(([k,l])=>`<button type="button" class="seg-btn${_CD.tab===k?" on":""}" onclick="_cdTab('${k}')">${l}</button>`).join("")}</div>
+    ${_CD.tab!=="mine"?`<form class="cd-form" onsubmit="event.preventDefault();_cdSearch()"><input class="fv-search" id="cdQ" placeholder="${esc(ph)}" value="${esc(_CD.q)}" autocomplete="off"><button class="btn" type="submit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search</span></button></form>`:""}
+    ${_CD.busy?`<div class="hint">Loading…</div>`:""}
+    ${_CD.err?`<div class="fv-empty">${esc(_CD.err)}</div>`:""}
+    <div id="cdOut">${_CD.out}</div>
+  </div>`;
+}
+try{ Object.assign(window,{renderCourtData,_cdTab,_cdSearch,_cdParty,_cdOpenKey,_cdMine}); }catch(e){}
 function renderAiClerk(){
   const panel=document.getElementById("panel-aiclerk"); if(!panel) return;
   if(isStaffView()){ panel.innerHTML=`<div class="fv-empty">Not available.</div>`; return; }
@@ -27779,7 +27946,7 @@ function renderMoreMenu(){
       ]):""}
       ${group("Money &amp; billing", money)}
       ${group("Diary &amp; tasks", work)}
-      ${group("Registers &amp; records", registers)}
+      ${group("Registers &amp; records", isStaffView()?registers:[item("openSub('courtdata')",'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',"Court data","Every SC listing since 2017 · only you"),...registers])}
       ${group("Setup &amp; tools", admin)}
     </div>`;
 }
@@ -29136,7 +29303,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.28-1600";
+  window.APP_VERSION = "2026.10.28-1800";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
