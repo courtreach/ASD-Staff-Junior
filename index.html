@@ -19807,7 +19807,10 @@ function _gkUrl(){
   return String(u||"").trim().replace(/\/+$/,"");
 }
 async function _gk(path, body, opts){
-  const _t0=performance.now(); try{ return await _gkRaw(path, body, opts); } finally{ try{ _spdAdd("onedrive",path.replace("/api/",""),performance.now()-_t0); }catch(e){} } }
+  const _t0=performance.now(); try{ return await _gkRaw(path, body, opts); } finally{ try{ _spdAdd("onedrive",path.replace("/api/",""),performance.now()-_t0); }catch(e){}
+    // a file was added, replaced, renamed or removed: forget the remembered download addresses, or a paper reopened
+    // within 5 minutes comes back as the version from before (owner, 29 Oct 2026: edits missing on reopening)
+    if(/^\/api\/(rename|trash|uploadsession|addsession|mkdir)$/.test(path)) try{ for(const k in _dlMemo) delete _dlMemo[k]; }catch(e){} } }
 async function _gkRaw(path, body, opts){
   const base=_gkUrl(); if(!base) throw new Error("Documents are not set up yet (Settings → Documents).");
   const tok=(window.FB&&FB.idToken)?await FB.idToken():null; if(!tok) throw new Error("Not signed in.");
@@ -19870,7 +19873,7 @@ function _paperFresh(it,ver,onNewer){ (async()=>{ try{ const d=await _dlurl(it.p
   const b=await _paperBlobFetch(it,null,d); await _pcPut(it,b,v2); onNewer&&onNewer(b); }catch(e){} })(); }
 // opt.fast (viewing only): a copy already on this device is shown at once and checked behind; Share / Download wait for the check
 async function _paperBlob(it, onProgress, opt){
-  opt=opt||{};
+  opt=opt||{}; if(opt.fresh) delete _dlMemo[it.path];
   if(opt.fast){ const any=await _pcAny(it); if(any){ onProgress&&onProgress(any.blob.size,any.blob.size); _paperFresh(it,any.ver,opt.onNewer); return any.blob; } }
   let d=null;
   try{ d=await _dlurl(it.path); }catch(e){ if(!/Unknown request|404/.test(e.message)) throw e; }
@@ -24114,7 +24117,7 @@ async function _peOpenGo(did,pid){
 async function _peOpenCure(did,pid,also){
   const {p}=_defFind(did,pid); if(!p||!p.cure) return;
   _progressModal("Opening…","Fetching "+p.cure.file+"…");
-  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file},(g,t)=>_progressSet(null,t?g/t:null));
+  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+p.cure.file,name:p.cure.file},(g,t)=>_progressSet(null,t?g/t:null),{fresh:true});
     const doc=await _peLoadDoc(blob); closeModal();
     _peStart({did,pid,kind:"cure",file:p.cure.file,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:p.label+" — corrected copy",also});
   }catch(e){ closeModal(); toast(e.message,true); } }
@@ -25041,14 +25044,14 @@ async function _peOpenPaper(k){
   const it=window.__papers[k]; if(!it) return; const copyOnly=_peCopyOnly(k);
   if(!/\.pdf$/i.test(it.name)){ toast("Only PDFs can be edited here.",true); return; }
   _progressModal("Opening…","Fetching "+it.name+"…");
-  try{ const blob=await _paperBlob(it,(g,t)=>_progressSet(null,t?g/t:null)); _progressSet("Opening the pages…",null); const doc=await _peLoadDoc(blob);
+  try{ const blob=await _paperBlob(it,(g,t)=>_progressSet(null,t?g/t:null),{fresh:true}); _progressSet("Opening the pages…",null); const doc=await _peLoadDoc(blob);
     closeModal(); _peStart({file:it.name,path:it.path,size:it.size,kind:"case",copyOnly,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:it.label||it.name.replace(/\.pdf$/i,"")});
   }catch(e){ closeModal(); toast(e.message,true); } }
 // a stored PDF of this filing — the collated defect pages, the final copy, a filing slot, the AI's copy
 async function _peOpenFile(name, kind){
   const x=_flItems().find(i=>i.name===name); if(!x){ toast("That file is no longer in the filing folder.",true); return; }
   _progressModal("Opening…","Fetching "+name+"…");
-  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size},(g,t)=>_progressSet(null,t?g/t:null));
+  try{ const blob=await _paperBlob({path:_filingFolderRel()+"/"+name,name,size:x.size},(g,t)=>_progressSet(null,t?g/t:null),{fresh:true});
     _progressSet("Opening the pages…",null); const doc=await _peLoadDoc(blob);
     closeModal(); _peStart({file:name,kind,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:kind==="final"?"Final copy":kind==="fscopy"?"Filing copy":kind==="slot"?name.replace(/^\d\.\d+ /,"").replace(/\.pdf$/i,""):kind==="aiprop"?"AI's corrected copy":"Defect pages"});
   }catch(e){ closeModal(); toast(e.message,true); } }
@@ -29311,7 +29314,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.29-1130";
+  window.APP_VERSION = "2026.10.29-1700";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
