@@ -19710,7 +19710,7 @@ function _papersHTML(fx){
   _PAPER_GROUPS.forEach(([L,label])=>{
     const g=items.filter(i=>(i.letter||"")===L); if(!g.length) return;
     h+=`<details class="form-grp" ${L==="N"||L==="F"?"open":""} style="margin:6px 0"><summary>${esc(label)} <span class="hint">(${g.length})</span></summary><div class="lrows">`+
-      g.map(i=>{ const k=can?_paperReg({path:base+"/"+i.name,name:i.name,size:i.size,ext:i.ext||""}):-1;
+      g.map(i=>{ const k=can?_paperReg({path:base+"/"+i.name,name:i.name,size:i.size,ext:i.ext||"",mtime:i.mtime||""}):-1;
         return `<div class="lrow"><div class="l"><div class="t"><span class="mono" style="color:var(--seal);font-weight:700">${esc(i.num||"—")}</span> ${esc(i.desc||i.name)}</div><div class="s">${esc(fmtDate(i.mtime||""))} · ${esc(_fmtSize(i.size))} · ${esc((i.ext||"").replace(".","").toUpperCase())}</div></div>${k>=0?_paperBtns(k,i.name):""}</div>`; }).join("")+`</div></details>`;
   });
   if(bundles.length) h+=`<details class="form-grp" style="margin:6px 0"><summary>Older folders <span class="hint">(${bundles.length})</span></summary><div class="lrows">`+bundles.map(b=>{ const k=can?_paperReg({path:base+"/"+b.name,name:b.name,folder:true}):-1; return `<div class="lrow"><div class="l"><div class="t">📁 ${esc(b.name)}</div><div class="s">${b.count} file${b.count===1?"":"s"}</div></div>${k>=0?`<button class="row-act" onclick="_paperBrowse(${k})">Open</button>`:""}</div>`; }).join("")+`</div></details>`;
@@ -19899,7 +19899,7 @@ function _isWord(n){ return /\.(docx|doc|rtf|odt)$/i.test(n||""); }
 function _paperBtns(k,name){
   return `<div style="display:flex;gap:4px;flex:none;flex-wrap:wrap;justify-content:flex-end">
     <button class="row-act" onclick="_paperOpen(${k})">Open</button>
-    ${_isWord(name)?`<button class="row-act" onclick="_paperEdit(${k})">Edit</button>`:""}
+    ${_isWord(name)?`<button class="row-act" onclick="_paperEdit(${k})">Edit</button>`:_peEditBtn(k,name)}
     <button class="row-act" onclick="_paperShare(${k})">Share</button></div>`;
 }
 const _LETTER_RX=/^([NLSCFD])(\d{3})(?:\.(\d+))? (.+)$/;
@@ -20245,7 +20245,7 @@ function _fdListHTML(){
   if(!xs.length) return head+`<div class="fv-empty">${esc(f.fdocsErr||"No PDFs in this case's filings yet.")}</div>`;
   const q=(f.q||"").trim().toLowerCase(); const ys=xs.filter(x=>!q||x.name.toLowerCase().includes(q));
   const row=x=>`<div class="fv-row"><div class="fv-ic" style="background:#b23a3a">PDF</div><div class="fv-main" onclick="_fdOpen(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})" title="Open"><div class="fv-name">${esc(x.name.replace(/\.pdf$/i,""))}</div><div class="fv-meta"><span>${esc(x.filing)}</span>${x.modified?`<span>${esc(fmtDate(String(x.modified).slice(0,10)))}</span>`:""}<span>${esc(_fmtSize(x.size))}</span></div></div>
-    <div class="fv-acts"><button onclick="_fdOpen(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})">Open</button><button onclick="_fdDownload(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})" title="Download">⬇</button></div></div>`;
+    <div class="fv-acts"><button onclick="_fdOpen(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})">Open</button>${_peEditBtn(_paperReg({path:x.path,name:x.name,size:+x.size||0,mtime:x.modified||"",filing:true}),x.name," ")}<button onclick="_fdDownload(${_fvQuote(x.path)},${_fvQuote(x.name)},${+x.size||0})" title="Download">⬇</button></div></div>`;
   const key=ys.filter(x=>_fdKey(x)).sort((a,b)=>_fdKey(a)-_fdKey(b)||String(b.modified).localeCompare(String(a.modified)));
   let h=key.length?`<div class="fv-group">Key documents · ${key.length}</div>`+key.map(row).join(""):"";
   const stg=(_STG||[]).map(z=>[z.n,z.l]); const rest=ys.filter(x=>!_fdKey(x));
@@ -24128,7 +24128,7 @@ function _peStart(o){
   if(_pe) _peClose(true);
   let n=0; const pl=o.idx.map(i=>({id:"p"+(++n),d:0,i,rot:0}));
   if(o.did&&o.pid) _cureMark(o.did,o.pid,true);
-  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",label:o.label,ctx:o.ctx,adv:o.adv||null,also:o.also||null,
+  _pe={did:o.did,pid:o.pid,file:o.file||"",path:o.path||"",size:o.size||0,kind:o.kind||"",copyOnly:!!o.copyOnly,label:o.label,ctx:o.ctx,adv:o.adv||null,also:o.also||null,
     docs:[{blob:o.ctx.blob,doc:o.ctx.doc,labelOf:(o.ctx.labelOf||[]).slice(),sz:{},segs:{},lab:{}}],pl,base0:o.idx.slice(),_n:n,
     ops:[],imgs:{},undo:[],redo:[],tool:"select",sel:new Set(),zoom:1,dirty:false,pages:[],finger:false,cur:0,
     sty:{c:"#111111",w:2,f:"",o:1,hlc:"#ffe14d",mk:"hl",shape:"rect",stamp:"truecopy",font:"T",size:12,b:false,i:false,al:"l",tc:"#111111",stc:"#1d3f9a",stampTxt:""}};
@@ -24147,7 +24147,7 @@ function _peStart(o){
       <button class="pe-ib" onclick="_peOrganize()" title="Organise pages">${ic("M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z")}</button>
       <button class="pe-ib" id="peUndo" onclick="_peUndo()" title="Undo (⌘Z)">↶</button><button class="pe-ib" id="peRedo" onclick="_peRedo()" title="Redo (⇧⌘Z)">↷</button>
       <button class="pe-ib" onclick="_peMoreMenu(this)" title="More">⋯</button>
-      <button class="btn seal sm pe-save" onclick="_peSave()">Save</button></div>
+      <button class="btn seal sm pe-save" onclick="_peSave()" ${o.copyOnly?`title="Saved as a new file next to the original, which stays as it is"`:""}>${o.copyOnly?"Save as a copy":"Save"}</button></div>
     <div class="pe-find" id="peFind" hidden><input id="peFindIn" placeholder="Find in this PDF" onkeydown="if(event.key==='Enter'){event.preventDefault();_peFindGo(event.shiftKey?-1:1);} if(event.key==='Escape'){_peFindClose();}" oninput="_peFindReset()">
       <span id="peFindN" class="pe-findn"></span><button class="pe-ib" onclick="_peFindGo(-1)" title="Previous">↑</button><button class="pe-ib" onclick="_peFindGo(1)" title="Next">↓</button>
       <button class="pe-fb" onclick="_peFindMarkAll()">Highlight all</button><button class="pe-ib" onclick="_peFindClose()" title="Close">✕</button></div>
@@ -24958,7 +24958,7 @@ async function _peBuild(ks,onStep){ const E=_pe, L=await _libPdfLib(), {PDFDocum
   return {blob:new Blob([bytes],{type:"application/pdf"}),n:out.getPageCount()}; }
 /* ---- save: where depends on how the editor was opened ---- */
 async function _peSave(){ if(!_pe) return; _peTextDone(); _peCommitInput(); const E=_pe;
-  if(E.kind==="case") return _peSaveCase(); if(E.kind==="cure") return _peSaveCure(); if(E.kind==="advdraft") return _peSaveAdv(); if(E.file) return _peSaveFile(); return _peSaveDefect(); }
+  if(E.kind==="case") return E.copyOnly?_peSaveAsNew(true):_peSaveCase(); if(E.kind==="cure") return _peSaveCure(); if(E.kind==="advdraft") return _peSaveAdv(); if(E.file) return _peSaveFile(); return _peSaveDefect(); }
 async function _peSaveCase(){ const E=_pe; const base=E.path.split("/").slice(0,-1).join("/");
   if(!E.dirty){ _peClose(true); return; }
   _progressModal("Saving…","Making the new version…");
@@ -24974,10 +24974,10 @@ async function _peSaveCase(){ const E=_pe; const base=E.path.split("/").slice(0,
     toast(kept?`Saved as “${final}”. The original could not be replaced, so both copies are in the folder.`:`Saved — ${n} page${n===1?"":"s"}. The earlier version is in _to_delete.`);
     _fv.live=true; _filesLoad();
   }catch(e){ closeModal(); toast(e.message,true); } }
-async function _peSaveAsNew(){ const E=_pe; if(!E||E.kind!=="case") return; const base=E.path.split("/").slice(0,-1).join("/");
+async function _peSaveAsNew(close){ const E=_pe; if(!E||E.kind!=="case") return; const base=E.path.split("/").slice(0,-1).join("/");
   let name=(prompt("Name of the new file",E.file.replace(/\.pdf$/i,"")+" copy")||"").trim(); if(!name) return; name=name.replace(/\.pdf$/i,"")+".pdf";
   _progressModal("Saving…","Making the new file…");
-  try{ const {blob}=await _peBuild(); const got=await _uploadPaper(base+"/"+name,blob,(g,t)=>_progressSet(null,0.5+0.5*g/t)); closeModal(); toast(`Saved as “${got}” in this folder. The file you opened is unchanged.`); _fv.live=true; _filesLoad(); }
+  try{ const {blob}=await _peBuild(); const got=await _uploadPaper(base+"/"+name,blob,(g,t)=>_progressSet(null,0.5+0.5*g/t)); closeModal(); if(close===true) _peClose(true); toast(`Saved as “${got}” in this folder. The file you opened is unchanged.`); _fv.live=true; _filesLoad(); }
   catch(e){ closeModal(); toast(e.message,true); } }
 async function _peDownload(ks){ if(!_pe) return; _peTextDone(); _peCommitInput(); _progressModal("Preparing…","Making the PDF…");
   try{ const {blob}=await _peBuild(ks&&ks.length?ks:null); closeModal(); const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -25031,12 +25031,18 @@ async function _peSaveCure(){ const E=_pe; const {rec,d,p}=_defFind(E.did,E.pid)
   }catch(e){ closeModal(); toast(e.message,true); } }
 /* EDIT ANY PDF IN A CASE FOLDER (owner, 15 Oct 2026: "like in Apple Preview … sign with my Apple Pencil and it is saved").
    Save keeps the same name; the earlier version goes to _to_delete (never deleted). */
+/* any PDF in the app opens in the editor (owner, 29 Oct 2026). Saving replaces the file only where the person could
+   replace it anyway (the earlier version goes to _to_delete); otherwise — staff on a paper older than a week, or a
+   filing's document opened outside its filing screen (approvals and signatures there track the file) — it is saved as a
+   new copy next to it and the original is left untouched. */
+function _peCopyOnly(k){ const it=window.__papers[k]; return !!it&&(!!it.filing||!_canRemove({modified:it.mtime||""})); }
+function _peEditBtn(k,name,cls){ return /\.pdf$/i.test(name||"")?`<button class="${cls||"row-act"}" onclick="event.stopPropagation();_peOpenPaper(${k})" title="Edit this PDF — write, sign, highlight, white out, turn or remove pages">Edit PDF</button>`:""; }
 async function _peOpenPaper(k){
-  const it=window.__papers[k]; if(!it) return;
+  const it=window.__papers[k]; if(!it) return; const copyOnly=_peCopyOnly(k);
   if(!/\.pdf$/i.test(it.name)){ toast("Only PDFs can be edited here.",true); return; }
   _progressModal("Opening…","Fetching "+it.name+"…");
   try{ const blob=await _paperBlob(it,(g,t)=>_progressSet(null,t?g/t:null)); _progressSet("Opening the pages…",null); const doc=await _peLoadDoc(blob);
-    closeModal(); _peStart({file:it.name,path:it.path,size:it.size,kind:"case",ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:it.label||it.name.replace(/\.pdf$/i,"")});
+    closeModal(); _peStart({file:it.name,path:it.path,size:it.size,kind:"case",copyOnly,ctx:{blob,doc,labelOf:[]},idx:[...Array(doc.numPages).keys()],label:it.label||it.name.replace(/\.pdf$/i,"")});
   }catch(e){ closeModal(); toast(e.message,true); } }
 // a stored PDF of this filing — the collated defect pages, the final copy, a filing slot, the AI's copy
 async function _peOpenFile(name, kind){
@@ -25480,7 +25486,7 @@ function _fvMenu(btn, items){
   setTimeout(()=>document.addEventListener("pointerdown",_fvMenuOut,true),0);
 }
 function _fvFileMenu(btn,k,path,word,canRm){ const pdf=/\.pdf$/i.test(path); _fvMenu(btn,[
-  pdf&&canRm?{l:"✍︎ Edit PDF — sign, write, highlight…",on:`_peOpenPaper(${k})`}:null,
+  pdf?{l:_peCopyOnly(k)?"✍︎ Edit PDF — saved as a copy…":"✍︎ Edit PDF — sign, write, highlight…",on:`_peOpenPaper(${k})`}:null,
   {l:"Download",on:`_paperDownload(${k})`},{l:"Share",on:`_paperShare(${k})`}, word?{l:"Edit in Word",on:`_paperEdit(${k})`}:null,
   canRm?"-":null, canRm?{l:"Rename…",on:`_paperRenameAsk(${_fvQuote(path)})`}:null, canRm?{l:"Replace with a new copy…",on:`_paperReplaceAsk(${_fvQuote(path)})`}:null, canRm?{l:"Remove…",on:`_paperRemoveAsk(${_fvQuote(path)})`,danger:true}:null]); }
 function _fvDirMenu(btn,path,isFiling){ _fvMenu(btn,[{l:"Open",on:`_filesSub(${_fvQuote(path.split("/").pop())})`},
@@ -25869,7 +25875,7 @@ function _qlEnsureBox(){
   ov.innerHTML=`<div class="ql-box" role="dialog" aria-modal="true">
     <div class="ql-head"><div class="ql-title"><div id="qlName"></div><div id="qlMeta" class="ql-meta"></div></div>
       <div class="ql-btns"><button id="qlPrev" title="Previous (↑)">‹</button><button id="qlNext" title="Next (↓)">›</button>
-      <button id="qlOpen">Open</button><button id="qlDl">Download</button><button id="qlClose" title="Close (Space / Esc)">✕</button></div></div>
+      <button id="qlOpen">Open</button><button id="qlEdit" style="display:none">Edit PDF</button><button id="qlDl">Download</button><button id="qlClose" title="Close (Space / Esc)">✕</button></div></div>
     <div class="ql-body" id="qlBody"></div></div>`;
   ov.addEventListener("click",e=>{ if(e.target===ov) _qlClose(); });
   document.body.appendChild(ov);
@@ -25878,6 +25884,7 @@ function _qlEnsureBox(){
   document.getElementById("qlNext").onclick=()=>_qlStep(1);
   document.getElementById("qlOpen").onclick=()=>{ const k=_ql.k; _qlClose(); _paperOpen(k); };
   document.getElementById("qlDl").onclick=()=>_paperDownload(_ql.k);
+  document.getElementById("qlEdit").onclick=()=>{ const k=_ql.k; _qlClose(); _peOpenPaper(k); };
   return ov;
 }
 function _qlClose(){
@@ -25893,6 +25900,7 @@ async function _qlShow(k){
   const ov=_qlEnsureBox(); ov.classList.add("on"); _ql.open=true; _ql.k=k; const seq=++_ql.seq;
   try{ if(_ql.obs) _ql.obs.disconnect(); }catch(e){} _ql.obs=null; try{ if(_ql.doc) _ql.doc.destroy(); }catch(e){} _ql.doc=null;
   document.getElementById("qlName").textContent=it.label||it.name;
+  document.getElementById("qlEdit").style.display=/\.pdf$/i.test(it.name||"")?"":"none";
   document.getElementById("qlMeta").textContent=(it.num?it.num+" · ":"")+_fmtSize(it.size)+(it.mtime?" · "+fmtDate(it.mtime):"");
   const body=document.getElementById("qlBody"); body.scrollTop=0;
   body.innerHTML=`<div class="ql-msg">Loading preview…</div>`;
@@ -29303,7 +29311,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.28-1800";
+  window.APP_VERSION = "2026.10.29-1130";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
