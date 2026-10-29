@@ -69,6 +69,10 @@ jobs:
       - name: Lookup files for the owner's private Court data screen (morning run, or when run by hand)
         if: ${{ github.event.schedule == '30 2 * * *' || github.event_name == 'workflow_dispatch' }}
         run: python -u scindex/build_lookup.py "out/SC Data" parsed "out/SC Data/Lookup"
+      - name: Listing index for one-case answers to PaperBook's server (morning run, or when run by hand)
+        if: ${{ github.event.schedule == '30 2 * * *' || github.event_name == 'workflow_dispatch' }}
+        continue-on-error: true
+        run: python -u scindex/build_plan.py "out/SC Data" "out/SC Data/Lookup"
       - name: Send to OneDrive
         run: python -u scindex/push_onedrive.py
       - name: Keep the readings for the next run
