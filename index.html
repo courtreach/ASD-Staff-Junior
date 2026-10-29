@@ -20355,7 +20355,7 @@ function renderFilesPage(){
       <div class="fv-head"><span id="fvChk" class="fv-chk" ${f.checking?"":"hidden"} title="Showing the list this device saw last; checking OneDrive for anything new">↻ checking</span>
         ${_inFiling()?`<div style="min-width:0;flex:1"><button class="btn ghost sm" onclick="_filesUp()">‹ All papers of ${esc(String(f.serial).padStart(3,"0"))}</button></div>`:`<div style="min-width:0;flex:1"><div class="fv-title">${f.serial?`<span class="mono" style="color:var(--seal)">${esc(String(f.serial).padStart(3,"0"))}</span> · `:""}${esc(title||"Files")}${ch}</div>
           <div class="fv-path">📁 ${esc(f.folder||"—")}${f.sub?" / "+esc(f.sub):""}</div></div>`}
-        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${!f.sub&&!_inFiling()&&f.serial&&f.folder&&_gkUrl()?`<button class="btn ghost sm cc-open" onclick="_ccOpen()" title="Fetch this case's orders, judgments and office reports from the Court's case-status page (type its captcha)">${_CC_IC.rec}<span>Court record</span></button>`:""}${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${!f.sub&&!_inFiling()&&f.serial&&f.folder&&_gkUrl()?`<button class="btn ghost sm cc-open" onclick="_ccOpen()" title="Orders, judgments and office reports from the Court">${_CC_IC.rec}<span>Court record</span></button>`:""}${f.sub&&!_inFiling()?`<button class="btn ghost sm" onclick="_filesUp()">‹ Up</button>`:""}<button class="btn ghost sm" onclick="_fv.live=true;_filesLoad()">Refresh</button></div>
       </div>
       ${f.sub&&!_inFiling()&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_addPaperAsk(0)">＋ Upload papers</button></div>`:""}
       ${!f.sub&&f.folder&&_gkUrl()&&f.idx?`<div class="fv-add"><button class="btn seal sm" onclick="_fvMenu(this,[{l:'Upload papers…',on:'_addPaperAsk(0)'},{l:'Scan with the camera…',on:'_scanOpen({})'},'-',{l:'Start a new filing…',on:'_newFilingAsk()'},{l:'Add a defect list…',on:'_dlStartAsk()'}])">＋ Add</button></div>`:""}
@@ -20395,9 +20395,7 @@ const _cc={};
 function _ccOpen(){
   const f=_fv; if(!f||!f.serial||!f.folder) return;
   Object.assign(_cc,{s:+f.serial,folder:f.folder,diaries:_ccDiaries(f.serial),diary:"",cursor:"",busy:false,done:{}});
-  openModal("Court record — orders, judgments, office reports",`<div class="cc">
-    <div class="hint" style="margin-bottom:10px">Fetches every order, judgment and office report the Court’s case-status page lists for this case’s diary number — the lead case’s too when it is tagged — into this case folder’s <b>Orders</b>, <b>Judgments</b> and <b>Office Reports</b>. Type the captcha shown; one captcha per diary number. Nothing already in the folder is saved twice.</div>
-    <div id="ccBody"><div class="hint">Getting the captcha from the Court’s website…</div></div></div>`);
+  openModal("Court record",`<div class="cc"><div id="ccBody"><div class="hint">Getting the captcha from the Court’s website…</div></div></div>`);
   _ccStart(_cc.diaries[0]||"");
 }
 function _ccDiaryPick(){
@@ -29422,7 +29420,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.29-1900";
+  window.APP_VERSION = "2026.10.29-2130";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
