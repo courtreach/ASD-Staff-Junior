@@ -63,6 +63,9 @@ jobs:
         run: |
           python -u scindex/build_categories.py parsed "out/SC Data"
           mkdir -p "out/SC Data/Readings" && cp parsed/*.jsonl.gz "out/SC Data/Readings/"
+      - name: Links for the own-cases fetcher (tagged cases' later numbers, and leads that are not own cases)
+        continue-on-error: true
+        run: python -u scindex/own_links.py "out/SC Data"
       - name: Lookup files for the owner's private Court data screen (morning run, or when run by hand)
         if: ${{ github.event.schedule == '30 2 * * *' || github.event_name == 'workflow_dispatch' }}
         run: python -u scindex/build_lookup.py "out/SC Data" parsed "out/SC Data/Lookup"
