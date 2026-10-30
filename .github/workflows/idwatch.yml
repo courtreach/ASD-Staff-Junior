@@ -1,0 +1,33 @@
+# Home-page snapshot (owner, 30 Oct 2026): six times a day, one request to the Court's home page, whose "Latest" box
+# lists the newest uploads in the order they went up. The addresses it finds go to the gatekeeper's private log (the
+# running number in each file name, the order date, court, item and when it was first seen - nothing about a case).
+# The code is fetched privately from the gatekeeper; the log shows counts and the shape of the addresses only.
+name: Home page snapshot
+on:
+  schedule:
+    - cron: "0 2,5,8,11,14,17 * * *"
+  workflow_dispatch:
+concurrency:
+  group: idwatch
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
+        run: |
+          curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \
+               -H "Content-Type: application/json" -d '{"key":"sci:engine"}' -o engine.json
+          python3 -c "import json,base64; v=json.load(open('engine.json')).get('value'); assert v, 'engine missing in the gatekeeper'; open('engine.tgz','wb').write(base64.b64decode(v))"
+          tar xzf engine.tgz && rm -f engine.json engine.tgz && echo "engine ready: $(ls scindex | wc -l) files"
+      - name: Read the home page
+        run: |
+          cd scindex
+          python3 -u idwatch.py
