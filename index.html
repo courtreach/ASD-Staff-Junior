@@ -8502,7 +8502,7 @@ function renderVakalatnamas(){
       <div class="card-head">
         <div><h2>Vakalatnama &amp; Affidavit</h2><div class="hint">Every vakalatnama generated from this chamber, most recent first.</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn ghost sm" onclick="_vkBlankForm()" title="Print an empty form to fill in by hand">Blank form</button>
+          <button class="btn ghost sm" onclick="_vkBlankForm({aff:true})" title="Print an empty vakalatnama and affidavit to fill in by hand">Blank vakalatnama &amp; affidavit</button>
           <button class="btn seal sm" onclick="openVakalatnama()">+ New vakalatnama</button>
         </div>
       </div>
@@ -8612,7 +8612,8 @@ function _instrPageHTML(opts){
     <div class="instr-body">${list}${tiles}</div>
   </div>`;
 }
-function _vkBlankForm(){
+function _vkBlankForm(opts){
+  opts=opts||{};
   const forums=FORUMS, types=typesForForum("Supreme Court of India");
   openModal("Blank vakalatnama", `
     <div class="hint">Prints the form with open space for the parties, the executant and the date — to be filled in by hand. Choose the court and case type so the heading is right; everything below it is left blank.</div>
@@ -8625,7 +8626,7 @@ function _vkBlankForm(){
     <label class="checkline" style="display:flex;align-items:center;gap:8px;margin-top:12px">
       <input type="checkbox" id="vkbMemo" checked> Include the Memo of Appearance</label>
     <label class="checkline" style="display:flex;align-items:center;gap:8px;margin-top:8px">
-      <input type="checkbox" id="vkbAff"> Also print a blank affidavit</label>
+      <input type="checkbox" id="vkbAff" ${opts.aff?"checked":""}> Also print a blank affidavit</label>
     <label class="checkline" style="display:flex;align-items:center;gap:8px;margin-top:8px">
       <input type="checkbox" id="vkbInstr" onchange="_vkbInstrToggle()"> Include an instructions page (how to fill, notarise &amp; send back)</label>
     <div id="vkbInstrWrap" style="display:none;margin-top:8px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)">
@@ -27932,6 +27933,7 @@ function renderPhoneCreate(){
   const big=(onclick,ic,t,s)=>`<button class="pc-big" onclick="${onclick}"><span class="pc-ic">${ic}</span><span class="pc-tx"><span class="pc-t">${t}</span><span class="pc-s">${s}</span></span><span class="pf-go">›</span></button>`;
   home.innerHTML=`<div class="hello" style="margin-bottom:12px">Create</div>
     ${big("openVakalatnama()","📜","Vakalatnama &amp; Affidavit","Supreme Court and other forums · with instructions page")}
+    ${big("_vkBlankForm({aff:true})","📄","Blank vakalatnama &amp; affidavit","Empty forms to fill in by hand · PDF or Word")}
     ${big("_sendInstructionsOnly()","📝","Instructions for the client","How to sign and notarise — English or English + Marathi")}
     <div class="fv-group" style="margin-top:16px">Papers into a case</div>
     ${big("_pickCase('scan')","📷","Scan a paper","Camera → clean PDF → saved in the case")}
@@ -29420,7 +29422,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.10.29-2130";
+  window.APP_VERSION = "2026.11.04-1035";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
