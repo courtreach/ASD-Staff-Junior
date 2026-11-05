@@ -2427,6 +2427,24 @@
   .cd-row:hover,.cd-click:hover{background:var(--paper2)}
   .cd-click{cursor:pointer}
   .cd-rm ul{margin:6px 0 0 18px;font-size:13px}
+  .cda{display:flex;flex-direction:column;gap:10px}
+  .cda-q{width:100%;min-height:76px;resize:vertical;font:inherit;font-size:14px;box-sizing:border-box}
+  .cda-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .cda-bar .btn,.cda-acts .btn{display:inline-flex;align-items:center;gap:6px}
+  #cdaList{display:flex;flex-direction:column;gap:8px}
+  .cda-item{border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  .cda-item summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+  .cda-item summary::-webkit-details-marker{display:none}
+  .cda-qt{font-weight:600;font-size:14px}
+  .cda-meta{font-size:12px}
+  .cda-st{display:inline-block;font-size:11px;padding:1px 7px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+  .cda-st.ok{color:#2f7a3f;border-color:#2f7a3f55} .cda-st.k{color:var(--seal);border-color:var(--seal)} .cda-st.bad{color:#b4412e;border-color:#b4412e66}
+  .cda-body{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+  .cda-ans{font-size:14px;line-height:1.5}
+  .cda-ans p{margin:6px 0} .cda-ans ul,.cda-ans ol{margin:6px 0 6px 20px;padding:0} .cda-ans code{font-size:12.5px}
+  .cda-h{font-weight:600;margin:10px 0 2px}
+  .cda-tw{overflow-x:auto;margin:6px 0}
+  .cda-acts{display:flex;gap:6px;flex-wrap:wrap}
   @media (max-width:700px){ .cd-tbl th:nth-child(4),.cd-tbl td:nth-child(4){display:none} }
   @media (max-width:520px){ .cd-form{flex-wrap:wrap} .cd-form .fv-search{flex-basis:100%} .cd-form .btn{width:100%;justify-content:center} }
 </style>
@@ -27820,22 +27838,103 @@ async function _cdMine(){
   }catch(e){ _CD.err=(e&&e.message)||"Could not load the data."; }
   _CD.busy=false; renderCourtData();
 }
-function _cdTab(t){ _CD.tab=t; _CD.err=""; _CD.out=""; if(t==="mine") _cdMine(); else renderCourtData(); }
+function _cdTab(t){ _CD.tab=t; _CD.err=""; _CD.out=""; if(t==="mine") _cdMine(); else { renderCourtData(); if(t==="ask") _cdAskStart(); } }
+/* Ask Claude (owner, 5 Nov 2026: "send a query to Claude … about statistics from the court data … list the answer").
+   The question goes to the owner's private space (accounts/{uid}/dataAsk); Claude on the Mac works it out from the
+   files in OneDrive (helper/DATA_ASK.md) and writes the answer back. Staff never see this space. The list updates by
+   itself; only the list is redrawn, never the question box, so a half-typed question is never lost. */
+function _cdAskStart(){
+  if(isStaffView()||_CD.askUnsub||!(window.FB&&FB.askListen)) { _cdAskList(); return; }
+  _CD.askUnsub=FB.askListen((xs,err)=>{ if(err){ _CD.askErr="Could not load your questions: "+(err.message||err); } else { _CD.asks=xs; _CD.askErr=""; } _cdAskList(); });
+  try{ _aiRunHTML(); }catch(e){}
+}
+function _cdAskMd(s){
+  const inl=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g,"$1<i>$2</i>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  const L=String(s||"").replace(/\r/g,"").split("\n"); let h="", i=0;
+  while(i<L.length){ const l=L[i];
+    if(/^\s*\|.*\|\s*$/.test(l)){ const rows=[]; while(i<L.length&&/^\s*\|.*\|\s*$/.test(L[i])) rows.push(L[i++]);
+      const cells=r=>r.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim()); const body=rows.filter(r=>!/^\s*\|[\s:|-]+\|\s*$/.test(r));
+      h+=`<div class="cda-tw"><table class="cd-tbl">${body.map((r,k)=>`<tr>${cells(r).map(c=>k===0&&rows.length>1&&/^\s*\|[\s:|-]+\|\s*$/.test(rows[1])?`<th>${inl(c)}</th>`:`<td>${inl(c)}</td>`).join("")}</tr>`).join("")}</table></div>`; continue; }
+    if(/^\s*[-*•]\s+/.test(l)){ h+="<ul>"; while(i<L.length&&/^\s*[-*•]\s+/.test(L[i])) h+=`<li>${inl(L[i++].replace(/^\s*[-*•]\s+/,""))}</li>`; h+="</ul>"; continue; }
+    if(/^\s*\d+[.)]\s+/.test(l)){ h+="<ol>"; while(i<L.length&&/^\s*\d+[.)]\s+/.test(L[i])) h+=`<li>${inl(L[i++].replace(/^\s*\d+[.)]\s+/,""))}</li>`; h+="</ol>"; continue; }
+    const m=l.match(/^(#{1,4})\s+(.*)$/); if(m){ h+=`<div class="cda-h">${inl(m[2])}</div>`; i++; continue; }
+    if(!l.trim()){ i++; continue; }
+    const p=[]; while(i<L.length&&L[i].trim()&&!/^\s*(\||[-*•]\s|\d+[.)]\s|#{1,4}\s)/.test(L[i])) p.push(L[i++]); h+=`<p>${inl(p.join(" "))}</p>`;
+  }
+  return h;
+}
+function _cdAskWhen(iso){ const t=new Date(iso); if(!iso||isNaN(t)) return ""; return (new Date().toDateString()===t.toDateString()?"Today":fmtDate(_localISO(t)))+", "+t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); }
+function _cdAskHTML(){
+  return `<div class="cda">
+    <div class="hint">Ask a question about the statistics in your court data, such as how many cases, how long matters wait, which benches, courts or AoRs. Claude on your Mac works the answer out from the files in your OneDrive, and only you see it. An answer usually takes a few minutes.</div>
+    <textarea class="in cda-q" id="cdaQ" rows="3" maxlength="1500" placeholder="e.g. How many fresh SLP (Criminal) matters were listed each year since 2018?" oninput="_CD.askDraft=this.value">${esc(_CD.askDraft||"")}</textarea>
+    <div class="cda-bar"><span class="hint ai-run">${esc(_aiRunText())}</span>
+      <button class="btn" type="button" onclick="_cdAskSend()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg><span>Ask Claude</span></button></div>
+    <div id="cdaList"></div></div>`;
+}
+function _cdAskList(){
+  const box=document.getElementById("cdaList"); if(!box) return;
+  if(_CD.askErr){ box.innerHTML=`<div class="fv-empty">${esc(_CD.askErr)}</div>`; return; }
+  const xs=(_CD.asks||[]).slice().sort((a,b)=>String(b.asked||"").localeCompare(String(a.asked||"")));
+  if(!_CD.asks){ box.innerHTML=`<div class="hint">Loading your questions…</div>`; return; }
+  if(!xs.length){ box.innerHTML=`<div class="fv-empty">No questions yet.</div>`; return; }
+  const st={queued:["Waiting for your Mac","w"],working:["Claude is working on it","k"],answered:["Answered","ok"],error:["Not answered","bad"]};
+  const ic={again:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
+    copy:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+    rm:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>'};
+  box.innerHTML=xs.map(a=>{ const s=st[a.status]||st.queued, open=_CD.askOpen?_CD.askOpen===a.id:a===xs[0];
+    return `<details class="cda-item"${open?" open":""} ontoggle="_CD.askOpen=this.open?'${esc(a.id)}':(_CD.askOpen==='${esc(a.id)}'?'-':_CD.askOpen)">
+      <summary><span class="cda-qt">${esc(a.q||"")}</span><span class="cda-meta"><span class="cda-st ${s[1]}">${s[0]}</span> <span class="hint">· ${esc(_cdAskWhen(a.asked))}</span></span></summary>
+      <div class="cda-body">${a.status==="answered"?`<div class="cda-ans">${_cdAskMd(a.answer)}</div><div class="hint">Answered ${esc(_cdAskWhen(a.answeredAt))}</div>`
+        :a.status==="error"?`<div class="fv-empty">${esc(a.err||"Claude could not answer this question.")}</div>`
+        :`<div class="hint">${a.status==="working"?"Claude is working this out on your Mac. The answer will appear here by itself.":"Waiting for Claude on your Mac. If the Mac is off or asleep, the question is answered when it's back."}</div>`}
+        <div class="cda-acts">
+          ${a.status==="answered"?`<button class="btn ghost sm" type="button" onclick="_cdAskCopy('${esc(a.id)}')">${ic.copy}<span>Copy answer</span></button>`:""}
+          ${a.status==="answered"||a.status==="error"?`<button class="btn ghost sm" type="button" onclick="_cdAskAgain('${esc(a.id)}')">${ic.again}<span>Ask again</span></button>`:""}
+          <button class="btn ghost sm" type="button" onclick="_cdAskRemove('${esc(a.id)}')">${ic.rm}<span>Remove</span></button>
+        </div></div></details>`; }).join("");
+}
+async function _cdAskSend(){
+  if(isStaffView()) return;
+  const el=document.getElementById("cdaQ"); const q=String((el&&el.value)||"").trim();
+  if(q.length<8){ toast("Type your question first.", true); return; }
+  if((_CD.asks||[]).filter(a=>a.status==="queued"||a.status==="working").length>=5){ toast("Five questions are already waiting. Let Claude answer those first.", true); return; }
+  const id="q"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  try{ await FB.askPut(id,{q, status:"queued", asked:new Date().toISOString(), answer:"", err:""});
+    _CD.askDraft=""; if(el) el.value=""; _CD.askOpen=id; toast("Sent to Claude on your Mac.");
+  }catch(e){ toast("Could not send the question: "+e.message, true); }
+}
+async function _cdAskAgain(id){
+  const a=(_CD.asks||[]).find(x=>x.id===id); if(!a) return;
+  try{ await FB.askPut(id,{status:"queued", asked:new Date().toISOString(), answer:"", err:"", answeredAt:""}); _CD.askOpen=id; toast("Asked again. The new answer will replace the old one."); }
+  catch(e){ toast("Could not ask again: "+e.message, true); }
+}
+async function _cdAskRemove(id){
+  const a=(_CD.asks||[]).find(x=>x.id===id); if(!a) return;
+  if(!confirm("Remove this question and its answer?")) return;
+  try{ await FB.askDel(id); toast("Removed."); }catch(e){ toast("Could not remove it: "+e.message, true); }
+}
+function _cdAskCopy(id){
+  const a=(_CD.asks||[]).find(x=>x.id===id); if(!a) return;
+  const t=(a.q||"")+"\n\n"+(a.answer||"");
+  try{ navigator.clipboard.writeText(t).then(()=>toast("Answer copied."),()=>toast("Could not copy.", true)); }catch(e){ toast("Could not copy.", true); }
+}
 function renderCourtData(){
   const panel=document.getElementById("panel-courtdata"); if(!panel) return;
   if(isStaffView()){ panel.innerHTML=`<div class="fv-empty">Not available.</div>`; return; }
-  const tabs=[["case","Case"],["party","Party"],["mine","My court record"]];
+  const tabs=[["case","Case"],["party","Party"],["mine","My court record"],["ask","Ask Claude"]];
   const ph=_CD.tab==="case"?"Case or diary number, e.g. SLP(C) 9386/2023 or Diary 45257/2025":"A word from the party's name, e.g. Textiles Committee";
   panel.innerHTML=`<div class="cd-wrap">
     <div class="hint">Every Supreme Court cause-list entry since 24 Jul 2017, kept in your OneDrive and visible only to you. Order and office-report links open the court's own public copies.${_CD.meta?` Data updated ${esc(_cdDate((_CD.meta.built||"").slice(0,10)))} · ${(+_CD.meta.cases||0).toLocaleString("en-IN")} cases.`:""}</div>
     <div class="seg cd-seg">${tabs.map(([k,l])=>`<button type="button" class="seg-btn${_CD.tab===k?" on":""}" onclick="_cdTab('${k}')">${l}</button>`).join("")}</div>
-    ${_CD.tab!=="mine"?`<form class="cd-form" onsubmit="event.preventDefault();_cdSearch()"><input class="fv-search" id="cdQ" placeholder="${esc(ph)}" value="${esc(_CD.q)}" autocomplete="off"><button class="btn" type="submit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search</span></button></form>`:""}
+    ${_CD.tab!=="mine"&&_CD.tab!=="ask"?`<form class="cd-form" onsubmit="event.preventDefault();_cdSearch()"><input class="fv-search" id="cdQ" placeholder="${esc(ph)}" value="${esc(_CD.q)}" autocomplete="off"><button class="btn" type="submit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span>Search</span></button></form>`:""}
     ${_CD.busy?`<div class="hint">Loading…</div>`:""}
     ${_CD.err?`<div class="fv-empty">${esc(_CD.err)}</div>`:""}
-    <div id="cdOut">${_CD.out}</div>
+    <div id="cdOut">${_CD.tab==="ask"?_cdAskHTML():_CD.out}</div>
   </div>`;
+  if(_CD.tab==="ask") _cdAskList();
 }
-try{ Object.assign(window,{renderCourtData,_cdTab,_cdSearch,_cdParty,_cdOpenKey,_cdMine}); }catch(e){}
+try{ Object.assign(window,{renderCourtData,_cdTab,_cdSearch,_cdParty,_cdOpenKey,_cdMine,_cdAskSend,_cdAskAgain,_cdAskRemove,_cdAskCopy}); }catch(e){}
 function renderAiClerk(){
   const panel=document.getElementById("panel-aiclerk"); if(!panel) return;
   if(isStaffView()){ panel.innerHTML=`<div class="fv-empty">Not available.</div>`; return; }
@@ -29357,6 +29456,10 @@ FB.getAdvImg = async function(sd,id){ const r=sd?doc(db,"accounts",FB.uid(),"adv
 FB.putChamberMeta = async function(id,data){ await setDoc(doc(db,"chamber","main","meta",id), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
 FB.putSpeed = async function(dev,data){ const b=this._base(); if(!b) return; await setDoc(doc(db,b,"meta","speed_"+String(dev).replace(/[^a-z0-9]/gi,"")), data); };
 FB.getMeta = async function(id){ const s=await getDoc(doc(db,"chamber","main","meta",id)); return s.exists()?s.data():null; };
+// the owner's questions to Claude about the court data — his own private space only (Court data → Ask Claude)
+FB.askListen = function(cb){ const u=FB.uid(); if(!u) return null; return onSnapshot(collection(db,"accounts",u,"dataAsk"), snap=>{ const out=[]; snap.forEach(d=>out.push(Object.assign({id:d.id}, d.data()))); cb(out); }, e=>cb(null,e)); };
+FB.askPut = async function(id,data){ await setDoc(doc(db,"accounts",FB.uid(),"dataAsk",id), Object.assign({},data,{_updated:serverTimestamp()}), {merge:true}); };
+FB.askDel = async function(id){ await deleteDoc(doc(db,"accounts",FB.uid(),"dataAsk",id)); };
 FB.getOwnMeta = async function(id){ const b=FB._base(); if(!b) return null; const s=await getDoc(doc(db,b,"meta",id)); return s.exists()?s.data():null; };
 FB.listenStaffDir = function(uid, cb){ return onSnapshot(FB.staffDirRef(uid), s=>cb(s.exists()?s.data():null)); };
 // owner watches the whole inbox across all staff via collectionGroup
@@ -29434,7 +29537,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.11.05-1240";
+  window.APP_VERSION = "2026.11.05-1500";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
