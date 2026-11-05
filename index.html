@@ -3216,7 +3216,7 @@ html[data-theme=dark] [style*="color:#555"]:not(:is(.doc,#receiptArea,.tpl-list,
     }catch(e){ console.warn("staff pullAll failed", e); }
 
     // every AD Chamber case in the owner's register (number, name, folder) — so staff can find and open any AD case
-    try{ const ac=await _withTimeout(FB.getMeta("adCases"), 6000, null); window.__adCases=(ac&&ac.cases)||[]; }catch(e){ window.__adCases=[]; }
+    try{ const ac=await _withTimeout(FB.getMeta("adCases"), 6000, null); window.__adCases=(ac&&ac.cases)||[]; if(ac&&ac.cases) window.__acAt=Date.now(); }catch(e){ window.__adCases=[]; }
     // Enter shell now (never hang).
     hideCloudLogin();
     try{ if(window.enterAppShell) window.enterAppShell(); }catch(e){ console.warn("enterAppShell", e); }
@@ -16728,7 +16728,8 @@ function _mxEntries(){
     const chamber=(r&&r.chamber)||(p&&p.chamber)||"AD";
     const role=p&&!p.fromRegister?_roleOf(p):((r&&r.role)||(chamber==="SD"?"assist":"aor"));
     const disposed=p?(p.status==="Concluded"||!!p.historical):!!(r&&r.disposed);
-    const status=p?(isVoided(p)?"cancelled":disposed?"disposed":(p.status==="Closed"?"closed":"active")):(disposed?"disposed":"");
+    // a file with no app case (made from its folder) is active unless the register says disposed — else "Show: Active" hid every such file
+    const status=p?(isVoided(p)?"cancelled":disposed?"disposed":(p.status==="Closed"?"closed":"active")):(disposed||(r&&(r.status||r.st))==="disposed"?"disposed":"active");
     const nums=[]; const add=x=>{ x=String(x||"").trim(); if(x&&!/_{2,}/.test(x)&&nums.indexOf(x)<0) nums.push(x); };
     act.forEach(m=>{ add(m.caseNo); if(m.diaryNo) add("Diary No. "+String(m.diaryNo).replace(/^diary\s*no\.?\s*/i,"")); (m.petitionNos||[]).forEach(add); });
     if(r&&(!staff)&&_regConfirmed(r)) (r.petitionNos||[]).forEach(add); if(r&&staff) (r.n||[]).forEach(add);
@@ -16743,7 +16744,7 @@ function _mxEntries(){
   const onReg=new Set();
   if(!staff) (DB.register||[]).forEach(r=>{ const ms=(bySer.get(+r.serial)||[]).slice(); bySer.delete(+r.serial);
     const lm=r.matterId&&!ms.some(x=>x.id===r.matterId)?matterById(r.matterId):null; if(lm&&!isVoided(lm)&&!lm.serial) ms.push(lm); if(r.matterId) onReg.add(r.matterId); mk(r.serial,r,ms); });
-  else (window.__adCases||[]).forEach(c=>{ if(!c||!c.s) return; const ms=bySer.get(+c.s)||[]; bySer.delete(+c.s); mk(c.s,{serial:c.s,t:c.t,title:c.t,chamber:/^SD Chamber\//.test(c.f||"")?"SD":"AD",folder:c.f,n:c.n||[],u:c.u||""},ms); });
+  else (window.__adCases||[]).forEach(c=>{ if(!c||!c.s) return; const ms=bySer.get(+c.s)||[]; bySer.delete(+c.s); mk(c.s,{serial:c.s,t:c.t,title:c.t,chamber:/^SD Chamber\//.test(c.f||"")?"SD":"AD",folder:c.f,n:c.n||[],u:c.u||"",st:c.st||""},ms); });
   bySer.forEach((ms,s)=>mk(s,null,ms));
   live.filter(m=>!m.serial&&!isVoided(m)&&!onReg.has(m.id)).forEach(m=>{ if(m.kind==="ia"){ const par=matterById(m.parentId); mk(null,null,[m]); out[out.length-1].iaParent=par; } else mk(null,null,[m]); });
   return out;
@@ -26476,7 +26477,7 @@ function shellGo(t){
   else if(t==="books"){ go("books"); }
   else if(t==="documents"){ renderDocFolders(); markPanel("docin"); }
   else if(t==="more"){ home.classList.add("active"); if(isStaffView()&&_phoneNav()) renderStaffMore(); else renderMoreMenu(); }
-  else if(t==="p_files"){ home.classList.add("active"); renderPhoneFiles(); }
+  else if(t==="p_files"){ home.classList.add("active"); renderPhoneFiles(); _adCasesRefresh(); }
   else if(t==="p_defects"){ home.classList.add("active"); renderPhoneDefects(); }
   else if(t==="p_create"){ home.classList.add("active"); renderPhoneCreate(); }
   else if(t==="s_entry"){ home.classList.add("active"); renderStaffRecord(); }
@@ -28335,11 +28336,22 @@ function staffGo(t){
   document.querySelectorAll("#appRoot .panel").forEach(p=>p.classList.remove("active"));
   const gn=document.getElementById("groupNav"); if(gn) gn.style.display="none";
   if(t==="home"){ home.classList.add("active"); renderStaffHome(); }
-  else if(t==="matters"){ renderMatters(); markPanel("matters"); }
+  else if(t==="matters"){ renderMatters(); markPanel("matters"); _adCasesRefresh(); }
   else if(t==="s_docs"){ renderStaffDocs(); home.classList.add("active"); }
   else if(t==="s_exp"){ renderStaffExpenses(); home.classList.add("active"); }
   else if(t==="s_mybill"){ home.classList.add("active"); renderStaffBilling(); }
   window.scrollTo(0,0);
+}
+// The AD case list was read only at start-up, so an app left open for days never showed new files (File 440, 5 Nov 2026).
+// Read it again when Cases or Files is opened, at most every 5 minutes (one read).
+function _adCasesRefresh(){
+  if(!isStaffView()||!(window.FB&&FB.getMeta)||window.__acLoading||(window.__acAt&&Date.now()-window.__acAt<300000)) return;
+  window.__acLoading=true;
+  FB.getMeta("adCases").then(ac=>{ window.__acLoading=false; window.__acAt=Date.now(); if(!(ac&&Array.isArray(ac.cases))) return;
+    const changed=JSON.stringify(ac.cases)!==JSON.stringify(window.__adCases||[]); window.__adCases=ac.cases; if(!changed) return;
+    const pm=document.getElementById("panel-matters"), ph=document.getElementById("panel-home");
+    if(pm&&pm.classList.contains("active")) renderMatters(); else if(ph&&ph.classList.contains("active")&&_shellTab==="p_files") renderPhoneFiles(true);
+  }).catch(()=>{ window.__acLoading=false; window.__acAt=Date.now(); });
 }
 function _staffInfo(){ return (window.__staff)||{uid:null,email:"",profile:{status:"pending"},inbox:[]}; }
 window._staffRefresh=function(){
@@ -29422,7 +29434,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.11.04-1035";
+  window.APP_VERSION = "2026.11.05-1240";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
