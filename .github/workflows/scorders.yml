@@ -4,6 +4,9 @@
 # request at a time with a short pause, and carries on from where the last run stopped (progress in the gatekeeper).
 # A fourth run at 10:00 IST walks only on days the Court does not sit (Sundays, vacations), at a slower pace;
 # on a sitting day it ends at once.
+# Since 9 Nov 2026 two walkers run side by side (owner: "Reduce the days to 60 or less"), each on its own half of the
+# queue with its own progress, each still ONE request at a time. Shard 0 keeps the original queue slot, so it never
+# overlaps an earlier run.
 # It backs off and stops for the night if the Court's site pushes back; it never rotates addresses to evade a block.
 # Nothing is kept on GitHub.
 name: SC public documents archive (nightly)
@@ -19,16 +22,22 @@ on:
         description: "Optional: only this many cases (a test)"
         required: false
         default: ""
-concurrency:
-  group: scorders
-  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
   walk:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    concurrency:
+      group: ${{ matrix.shard == 0 && 'scorders' || 'scorders-1' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
+      SHARD: ${{ matrix.shard }}
+      SHARDS: "2"
       GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
       INGEST_KEY: ${{ secrets.INGEST_KEY }}
       PAUSE: "0.5"
