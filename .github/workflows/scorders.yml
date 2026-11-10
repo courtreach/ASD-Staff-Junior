@@ -38,14 +38,14 @@ jobs:
     env:
       SHARD: ${{ matrix.shard }}
       SHARDS: "2"
-      GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+      GATEKEEPER_URL: https://gate.courtreach.app
       INGEST_KEY: ${{ secrets.INGEST_KEY }}
       PAUSE: "0.5"
     steps:
       - uses: actions/checkout@v4
       - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
         env:
-          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          GATEKEEPER_URL: https://gate.courtreach.app
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
         run: |
           curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \

@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
         env:
-          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          GATEKEEPER_URL: https://gate.courtreach.app
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
         run: |
           curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \
@@ -48,11 +48,11 @@ jobs:
         run: pip install pdfplumber
       - name: Fetch upcoming cause lists (advance + main + supplementary)
         env:
-          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          GATEKEEPER_URL: https://gate.courtreach.app
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
         run: python fetch_causelist.py
       - name: Results to the gatekeeper (signed-in only, not the public website)
         env:
-          GATEKEEPER_URL: https://asdc-gatekeeper.sdentertainmentservices.workers.dev
+          GATEKEEPER_URL: https://gate.courtreach.app
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
         run: pip install -q certifi && python scindex/send_court_updates.py court-updates.json
