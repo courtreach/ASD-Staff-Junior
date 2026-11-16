@@ -2,11 +2,12 @@
 # number for (owner, 28 Oct 2026). These are served with no login and no CAPTCHA; the case file (which is login-gated)
 # is never touched here. Runs three times a day OUTSIDE court hours (16:00, 21:30, 03:00 IST, about 5h20m each), ONE
 # request at a time with a short pause, and carries on from where the last run stopped (progress in the gatekeeper).
-# A fourth run at 10:00 IST walks only on days the Court does not sit (Sundays, vacations), at a slower pace;
-# on a sitting day it ends at once.
+# A fourth run at 10:00 IST: on days the Court does not sit (Saturdays, Sundays, vacations) at a slower pace; since
+# 16 Nov 2026 on sitting days too, at bare minimum speed (owner), the same total load as before.
 # Since 9 Nov 2026 two walkers run side by side (owner: "Reduce the days to 60 or less"), each on its own half of the
 # queue with its own progress, each still ONE request at a time. Shard 0 keeps the original queue slot, so it never
-# overlaps an earlier run.
+# overlaps an earlier run. Since 16 Nov 2026 four walkers (owner: "yes"): 2 and 3 walk the halves of 0 and 1 from the
+# far end, skipping what their partner has begun; in court hours each waits 12 s, so the total load there is unchanged.
 # It backs off and stops for the night if the Court's site pushes back; it never rotates addresses to evade a block.
 # Nothing is kept on GitHub.
 name: SC public documents archive (nightly)
@@ -29,15 +30,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1]
+        shard: [0, 1, 2, 3]
     concurrency:
-      group: ${{ matrix.shard == 0 && 'scorders' || 'scorders-1' }}
+      group: ${{ matrix.shard == 0 && 'scorders' || format('scorders-{0}', matrix.shard) }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
       SHARD: ${{ matrix.shard }}
-      SHARDS: "2"
+      SHARDS: "4"
       GATEKEEPER_URL: https://gate.courtreach.app
       INGEST_KEY: ${{ secrets.INGEST_KEY }}
       PAUSE: "0.5"
