@@ -20258,11 +20258,12 @@ setTimeout(_fvWarm,6000); setInterval(_fvWarm,15*60e3); document.addEventListene
 function _filesSub(name){ _fv.sub=_fv.sub?_fv.sub+"/"+name:name; _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.fl=null; _fv.virt=null; _filesLoad(); }
 function _filesUp(){ const parts=_fv.sub.split("/"); parts.pop(); _fv.sub=parts.join("/"); _fv.idx=null; _fv.q=""; _fv.type="all"; _fv.virt=null; _filesLoad(); }
 const _FV_TYPES=[["all","All"],["N","Notes"],["L","Lists of dates"],["S","Submissions"],["C","Compilations"],["F","PDF files"],["D","Drafts"],["X","Not numbered"],["dir","Older folders"]];
-const _FV_GROUP={ord:"Court orders",fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
+const _FV_GROUP={P:"Papers",ord:"Court orders",fil:"Filings — stages, defects, final copy",N:"Notes",L:"Lists of dates & synopsis",S:"Written submissions",C:"Compilations",F:"Files — PDFs, orders, paper books",D:"Drafts & other Word documents",X:"Not yet numbered",dir:"Older folders"};
 function _fileKind(ext){ ext=String(ext||"").toLowerCase(); if(/^\.(docx?|rtf|odt)$/.test(ext)) return "word"; if(ext===".pdf") return "pdf"; if(/^\.(jpe?g|png|heic|gif|webp|tiff?)$/.test(ext)) return "img"; if(/^\.(xlsx?|csv)$/.test(ext)) return "xls"; return "file"; }
 const _FK={word:["W","#2b579a"],pdf:["PDF","#b3261e"],img:["IMG","#3d7a46"],xls:["X","#1d6f42"],file:["FILE","#7b746a"]};
 function _cleanDesc(desc,title){
   let d=String(desc||"");
+  const nn=_NEWNAME_RX.exec(d); if(nn) return nn[4];                                  // "2026.10.12 Order (389).pdf" -> "Order"
   d=d.replace(/\.[a-z0-9]{2,5}$/i,"");
   const t=String(title||"").trim();
   if(t && d.toLowerCase().indexOf(t.toLowerCase())===0) d=d.slice(t.length).replace(/^\s*[-–:]\s*/,"");
@@ -20272,9 +20273,9 @@ function _hl(text,q){ const t=String(text==null?"":text); if(!q) return esc(t); 
 function _fvRows(){
   const f=_fv, fx=f.idx||{items:[],bundles:[]};
   const title=f.title||fx.title||"";
-  const files=(fx.items||[]).map(i=>Object.assign({},i,{_t:i.letter||"X", _label:_cleanDesc(i.desc||i.name,title)}));
+  const files=(fx.items||[]).map(i=>Object.assign({},i,{_t:i.letter||(_NEWNAME_RX.test(i.name)?"P":"X"), _label:_cleanDesc(i.desc||i.name,title)}));
   // the "Orders" sub-folder (the helper saves the Court's orders there by themselves, 26 Oct 2026) gets its own tile
-  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:b.name==="Orders"?"ord":_FILING_RX.test(b.name)?"fil":"dir",_label:b.name==="Orders"?"Court orders":b.name}));
+  const dirs=(fx.bundles||[]).map(b=>({name:b.name,count:b.count,_t:b.name==="Orders"||b.name==="2 Court Record"?"ord":_DRAWER_RX.test(b.name)?"drw":_FILING_RX.test(b.name)?"fil":"dir",_label:b.name==="Orders"?"Court orders":b.name}));
   return {files,dirs,title};
 }
 function _fvSetQ(v){ _fv.q=String(v||""); _fvRenderList(); }
@@ -20310,10 +20311,11 @@ function _fvSetSort(v){ _fv.sort=v; _fvRenderList(); }
 function _fvQuote(s){ return JSON.stringify(String(s)).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
 function _fvRowHTML(x,base,q,can){
   {
-    const path=base+"/"+x.name, canRm=_canRemove(x);
+    const path=base+"/"+(x.dir?x.dir+"/":"")+x.name, canRm=_canRemove(x);
     const k=can?_paperReg({path,name:x.name,size:x.size,ext:x.ext||"",label:x._label,num:x.num||"",mtime:x.mtime||""}):-1;
     const kind=_fileKind(x.ext); const lab=_FK[kind][0], col=_FK[kind][1];
-    const meta=`<div class="fv-meta">${x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span>${window.__fvSel&&__fvSel.on&&!canRm?`<span>older than a week — Head of Chamber only</span>`:""}</div>`;
+    const nn=_NEWNAME_RX.exec(x.name||""), pdate=nn?`${nn[1]}-${nn[2]}-${nn[3]}`:"";
+    const meta=`<div class="fv-meta">${nn?`<span class="fv-num">${esc(fmtDate(pdate))}</span>${x.dir?`<span>${esc(x.dir.replace(/^\d /,""))}</span>`:""}`:x.num?`<span class="fv-num">${_hl(x.num,q)}</span>`:`<span class="fv-num" style="color:var(--muted);background:var(--line2)">no number</span>`}<span>${esc(nn?"":x.mtime?fmtDate(x.mtime):"")}</span><span>${esc(_fmtSize(x.size))}</span>${window.__fvSel&&__fvSel.on&&!canRm?`<span>older than a week — Head of Chamber only</span>`:""}</div>`;
     if(window.__fvSel&&__fvSel.on&&can){ __fvSel.meta[path]={name:x.name}; const on=__fvSel.set.has(path);
       return `<div class="fv-row selmode${on?" picked":""}${canRm?"":" locked"}" data-sp="${esc(path)}" ${canRm?`onclick="_fvSelToggle(${_fvQuote(path)})"`:""}><input type="checkbox" class="fv-ck" ${on?"checked":""} ${canRm?"":"disabled"} tabindex="-1">
         <div class="fv-ic" style="background:${col}">${lab}</div><div class="fv-main"><div class="fv-name">${_hl(x._label,q)}</div>${meta}</div></div>`; }
@@ -20344,10 +20346,11 @@ function _fvRenderList(){
   let h="";
   if(f.type==="all"&&!q&&!__fvSel.on){
     // Every paper of the folder in two columns — Word documents | PDFs — newest first (owner, 12 Oct 2026); folders as tiles above
-    const newest=(a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||""))||String(a._label).localeCompare(String(b._label));
+    const pd=x=>{ const m=_NEWNAME_RX.exec(x.name||""); return m?`${m[1]}-${m[2]}-${m[3]}`:String(x.mtime||""); };
+    const newest=(a,b)=>pd(b).localeCompare(pd(a))||String(b.name).localeCompare(String(a.name));
     const words=files.filter(x=>_fileKind(x.ext)==="word").sort(newest), pdfs=files.filter(x=>_fileKind(x.ext)==="pdf").sort(newest),
           others=files.filter(x=>{ const k=_fileKind(x.ext); return k!=="word"&&k!=="pdf"; }).sort(newest);
-    const kinds=[["fil","⚖️","Filings"],["dir","📁","Older folders"]];
+    const kinds=[["fil","⚖️","Filings"],["dir","📁","Old papers"]];
     const tiles=kinds.map(([t,ic,lab])=>{
       const g=(t==="dir"||t==="fil")?dirs.filter(x=>x._t===t):files.filter(x=>t==="LS"?(x._t==="L"||x._t==="S"):x._t===t);
       if(!g.length) return "";
@@ -20355,13 +20358,15 @@ function _fvRenderList(){
       const last=(t==="dir"||t==="fil")?"":g.map(x=>x.mtime||"").sort().pop();
       return `<button class="fv-isl" onclick="_fvSetType('${t}')"><span class="fv-isl-ic">${ic}</span><span class="fv-isl-n">${g.length}</span><span class="fv-isl-l">${lab}</span>${last?`<span class="fv-isl-d">latest ${esc(fmtDate(last))}</span>`:`<span class="fv-isl-d">${g.reduce((a,x)=>a+(+x.count||0),0)} items</span>`}</button>`;
     }).join("");
-    const od=dirs.find(x=>x._t==="ord");
-    const ordTile=od?`<button class="fv-isl" onclick="_filesSub('Orders')"><span class="fv-isl-ic">📜</span><span class="fv-isl-n">${+od.count||0}</span><span class="fv-isl-l">Court orders</span><span class="fv-isl-d">${+od.count?"saved by themselves after each hearing":"none yet — they arrive after a hearing"}</span></button>`:"";
+    const drwArr=_DRAWERS.filter(D=>D.n!=="2 Court Record").map(D=>{ const g=dirs.find(x=>x.name===D.n); if(!g) return "";
+      return `<button class="fv-isl" onclick="_filesSub(${_fvQuote(D.n)})"><span class="fv-isl-ic">${D.ic}</span><span class="fv-isl-n">${+g.count||0}</span><span class="fv-isl-l">${esc(D.l)}</span><span class="fv-isl-d">${esc(D.h)}</span></button>`; }); const drwTiles=drwArr.join("");
+    const od=dirs.find(x=>x.name==="2 Court Record")||dirs.find(x=>x._t==="ord");
+    const ordTile=od?`<button class="fv-isl" onclick="_filesSub(${_fvQuote(od.name)})"><span class="fv-isl-ic">📜</span><span class="fv-isl-n">${+od.count||0}</span><span class="fv-isl-l">Court record</span><span class="fv-isl-d">${+od.count?"orders, office reports, judgments — saved by themselves":"none yet — they arrive after a hearing"}</span></button>`:"";
     const nFil=dirs.filter(x=>x._t==="fil").length;
     const fdTile=nFil?`<button class="fv-isl" onclick="_fvFilingDocs()"><span class="fv-isl-ic">📑</span><span class="fv-isl-n" style="font-size:20px">PDFs</span><span class="fv-isl-l">Filing documents</span><span class="fv-isl-d">filing copy, defect pages, final copy…</span></button>`:"";
     const col=(lab,xs)=>`<div class="fv-col"><div class="fv-group" style="margin-top:0">${lab} · ${xs.length}</div>${xs.length?xs.map(row).join(""):`<div class="hint" style="padding:8px 2px">None.</div>`}</div>`;
-    h=(tiles||fdTile||ordTile?`<div class="fv-isls" style="margin-top:4px">${ordTile}${tiles}${fdTile}</div>`:"")
-      +(files.length?`<div class="fv-cols" style="margin-top:${tiles||fdTile||ordTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
+    h=(drwTiles||tiles||fdTile||ordTile?`<div class="fv-isls" style="margin-top:4px">${drwArr[0]}${ordTile}${drwArr.slice(1).join("")}${tiles}${fdTile}</div>`:"")
+      +(files.length?`<div class="fv-cols" style="margin-top:${drwTiles||tiles||fdTile||ordTile?16:4}px">${col("Word documents",words)}${col("PDFs",pdfs)}</div>`
         +(others.length?`<div class="fv-group" style="margin-top:14px">Other files · ${others.length}</div>`+others.map(row).join(""):""):"");
     if(!files.length&&!dirs.length){ // the Mac has papers here that OneDrive has not uploaded yet (the helper's list knows them)
       const bx=_fv.sub&&((((window.__fvMem["idx:"+_fv.serial]||window.__folderIdx[_fv.serial]||{}).bundles)||[]).find(b=>b.name===_fv.sub));
@@ -20372,7 +20377,7 @@ function _fvRenderList(){
     fl=fl.slice().sort((a,b)=>String(b.mtime||"").localeCompare(String(a.mtime||"")));
     h=fl.map(row).join("")+(dl.length?`<div class="fv-group">${_FV_GROUP.dir} · ${dl.length}</div>`+dl.map(drow).join(""):"");
   }else{
-    ["N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=(f.type==="all"||f.type==="LS"?`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`:"")+g.map(row).join(""); });
+    ["P","N","L","S","C","F","D","X"].forEach(t=>{ const g=fl.filter(x=>x._t===t); if(!g.length) return; h+=(f.type==="all"||f.type==="LS"?`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`:"")+g.map(row).join(""); });
     ["fil","dir"].forEach(t=>{ const g=dl.filter(x=>x._t===t); if(g.length) h+=`<div class="fv-group">${_FV_GROUP[t]} · ${g.length}</div>`+g.map(drow).join(""); });
   }
   if(!h) h=`<div class="fv-empty">${q?`Nothing matches “${esc(f.q)}”.`:"No papers of this kind."}</div>`;
@@ -20568,7 +20573,42 @@ function _regNoteDesc(desc){ const m=/(\d{1,2})[.\-\/_](\d{1,2})[.\-\/_](\d{4})/
   if(m){ const before=desc.slice(0,m.index).replace(/[\s\-_,]*\b(?:dated|dt\.?|date|on)?[\s\-_,]*$/i,""); const kind=_regDesc((before+" "+desc.slice(m.index+m[0].length)).replace(/^[\s\-_,]+|[\s\-_,]+$/g,""))||"Note";
     return `${kind} - ${String(+m[1]).padStart(2,"0")}.${String(+m[2]).padStart(2,"0")}.${m[3]}`; }
   return `${_regDesc(desc)||"Note"} - ${fmtDate(_localISO())}`; }
+/* ---- the chamber's file rules (owner's go-ahead, 19 Nov 2026; Templates/File Rules.md) ----
+   Case folder: 1 Notes and Drafts · 2 Court Record · 3 Papers Received · 4 Accounts · 9 Old Papers · <Kind> Filing (NNN-n).
+   Paper: "YYYY.MM.DD <what it is> (NNN).ext" — the date the paper bears, else the day it came in. No case title, no letter. */
+const _DRAWERS=[{n:"1 Notes and Drafts",ic:"✍️",l:"Notes & drafts",h:"notes, lists of dates, submissions, compilations, our drafts"},
+  {n:"2 Court Record",ic:"📜",l:"Court record",h:"orders, office reports, judgments of this case"},
+  {n:"3 Papers Received",ic:"📥",l:"Papers received",h:"paper books, impugned orders, client papers, signed papers"},
+  {n:"4 Accounts",ic:"🧾",l:"Accounts",h:"invoices, receipts, charges"}];
+const _DRAWER_RX=/^[1-4] (Notes and Drafts|Court Record|Papers Received|Accounts)$/, _OLDP="9 Old Papers";
+const _NEWNAME_RX=/^(\d{4})\.(\d{2})\.(\d{2}) (.+?) \((\d{3,})\)(\.[A-Za-z0-9]+)$/;
+const _FR_MON=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+function _frDate(s){ s=String(s||""); let m=/(?:\b(?:dated|dt\.?)\s*)?(?<!\d)(\d{1,2})[.\-\/_](\d{1,2})[.\-\/_](\d{4})(?!\d)/i.exec(s), iso="";
+  if(m){ iso=`${m[3]}-${String(+m[2]).padStart(2,"0")}-${String(+m[1]).padStart(2,"0")}`; }
+  else if((m=/(?:\b(?:dated|dt\.?)\s*)?(?<!\d)(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?,?\s+(\d{4})(?!\d)/i.exec(s))){ iso=`${m[3]}-${String(_FR_MON.indexOf(m[2].toLowerCase())+1).padStart(2,"0")}-${String(+m[1]).padStart(2,"0")}`; }
+  if(!iso||+iso.slice(0,4)<1990||+iso.slice(0,4)>2030||isNaN(new Date(iso+"T00:00:00"))) return {iso:"",rest:s};
+  return {iso, rest:(s.slice(0,m.index)+" "+s.slice(m.index+m[0].length))}; }
+function _frClean(s){ return String(s||"").replace(/["*:<>?\/\\|]/g,"-").replace(/_/g," ").replace(/\s+([,;)])/g,"$1").replace(/\(\s*\)/g,"").replace(/(\s*-\s*){2,}/g," - ").replace(/\s+/g," ").replace(/^[\s\-–,.;]+|[\s\-–,;.]+$/g,"").trim(); }
+function _frDrawer(desc, ext){ const L=_regLetter(desc+ext);
+  if(_looksFinancial(desc)||/typing charges|translation charges/i.test(desc)) return "4 Accounts";
+  if(L!=="F") return "1 Notes and Drafts";
+  if(/\b(office report|record of proceedings)\b|\b(sc|supreme court)\b.{0,40}\b(order|judgm?ents?)\b/i.test(desc)&&!/co-?accused|high court|\bhc\b|impugned/i.test(desc)) return "2 Court Record";
+  return "3 Papers Received"; }
+// rel: the folder the paper is saved in (case folder, or a drawer of it). Returns the name to save under, relative to rel
+// ("<drawer>/<name>" when rel is the case folder itself).
 function _regName(rel, names, fileName, typed){
+  const c=_regCase(rel); if(!c) return null; const ext=(_extOf(fileName)||".pdf");
+  const last=String(rel||"").split("/").pop(); const inDrawer=_DRAWER_RX.test(last);
+  if(!inDrawer&&!/ \(\d{3,}\)$/.test(last)) return null;          // inside an old folder (9 Old Papers…): the paper keeps its own name
+  let desc=String(typed||_baseOf(fileName)).replace(/^[NLSCFD]\d{3,}(?:\.\d+)*\s+/,"");
+  const t=c.title; if(t){ const lo=desc.toLowerCase(), tl=t.toLowerCase(); if(lo.startsWith(tl+" - ")) desc=desc.slice(t.length+3); else if(lo.endsWith(" - "+tl)) desc=desc.slice(0,-t.length-3); }
+  const d=_frDate(desc); desc=_frClean(d.rest)||"Paper";
+  const iso=d.iso||_localISO(); const drawer=inDrawer?"":_frDrawer(desc,ext);
+  const taken=new Set((names||[]).map(n=>String(n).toLowerCase()));
+  let base=`${iso.replace(/-/g,".")} ${desc.slice(0,110)}`, k=1, nm=`${base} (${c.serial})${ext.toLowerCase()}`;
+  while(taken.has(nm.toLowerCase())||taken.has((drawer+"/"+nm).toLowerCase())){ k++; nm=`${base} ${k} (${c.serial})${ext.toLowerCase()}`; }
+  return (drawer?drawer+"/":"")+nm; }
+function _regNameOld(rel, names, fileName, typed){
   const c=_regCase(rel); if(!c) return null; const ext=_extOf(fileName)||".pdf";
   let desc=String(typed||_baseOf(fileName)).replace(/^[NLSCFD]\d{3,}(?:\.\d+)?\s+/,"");
   const L=_regLetter(desc+ext);
@@ -21732,9 +21772,10 @@ async function _scSaveGo(){
     prog("Making the PDF…");
     const pdf=await _scBuildPdf(_sc.pages);
     const fil=_inFiling(); const st=fil?+((document.getElementById("scStage")||{}).value||1):0;
-    const name=fil?`${st}.${_stageNext(st,_currentNames())} ${title}.pdf`:`${title} - ${fmtDate(_localISO())}.pdf`;
+    const here=_fv.folder+(_fv.sub?"/"+_fv.sub:"");
+    const name=fil?`${st}.${_stageNext(st,_currentNames())} ${title}.pdf`:(_regName(here,_currentNames(),title+".pdf",title)||`${title} - ${fmtDate(_localISO())}.pdf`);
     if(isStaffView()&&_looksFinancial(name)){ toast("Financial papers are for the Head of Chamber only.",true); if(btn) btn.disabled=false; return; }
-    const base=fil?_filingFolderRel():_fv.folder;
+    const base=fil?_filingFolderRel():here;
     const got=await _uploadPaper(base+"/"+name,pdf,(g,t)=>prog(`Uploading — ${Math.round(g*100/t)}% of ${_fmtSize(t)}`));
     const cb=_sc.opt.onDone; _scClose(true);
     toast("Saved: "+got); if(typeof cb==="function"){ try{ cb(got); }catch(e){} }
@@ -22794,7 +22835,7 @@ function _docAutoOn(){ const s=DB.settings||{}; return s.autoCaseSave!==false; }
 async function _docToCase(ctx, html, force){
   if(!ctx||!ctx.matterId||!html) return;
   if(!force&&!_docAutoOn()) return;
-  const folder=_docCaseFolder(ctx.matterId);
+  let folder=_docCaseFolder(ctx.matterId);
   if(!folder){ if(force) toast("This case has no folder in the Master Cases Folder yet.",true); return; }
   if(!_gkUrl()){ if(force) toast("Documents are not set up yet (Settings → Documents).",true); return; }
   const staff=isStaffView();
@@ -22803,22 +22844,26 @@ async function _docToCase(ctx, html, force){
   const rec=ctx.coll&&ctx.id?(DB[ctx.coll]||[]).find(x=>x&&x.id===ctx.id):null;
   const sig=_docHash(html);
   const prev=rec&&rec.caseFiles&&rec.caseFiles[ctx.slot];
-  if(prev&&prev.sig===sig&&prev.folder===folder&&!force) return;            // same document, already in the folder
+  if(prev&&prev.sig===sig&&(prev.folder===folder||String(prev.folder||"").indexOf(folder+"/")===0)&&!force) return;            // same document, already in the folder
   try{
     toast("Saving a copy in the case folder…");
     const blob=await _docHtmlToPdf(html);
+    const drawer=/^(invoice|receipt|both|voucher|statement|expense)$/i.test(ctx.kind||"")||_looksFinancial(ctx.name||"")?"4 Accounts":"1 Notes and Drafts";
+    const caseF=folder; folder=folder+"/"+drawer;                                   // 19 Nov 2026: the case's drawer
     const listing=await _gk("/api/list",{folder}).catch(()=>({items:[]}));
     const names=(listing.items||[]).filter(i=>!i.isFolder).map(i=>i.name);
-    const findBase=b=>names.find(n=>n===b||n.endsWith(" - "+b));
-    let base=_safeName(ctx.name)+".pdf", target="";
-    if(prev&&prev.folder===folder&&findBase(prev.base)){ base=prev.base; target=findBase(prev.base); }            // revised: replace the earlier copy
+    const core=n=>_frClean(_frDate(String(n||"").replace(/\.pdf$/i,"").replace(/^\d{4}\.\d{2}\.\d{2} /,"").replace(/ \(\d{3,}\)$/,"")).rest).toLowerCase();
+    const findBase=b=>names.find(n=>n===b||n.endsWith(" - "+b)||core(n)===core(b));
+    const nm0=_regName(caseF+"/"+drawer,[],_safeName(ctx.name)+".pdf",_safeName(ctx.name));
+    let base=nm0||(_safeName(ctx.name)+".pdf"), target="";
+    if(prev&&findBase(prev.base)){ target=findBase(prev.base); base=target; }            // revised: replace the earlier copy
     else if(!rec&&findBase(base)){ target=findBase(base); }                                                         // e.g. today's statement again
-    else { let k=2; const stem=base.replace(/\.pdf$/,""); while(findBase(base)) base=`${stem} (${k++}).pdf`; target=base; }  // a different document of the same name
+    else { let k=2; const stem=base.replace(/ \(\d{3,}\)\.pdf$/,"").replace(/\.pdf$/,""), tail=(/ \(\d{3,}\)\.pdf$/.exec(base)||[".pdf"])[0]; while(names.includes(base)) base=`${stem} ${k++}${tail}`; target=base; }  // a different document of the same name
     const path=folder+"/"+target;
     if(staff) await _uploadPaper(path,blob,null,{replace:true});
     else await _uploadPaper(path,blob,null,{owner:true});
     if(rec){ rec.caseFiles=Object.assign({},rec.caseFiles||{}); rec.caseFiles[ctx.slot]={base,sig,folder,at:new Date().toISOString()}; save(); }
-    toast(`Saved in ${folder.split("/").pop()}${target===base?" — your Mac helper will number it":" (replaced the earlier copy)"}.`);
+    toast(`Saved in ${caseF.split("/").pop()} › ${drawer}${target===base?"":" (replaced the earlier copy)"}.`);
   }catch(e){ toast("Could not save to the case folder: "+e.message,true); }
 }
 // The "Save to case folder" button in the save dialogs.
@@ -29567,7 +29612,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.11.13-1730";
+  window.APP_VERSION = "2026.11.19-1200";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
