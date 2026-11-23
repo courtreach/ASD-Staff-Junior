@@ -1,0 +1,47 @@
+# Old records (owner, 23 Nov 2026): the Court's PUBLIC files of old cases (orders, office reports and judgments from
+# before mid-2017) whose addresses Record Helper's people found by typing the Court's captcha, one case at a time.
+# Only those files are fetched here (no captcha is ever touched by this job), ONE request at a time with a pause,
+# only OUTSIDE court hours. It backs off and stops for the night if the Court's site pushes back; it never rotates
+# addresses to evade a block. Nothing is kept on GitHub; logs show counts only.
+name: SC old records (from Record Helper)
+on:
+  schedule:
+    - cron: "45 11 * * *"
+    - cron: "15 20 * * *"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Optional: only this many cases (a test)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+concurrency:
+  group: scold
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GATEKEEPER_URL: https://gate.courtreach.app
+      INGEST_KEY: ${{ secrets.INGEST_KEY }}
+      PAUSE: "0.5"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the engine (kept privately in the gatekeeper, not in this public repo)
+        run: |
+          curl -sf -A "ASDC engine fetch" -X POST "$GATEKEEPER_URL/api/ingest/kvget" -H "X-Ingest-Key: $INGEST_KEY" \
+               -H "Content-Type: application/json" -d '{"key":"sci:engine"}' -o engine.json
+          python3 -c "import json,base64; v=json.load(open('engine.json')).get('value'); assert v, 'engine missing in the gatekeeper'; open('engine.tgz','wb').write(base64.b64decode(v))"
+          tar xzf engine.tgz && rm -f engine.json engine.tgz && echo "engine ready: $(ls scindex | wc -l) files"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pymupdf==1.24.10 certifi
+      - name: Fetch the old records found so far
+        env:
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          cd scindex
+          case "$LIMIT" in ''|*[!0-9]*) python -u walk_old.py ;; *) python -u walk_old.py --limit "$LIMIT" ;; esac
