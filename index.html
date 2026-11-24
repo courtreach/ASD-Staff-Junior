@@ -29612,7 +29612,7 @@ window.dispatchEvent(new Event("firebase-ready"));
   // Also drives the auto-update prompt: this build carries a version stamp;
   // the app polls a tiny version.json on the server and, when it differs,
   // shows a "new version available" banner that reloads cleanly on tap.
-  window.APP_VERSION = "2026.11.19-1200";
+  window.APP_VERSION = "2026.11.24-1430";
   window.__APP_VER_PLACEHOLDER = ["__APP","_VERSION__"].join("");  // never matches the stamp
   (function(){
     function showUpdateBar(serverVer){
@@ -29648,7 +29648,8 @@ window.dispatchEvent(new Event("firebase-ready"));
         fetch("version.json?ts="+Date.now(), {cache:"no-store"})
           .then(function(r){ return r.ok? r.json() : null; })
           .then(function(j){
-            if(j && j.version && window.APP_VERSION && j.version!==window.APP_VERSION && window.APP_VERSION!==window.__APP_VER_PLACEHOLDER){
+            // only a NEWER server version (stamps sort as text: YYYY.MM.DD-HHMM); a stale version.json must never nag (24 Nov 2026)
+            if(j && j.version && window.APP_VERSION && j.version>window.APP_VERSION && window.APP_VERSION!==window.__APP_VER_PLACEHOLDER){
               showUpdateBar(j.version);
             }
           }).catch(function(){});
